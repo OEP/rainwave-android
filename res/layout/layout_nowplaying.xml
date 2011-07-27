@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+	<TextView
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/label_nowPlaying"
+		android:gravity="center_horizontal"
+		android:textSize="30dp" />
+	<FrameLayout
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:id="@+id/np_albumArtContainer"
+		android:layout_weight="1">
+		<ImageView
+			android:layout_width="wrap_content"
+			android:layout_gravity="center_vertical|center_horizontal"
+			android:scaleType="center"
+			android:id="@+id/np_albumArt"
+			android:layout_height="wrap_content"
+			android:src="@drawable/noart"></ImageView>
+	</FrameLayout>
+	<TextView
+		android:textAppearance="?android:attr/textAppearanceLarge"
+		android:layout_height="wrap_content"
+		android:textStyle="bold"
+		android:layout_width="fill_parent"
+		android:id="@+id/np_songTitle"></TextView>
+	<TextView
+		android:textAppearance="?android:attr/textAppearanceMedium"
+		android:layout_height="wrap_content"
+		android:id="@+id/np_albumTitle"
+		android:layout_width="fill_parent"></TextView>
+	<TextView
+		android:textAppearance="?android:attr/textAppearanceMedium"
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		android:id="@+id/np_artist"></TextView>
+</LinearLayout>
