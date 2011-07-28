@@ -7,10 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
-import android.util.Log;
-
 import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -44,8 +41,6 @@ public class ScheduleOrganizer {
                 // to the actual schedule data.
                 Set<Map.Entry<String, JsonElement>> members = schedule.entrySet();
                 
-                Log.d(TAG, "Number of members: " + members.size());
-
                 // This little doodad just finds the first member inside the
                 // object and extracts its name and the data it is bound to.
                 Iterator<Entry<String, JsonElement>> it = members.iterator();
@@ -53,14 +48,9 @@ public class ScheduleOrganizer {
                 String name = first.getKey();
                 JsonElement data = first.getValue();
                 
-                // 'data' is now an Event object, or an array of them.
-                // We're going to assume that if 'data' is a JsonObject, that
-                // it is the current event 'sched_current'. If it is a JsonArray, we'll stuff
-                // it in mSchedules for later.
-                
-                // TODO: WARNING! WARNING! WARNING!
-                // This might be a bit dangerous in the future if somebody
-                // decides that something other
+                // Hopefully there will only ever be three types of schedules,
+                // so we'll just check the name of the member and assign it to
+                // the appropriate field.
                 
                 if(name.compareTo(SCHED_HISTORY) == 0) {
                     organizer.mHistory = (Event[]) ctx.deserialize(data, Event[].class);

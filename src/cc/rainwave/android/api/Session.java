@@ -1,5 +1,14 @@
 package cc.rainwave.android.api;
 
+import cc.rainwave.android.api.types.ScheduleOrganizer;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
+import android.graphics.drawable.Drawable;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,23 +17,6 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
-
-import android.graphics.drawable.Drawable;
-import android.util.Log;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import cc.rainwave.android.api.types.Event;
-import cc.rainwave.android.api.types.ScheduleOrganizer;
 
 public class Session {
 	private static final String TAG = "Session";
