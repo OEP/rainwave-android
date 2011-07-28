@@ -10,8 +10,23 @@ import java.net.URLEncoder;
 public class HttpHelper {
 	/**
 	 * Create an <code>HttpURLConnection</code> object and make it post
-	 * its parameters to the Worddit server.
-	 * @param baseUrl The base URL of the Worddit server.
+	 * its parameters to the server.
+	 * @param baseUrl The base URL of the server.
+	 * @param path The path to make the POST to
+	 * @param params URL-encoded parameters
+	 * @return an <code>HttpURLConnection</code> for the connection
+	 * @throws IOException
+	 */
+	public static HttpURLConnection makePost(URL baseUrl, String path, String params)
+	throws IOException {
+		return makePost(baseUrl, path, params, null);
+	}
+	
+	
+	/**
+	 * Create an <code>HttpURLConnection</code> object and make it post
+	 * its parameters to the server.
+	 * @param baseUrl The base URL of the server.
 	 * @param path The path to make the POST to
 	 * @param params URL-encoded parameters
 	 * @param cookie to send to the server
@@ -20,7 +35,7 @@ public class HttpHelper {
 	 */
 	public static HttpURLConnection makePost(URL baseUrl, String path, String params, String cookie)
 	throws IOException {
-		URL url = new URL(String.format("%s%s", baseUrl.toString(), path));
+		URL url = new URL(String.format("%s/%s", baseUrl.toString(), path));
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("POST");
 		connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -56,7 +71,7 @@ public class HttpHelper {
 	 */
 	public static HttpURLConnection makeGet(URL baseUrl, String path, String cookie)
 	throws IOException {
-		URL url = new URL(String.format("%s%s", baseUrl.toString(), path));
+		URL url = new URL(String.format("%s/%s", baseUrl.toString(), path));
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("GET");
 		connection.setRequestProperty("Content-Language", "en-US");
