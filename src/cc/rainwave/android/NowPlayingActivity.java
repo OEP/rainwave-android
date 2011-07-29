@@ -5,6 +5,7 @@ import cc.rainwave.android.api.types.ScheduleOrganizer;
 import cc.rainwave.android.api.types.Song;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -61,26 +62,29 @@ public class NowPlayingActivity extends Activity {
         
         if(mFetchInfo == null) {
             mFetchInfo = new FetchInfo();
-            mFetchInfo.execute(mSession);
+            mFetchInfo.execute();
         }
     }
     
     private void updateSchedule() {
-    	if(mOrganizer == null) return;
+    	if(mOrganizer == null) {
+    	    // TODO: Some error here.
+    	    return;
+    	}
     	
     	Song current = mOrganizer.getCurrentSong();
     	((TextView) findViewById(R.id.np_songTitle)).setText(current.song_title);
     	((TextView) findViewById(R.id.np_albumTitle)).setText(current.album_name);
     	((TextView) findViewById(R.id.np_artist)).setText(current.collapseArtists());
-    	
-    	// TODO: Make this happen somewhere other than the UI thread.
-    	try {
-    	    Drawable albumArt = mSession.fetchAlbumArt(current.album_art);
-    	    ((ImageView) findViewById(R.id.np_albumArt)).setImageDrawable(albumArt);
-    	}
-    	catch(IOException e) {
-    	    e.printStackTrace();
-    	}
+    }
+    
+    private void updateAlbumArt(Bitmap art) {
+        if(art == null) {
+            // TODO: Some error here.
+            return;
+        }
+        
+        ((ImageView) findViewById(R.id.np_albumArt)).setImageBitmap(art);
     }
     
     /**
@@ -88,24 +92,40 @@ public class NowPlayingActivity extends Activity {
      * @author pkilgo
      *
      */
-    protected class FetchInfo extends AsyncTask<Session, Integer, ScheduleOrganizer> {
+    protected class FetchInfo extends AsyncTask<String, Integer, Bundle> {
 
         @Override
-        protected ScheduleOrganizer doInBackground(Session... s) {
+        protected Bundle doInBackground(String... s) {
+            Bundle b = new Bundle();
             try {
-                return s[0].asyncGet();
+                ScheduleOrganizer organizer = mSession.asyncGet();
+                b.putParcelable(SCHEDULE, organizer);
+                
+                Song song = organizer.getCurrentSong();
+                Bitmap art = mSession.fetchAlbumArt(song.album_art);
+                b.putParcelable(ART, art);
+
+                return b;
             } catch (IOException e) {
                 e.printStackTrace();
-                return null;
             }
+            
+            return b;
         }
         
-        protected void onPostExecute(ScheduleOrganizer result) {
+        protected void onPostExecute(Bundle result) {
             super.onPostExecute(result);
-            mOrganizer = result;
+            
+            if(result == null) return;
+            
+            mOrganizer = result.getParcelable(SCHEDULE);
             updateSchedule();
+            updateAlbumArt( (Bitmap) result.getParcelable(ART) );
             mFetchInfo = null;
         }
         
+        public static final String
+            SCHEDULE = "schedule",
+            ART = "art";
     }
 }

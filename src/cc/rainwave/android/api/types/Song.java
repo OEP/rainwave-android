@@ -1,10 +1,25 @@
 package cc.rainwave.android.api.types;
 
-public class Song {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Song implements Parcelable {
 	public String song_title;
 	public Artist artists[];
 	public String album_art;
 	public String album_name;
+	
+	private Song(Parcel in) {
+	    song_title = in.readString();
+	    Parcelable tmp[] = in.readParcelableArray(Artist[].class.getClassLoader());
+	    album_art = in.readString();
+	    album_name = in.readString();
+	    
+	    artists = new Artist[tmp.length];
+	    for(int i = 0; i < tmp.length; i++) {
+	        artists[i] = (Artist) tmp[i];
+	    }
+	}
 	
 	public String collapseArtists() {
 	    return collapseArtists(", ", " & ");
@@ -30,4 +45,31 @@ public class Song {
 	            return sb.toString();
 	    }
 	}
+
+    @Override
+    public int describeContents() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(song_title);
+        dest.writeParcelableArray(artists, flags);
+        dest.writeString(album_art);
+        dest.writeString(album_name);
+    }
+    
+    public static final Parcelable.Creator<Song> CREATOR
+    = new Parcelable.Creator<Song>() {
+        @Override
+        public Song createFromParcel(Parcel source) {
+            return new Song(source);
+        }
+
+        @Override
+        public Song[] newArray(int size) {
+            return new Song[size];
+        }
+    };
 }

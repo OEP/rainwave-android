@@ -7,6 +7,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 
 import java.io.BufferedReader;
@@ -43,10 +45,10 @@ public class Session {
 		return gson.fromJson(json, ScheduleOrganizer.class);
 	}
 	
-	public Drawable fetchAlbumArt(String path) throws IOException {
+	public Bitmap fetchAlbumArt(String path) throws IOException {
 	    URL url = new URL( getUrl(path) );
 	    InputStream is = url.openStream();
-	    return Drawable.createFromStream(is, path);
+	    return BitmapFactory.decodeStream(is);
 	}
 	
 	private HttpURLConnection getConnection(boolean async, String request, String ... params)

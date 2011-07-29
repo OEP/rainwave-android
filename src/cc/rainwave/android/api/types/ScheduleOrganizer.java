@@ -7,17 +7,35 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.lang.reflect.Type;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public class ScheduleOrganizer {
+public class ScheduleOrganizer implements Parcelable {
     private Event mCurrent;
     
     private Event mHistory[], mNext[];
     
+    private ScheduleOrganizer(Parcel source) {
+        mCurrent = source.readParcelable(Event.class.getClassLoader());
+        
+        Parcelable history[] = source.readParcelableArray(Event.class.getClassLoader());
+        Parcelable next[] = source.readParcelableArray(Event.class.getClassLoader());
+        
+        mHistory = new Event[history.length];
+        mNext = new Event[next.length];
+        
+        for(int i = 0; i < history.length; i++) { mHistory[i] = (Event) history[i]; }
+        for(int i = 0; i < next.length; i++) { mNext[i] = (Event) next[i]; }
+    }
+    
+    public ScheduleOrganizer() { }
+
     public Song getCurrentSong() {
         return mCurrent.song_data[0];
     }
@@ -71,4 +89,27 @@ public class ScheduleOrganizer {
             SCHED_NEXT = "sched_next",
             SCHED_HISTORY = "sched_history";
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeParcelable(mCurrent, flags);
+    }
+    
+    public static final Parcelable.Creator<ScheduleOrganizer> CREATOR
+    = new Parcelable.Creator<ScheduleOrganizer>() {
+        @Override
+        public ScheduleOrganizer createFromParcel(Parcel source) {
+            return new ScheduleOrganizer(source);
+        }
+
+        @Override
+        public ScheduleOrganizer[] newArray(int size) {
+            return new ScheduleOrganizer[size];
+        }
+    };
 }
