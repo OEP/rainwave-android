@@ -67,7 +67,7 @@ public class NowPlayingActivity extends Activity {
     
     private void initializeSession() {
         try {
-            mSession = Session.makeSession();
+            mSession = Session.makeSession(this);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }

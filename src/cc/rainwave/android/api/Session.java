@@ -1,5 +1,6 @@
 package cc.rainwave.android.api;
 
+import cc.rainwave.android.Rainwave;
 import cc.rainwave.android.api.types.ScheduleOrganizer;
 
 import com.google.gson.Gson;
@@ -7,6 +8,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -36,7 +38,7 @@ public class Session {
 	
 	public ScheduleOrganizer asyncGet()
 	throws IOException {
-		HttpURLConnection conn = getConnection(true, "get");
+		HttpURLConnection conn = getConnection(true, false, "get");
 		
 		Gson gson = getGson();
 		JsonParser parser = new JsonParser();
@@ -56,11 +58,11 @@ public class Session {
 		mKey = key;
 	}
 	
-	private HttpURLConnection getConnection(boolean async, String request, String ... params)
+	private HttpURLConnection getConnection(boolean async, boolean auth, String request, String ... params)
 	throws IOException {
 		String path = String.format("%s/%s/%s", (async) ? "async" : "sync", mStation, request);
 		
-		if(mUserId != null && mKey != null) {
+		if(auth && mUserId != null && mKey != null) {
 			
 			// Extend the var-args into an array with 4 more slots.
 			String tmp[] = (params != null) ? new String[params.length + 4] : new String[4];
@@ -110,11 +112,14 @@ public class Session {
 	    return builder.create();
 	}
 	
-	public static Session makeSession() throws MalformedURLException {
-		return makeSession(API_URL);
+	public static Session makeSession(Context ctx) throws MalformedURLException {
+	    Session s = new Session();
+	    s.mBaseUrl = new URL(Rainwave.getUrl(ctx, API_URL));
+	    s.setUserInfo(Rainwave.getUserId(ctx), Rainwave.getKey(ctx));
+	    return s;
 	}
 	
-	public static Session makeSession(String url) throws MalformedURLException {
+	public static Session makeSession(Context ctx, String url) throws MalformedURLException {
 		Session s = new Session();
 		s.mBaseUrl = new URL(url);
 		return s;
