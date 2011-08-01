@@ -1,11 +1,13 @@
 package cc.rainwave.android;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
+import cc.rainwave.android.api.Session;
+import cc.rainwave.android.api.types.ScheduleOrganizer;
+import cc.rainwave.android.api.types.Song;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
@@ -13,9 +15,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
-import cc.rainwave.android.api.Session;
-import cc.rainwave.android.api.types.ScheduleOrganizer;
-import cc.rainwave.android.api.types.Song;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
 
 public class NowPlayingActivity extends Activity {
 	private static final String TAG = "NowPlaying";
@@ -25,6 +27,8 @@ public class NowPlayingActivity extends Activity {
 	private Session mSession;
 	
 	private FetchInfo mFetchInfo;
+	
+	private LongPollTask mLongPoll;
 	
     /** Called when the activity is first created. */
     @Override
@@ -100,7 +104,7 @@ public class NowPlayingActivity extends Activity {
     private void updateAlbumArt(Bitmap art) {
         if(art == null) {
             // TODO: Some error here.
-            return;
+            art = BitmapFactory.decodeResource(getResources(), R.drawable.noart);
         }
         
         ((ImageView) findViewById(R.id.np_albumArt)).setImageBitmap(art);
@@ -141,10 +145,54 @@ public class NowPlayingActivity extends Activity {
             mOrganizer = result.getParcelable(SCHEDULE);
             updateSchedule();
             updateAlbumArt( (Bitmap) result.getParcelable(ART) );
+            
+            mLongPoll = new LongPollTask();
+            mLongPoll.execute();
+        }
+    }
+    
+    protected class LongPollTask extends AsyncTask<String, Integer, Bundle> {
+        @Override
+        protected Bundle doInBackground(String... s) {
+            if(!mSession.isAuthenticated()) return null;
+            
+            Bundle b = new Bundle();
+            try {
+                ScheduleOrganizer organizer;
+                organizer = mSession.syncGet();
+                b.putParcelable(SCHEDULE, organizer);
+                
+                Song song = organizer.getCurrentSong();
+                Bitmap art = mSession.fetchAlbumArt(song.album_art);
+                b.putParcelable(ART, art);
+                
+                return b;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
         }
         
-        public static final String
-            SCHEDULE = "schedule",
-            ART = "art";
+        protected void onPostExecute(Bundle result) {
+            super.onPostExecute(result);
+            
+            if(result == null) {
+                // TODO: Error here.
+                return;
+            }
+            
+            mOrganizer = result.getParcelable(SCHEDULE);
+            updateSchedule();
+            updateAlbumArt( (Bitmap) result.getParcelable(ART) );
+            
+            mLongPoll = new LongPollTask();
+            mLongPoll.execute();
+        }
+        
+
     }
+    
+    public static final String
+        SCHEDULE = "schedule",
+        ART = "art";
 }

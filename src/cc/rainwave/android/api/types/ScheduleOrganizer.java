@@ -76,7 +76,7 @@ public class ScheduleOrganizer implements Parcelable {
                 else if(name.compareTo(SCHED_NEXT) == 0) {
                     organizer.mNext = (Event[]) ctx.deserialize(data, Event[].class);
                 }
-                else {
+                else if(name.compareTo(SCHED_CURRENT) == 0){
                     organizer.mCurrent = ctx.deserialize(data, Event.class);
                 }
             }
