@@ -1,19 +1,21 @@
 package cc.rainwave.android;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.widget.ImageView;
+import android.widget.TextView;
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.ScheduleOrganizer;
 import cc.rainwave.android.api.types.Song;
-
-import android.app.Activity;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
 
 public class NowPlayingActivity extends Activity {
 	private static final String TAG = "NowPlaying";
@@ -45,6 +47,23 @@ public class NowPlayingActivity extends Activity {
         
         fetchSchedules();
     }
+    
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.menu, menu);
+		return true;
+	}
+
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+		case R.id.menu_preferences:
+			Intent i = new Intent(this, RainwavePreferenceActivity.class);
+			startActivity(i);
+			break;
+		}
+		return false;
+	}
     
     private void initializeSession() {
         try {
@@ -115,13 +134,13 @@ public class NowPlayingActivity extends Activity {
         
         protected void onPostExecute(Bundle result) {
             super.onPostExecute(result);
+            mFetchInfo = null;
             
             if(result == null) return;
             
             mOrganizer = result.getParcelable(SCHEDULE);
             updateSchedule();
             updateAlbumArt( (Bitmap) result.getParcelable(ART) );
-            mFetchInfo = null;
         }
         
         public static final String

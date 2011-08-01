@@ -51,6 +51,11 @@ public class Session {
 	    return BitmapFactory.decodeStream(is);
 	}
 	
+	public void setUserInfo(String userId, String key) {
+		mUserId = userId;
+		mKey = key;
+	}
+	
 	private HttpURLConnection getConnection(boolean async, String request, String ... params)
 	throws IOException {
 		String path = String.format("%s/%s/%s", (async) ? "async" : "sync", mStation, request);

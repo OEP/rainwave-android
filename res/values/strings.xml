@@ -2,4 +2,13 @@
 <resources>
     <string name="app_name">Rainwave</string>
     <string name="label_nowPlaying">Now Playing</string>
+    
+    <string name="label_authentication">Authentication info</string>
+    
+    <string name="label_userId">User ID</string>
+    <string name="label_key">API Key</string>
+    <string name="label_preferences">Preferences</string>
+    
+    <string name="msg_manageAuth">You can manage these at http://rainwave.cc/auth/</string>
+    
 </resources>
