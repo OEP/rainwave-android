@@ -30,8 +30,6 @@ public class NowPlayingActivity extends Activity {
 	
 	private FetchInfo mFetchInfo;
 	
-	private LongPollTask mLongPoll;
-	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -72,14 +70,17 @@ public class NowPlayingActivity extends Activity {
     		mFetchInfo.cancel(true);
     		mFetchInfo = null;
     	}
-    	
-    	if(mLongPoll != null) {
-    		mLongPoll.cancel(true);
-    		mLongPoll = null;
-    	}
     }
     
     private void fetchSchedules() {
+        fetchSchedules(false);
+    }
+    
+    private void syncSchedules() {
+        fetchSchedules(true);
+    }
+    
+    private void fetchSchedules(boolean longPoll) {
         if(mSession == null) {
             // TODO: Some error here.
             return;
@@ -87,17 +88,9 @@ public class NowPlayingActivity extends Activity {
         
         if(mFetchInfo == null) {
             mFetchInfo = new FetchInfo();
-            mFetchInfo.execute();
+            mFetchInfo.execute(longPoll);
         }
     }
-    
-    private void startLongPoll() {
-    	if(mFetchInfo == null && mLongPoll == null) {
-    		mLongPoll = new LongPollTask();
-    		mLongPoll.execute();
-    	}
-    }
-    
     
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -150,94 +143,66 @@ public class NowPlayingActivity extends Activity {
      * @author pkilgo
      *
      */
-    protected class FetchInfo extends AsyncTask<String, Integer, Bundle> {
+    protected class FetchInfo extends AsyncTask<Boolean, Integer, Bundle> {
+        private String TAG = "Unnamed";
+        private boolean mLongPoll = false;
 
         @Override
-        protected Bundle doInBackground(String... s) {
-        	Log.d(TAG, "Starting initial fetch.");
+        protected Bundle doInBackground(Boolean ... flags) {
+            mLongPoll = flags[0];
+            TAG = (mLongPoll) ? "LongPoll" : "AsyncPoll";
+        	Log.d(TAG, "Fetching a schedule");
         	
             Bundle b = new Bundle();
             try {
-                ScheduleOrganizer organizer = mSession.asyncGet();
+                ScheduleOrganizer organizer =
+                        (mLongPoll) ? mSession.syncGet() : mSession.asyncGet();
+                        
                 b.putParcelable(SCHEDULE, organizer);
                 
-                Song song = organizer.getCurrentSong();
-                Bitmap art = mSession.fetchAlbumArt(song.album_art);
-                b.putParcelable(ART, art);
+                if(!organizer.hasError()) {
+                    Song song = organizer.getCurrentSong();
+                    Bitmap art = mSession.fetchAlbumArt(song.album_art);
+                    b.putParcelable(ART, art);
+                }
 
                 return b;
             } catch (IOException e) {
-                e.printStackTrace();
-            }
-            
-            return b;
-        }
-        
-        protected void onPostExecute(Bundle result) {
-            super.onPostExecute(result);
-            mFetchInfo = null;
-            
-            if(result == null) {
-            	// TODO: Error ?
-            	Log.e(TAG, "Initial fetch finished with error.");
-            	return;
-            }
-            
-            mOrganizer = result.getParcelable(SCHEDULE);
-            updateSchedule();
-            updateAlbumArt( (Bitmap) result.getParcelable(ART) );
-            
-            startLongPoll();
-            
-            Log.d(TAG, "Initial fetch finished.");
-        }
-    }
-    
-    protected class LongPollTask extends AsyncTask<String, Integer, Bundle> {
-        @Override
-        protected Bundle doInBackground(String... s) {
-            if(!mSession.isAuthenticated()) {
-            	Log.d(TAG, "Not starting long poll because of no auth details.");
-            	return null;
-            }
-            
-            Log.d(TAG, "Starting long poll.");
-            
-            Bundle b = new Bundle();
-            try {
-                ScheduleOrganizer organizer;
-                organizer = mSession.syncGet();
-                b.putParcelable(SCHEDULE, organizer);
-                
-                Song song = organizer.getCurrentSong();
-                Bitmap art = mSession.fetchAlbumArt(song.album_art);
-                b.putParcelable(ART, art);
-                
-                return b;
-            } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, "IOException occured: " + e);
                 return null;
             }
         }
         
         protected void onPostExecute(Bundle result) {
             super.onPostExecute(result);
+            mFetchInfo = null;
             
+            // Was there an IO failure?
             if(result == null) {
-                // TODO: Error here.
-            	Log.e(TAG, "Long poll finished with error.");
-            	mLongPoll = null;
+                mFetchInfo = null;
+            	return;
+            }
+            
+            ScheduleOrganizer o = result.getParcelable(SCHEDULE);
+            
+            // Was there an API failure?
+            if(o.hasError()) {
+                // TODO: Show user the error.
+                Log.e(TAG, "API error: " + o.getErrorMessage());
+                mFetchInfo = null;
                 return;
             }
             
-            mOrganizer = result.getParcelable(SCHEDULE);
+            mOrganizer = o;
+            
             updateSchedule();
             updateAlbumArt( (Bitmap) result.getParcelable(ART) );
             
-            mLongPoll = new LongPollTask();
-            mLongPoll.execute();
+            if(mSession.isAuthenticated()) {
+                syncSchedules();
+            }
             
-            Log.d(TAG, "Long poll finished.");
+            Log.d(TAG, "Exiting successfully.");
         }
     }
     

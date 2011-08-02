@@ -21,6 +21,8 @@ public class ScheduleOrganizer implements Parcelable {
     
     private Event mHistory[], mNext[];
     
+    private Error mError;
+    
     private ScheduleOrganizer(Parcel source) {
         mCurrent = source.readParcelable(Event.class.getClassLoader());
         
@@ -38,6 +40,15 @@ public class ScheduleOrganizer implements Parcelable {
 
     public Song getCurrentSong() {
         return mCurrent.song_data[0];
+    }
+    
+    public boolean hasError() {
+        return mError != null;
+    }
+    
+    public String getErrorMessage() {
+        if(mError == null) return null;
+        return mError.text;
     }
     
     public static class Deserializer implements JsonDeserializer<ScheduleOrganizer> {
@@ -79,12 +90,16 @@ public class ScheduleOrganizer implements Parcelable {
                 else if(name.compareTo(SCHED_CURRENT) == 0){
                     organizer.mCurrent = ctx.deserialize(data, Event.class);
                 }
+                else if(name.compareTo(ERROR) == 0) {
+                    organizer.mError = ctx.deserialize(data, Error.class);
+                }
             }
             
             return organizer;
         }
         
         public static final String
+            ERROR = "error",
             SCHED_CURRENT = "sched_current",
             SCHED_NEXT = "sched_next",
             SCHED_HISTORY = "sched_history";
