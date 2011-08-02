@@ -10,9 +10,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -51,6 +53,51 @@ public class NowPlayingActivity extends Activity {
         
         fetchSchedules();
     }
+
+    public void onPause() {
+    	super.onPause();
+    	stopTasks();
+    }
+    
+    public void onStop() {
+    	super.onStop();
+    }
+    
+    public void onDestroy() {
+    	super.onDestroy();
+    }
+    
+    private void stopTasks() {
+    	if(mFetchInfo != null) {
+    		mFetchInfo.cancel(true);
+    		mFetchInfo = null;
+    	}
+    	
+    	if(mLongPoll != null) {
+    		mLongPoll.cancel(true);
+    		mLongPoll = null;
+    	}
+    }
+    
+    private void fetchSchedules() {
+        if(mSession == null) {
+            // TODO: Some error here.
+            return;
+        }
+        
+        if(mFetchInfo == null) {
+            mFetchInfo = new FetchInfo();
+            mFetchInfo.execute();
+        }
+    }
+    
+    private void startLongPoll() {
+    	if(mFetchInfo == null && mLongPoll == null) {
+    		mLongPoll = new LongPollTask();
+    		mLongPoll.execute();
+    	}
+    }
+    
     
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -74,18 +121,6 @@ public class NowPlayingActivity extends Activity {
             mSession = Session.makeSession(this);
         } catch (MalformedURLException e) {
             e.printStackTrace();
-        }
-    }
-    
-    private void fetchSchedules() {
-        if(mSession == null) {
-            // TODO: Some error here.
-            return;
-        }
-        
-        if(mFetchInfo == null) {
-            mFetchInfo = new FetchInfo();
-            mFetchInfo.execute();
         }
     }
     
@@ -119,6 +154,8 @@ public class NowPlayingActivity extends Activity {
 
         @Override
         protected Bundle doInBackground(String... s) {
+        	Log.d(TAG, "Starting initial fetch.");
+        	
             Bundle b = new Bundle();
             try {
                 ScheduleOrganizer organizer = mSession.asyncGet();
@@ -140,21 +177,31 @@ public class NowPlayingActivity extends Activity {
             super.onPostExecute(result);
             mFetchInfo = null;
             
-            if(result == null) return;
+            if(result == null) {
+            	// TODO: Error ?
+            	Log.e(TAG, "Initial fetch finished with error.");
+            	return;
+            }
             
             mOrganizer = result.getParcelable(SCHEDULE);
             updateSchedule();
             updateAlbumArt( (Bitmap) result.getParcelable(ART) );
             
-            mLongPoll = new LongPollTask();
-            mLongPoll.execute();
+            startLongPoll();
+            
+            Log.d(TAG, "Initial fetch finished.");
         }
     }
     
     protected class LongPollTask extends AsyncTask<String, Integer, Bundle> {
         @Override
         protected Bundle doInBackground(String... s) {
-            if(!mSession.isAuthenticated()) return null;
+            if(!mSession.isAuthenticated()) {
+            	Log.d(TAG, "Not starting long poll because of no auth details.");
+            	return null;
+            }
+            
+            Log.d(TAG, "Starting long poll.");
             
             Bundle b = new Bundle();
             try {
@@ -178,6 +225,8 @@ public class NowPlayingActivity extends Activity {
             
             if(result == null) {
                 // TODO: Error here.
+            	Log.e(TAG, "Long poll finished with error.");
+            	mLongPoll = null;
                 return;
             }
             
@@ -187,9 +236,9 @@ public class NowPlayingActivity extends Activity {
             
             mLongPoll = new LongPollTask();
             mLongPoll.execute();
+            
+            Log.d(TAG, "Long poll finished.");
         }
-        
-
     }
     
     public static final String
