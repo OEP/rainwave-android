@@ -2,7 +2,8 @@
 package cc.rainwave.android.api;
 
 import cc.rainwave.android.Rainwave;
-import cc.rainwave.android.api.types.ScheduleOrganizer;
+import cc.rainwave.android.api.types.RainwaveException;
+import cc.rainwave.android.api.types.RainwaveResponse;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -38,26 +39,14 @@ public class Session {
     private Session() {
     }
 
-    public ScheduleOrganizer asyncGet()
-            throws IOException {
-        HttpURLConnection conn = getConnection(true, false, "get");
-
-        Gson gson = getGson();
-        JsonParser parser = new JsonParser();
-        JsonElement json = parser.parse(getReader(conn));
-
-        return gson.fromJson(json, ScheduleOrganizer.class);
+    public RainwaveResponse asyncGet()
+            throws IOException, RainwaveException {
+        return getResponse(true, false, "get");
     }
 
-    public ScheduleOrganizer syncGet()
-            throws IOException {
-        HttpURLConnection conn = getConnection(false, true, "sync");
-
-        Gson gson = getGson();
-        JsonParser parser = new JsonParser();
-        JsonElement json = parser.parse(getReader(conn));
-
-        return gson.fromJson(json, ScheduleOrganizer.class);
+    public RainwaveResponse syncGet()
+            throws IOException, RainwaveException {
+        return getResponse(false, true, "sync");
     }
 
     public Bitmap fetchAlbumArt(String path) throws IOException {
@@ -74,14 +63,16 @@ public class Session {
     public boolean isAuthenticated() {
         return mUserId != null && mKey != null;
     }
-
-    private HttpURLConnection getConnection(boolean async, boolean auth, String request,
+    
+    private RainwaveResponse getResponse(boolean async, boolean auth, String request,
             String... params)
-            throws IOException {
+            throws IOException, RainwaveException {
+    	
+    	// Make the path
         String path = String.format("%s/%s/%s", (async) ? "async" : "sync", mStation, request);
 
+        HttpURLConnection conn;
         if (auth && mUserId != null && mKey != null) {
-
             // Extend the var-args into an array with 4 more slots.
             String tmp[] = (params != null) ? new String[params.length + 4] : new String[4];
             int begin = (params != null) ? params.length : 0;
@@ -99,15 +90,24 @@ public class Session {
             String paramString = HttpHelper.encodeParams(tmp);
 
             // Return HttpURLConnection
-            HttpURLConnection conn = HttpHelper.makePost(mBaseUrl, path, paramString);
-
-            return conn;
+            conn = HttpHelper.makePost(mBaseUrl, path, paramString);
         }
         else {
-            return HttpHelper.makeGet(mBaseUrl, path, "");
+            conn = HttpHelper.makeGet(mBaseUrl, path, "");
         }
 
-        // TODO: Set time out for long polls.
+        // Convert the json into Java objects.
+        Gson gson = getGson();
+        JsonParser parser = new JsonParser();
+        JsonElement json = parser.parse(getReader(conn));
+        RainwaveResponse response = gson.fromJson(json, RainwaveResponse.class);
+        
+        // Throw an exception if there was some sort of problem.
+        if(response.hasError()) {
+        	throw new RainwaveException(response.getError());
+        }
+        
+        return response;
     }
 
     private Reader getReader(HttpURLConnection conn)
@@ -129,7 +129,7 @@ public class Session {
 
     private Gson getGson() {
         GsonBuilder builder = new GsonBuilder();
-        builder.registerTypeAdapter(ScheduleOrganizer.class, new ScheduleOrganizer.Deserializer());
+        builder.registerTypeAdapter(RainwaveResponse.class, new RainwaveResponse.Deserializer());
         return builder.create();
     }
 

@@ -1,7 +1,8 @@
 package cc.rainwave.android;
 
 import cc.rainwave.android.api.Session;
-import cc.rainwave.android.api.types.ScheduleOrganizer;
+import cc.rainwave.android.api.types.RainwaveException;
+import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.Song;
 
 import android.app.Activity;
@@ -24,7 +25,7 @@ import java.net.MalformedURLException;
 public class NowPlayingActivity extends Activity {
 	private static final String TAG = "NowPlaying";
 	
-	private ScheduleOrganizer mOrganizer;
+	private RainwaveResponse mOrganizer;
 	
 	private Session mSession;
 	
@@ -155,7 +156,7 @@ public class NowPlayingActivity extends Activity {
         	
             Bundle b = new Bundle();
             try {
-                ScheduleOrganizer organizer =
+                RainwaveResponse organizer =
                         (mLongPoll) ? mSession.syncGet() : mSession.asyncGet();
                         
                 b.putParcelable(SCHEDULE, organizer);
@@ -170,7 +171,11 @@ public class NowPlayingActivity extends Activity {
             } catch (IOException e) {
                 Log.e(TAG, "IOException occured: " + e);
                 return null;
+            } catch (RainwaveException e) {
+            	Log.e(TAG, "API error: " + e.getMessage());
+            	return null;
             }
+            
         }
         
         protected void onPostExecute(Bundle result) {
@@ -183,17 +188,7 @@ public class NowPlayingActivity extends Activity {
             	return;
             }
             
-            ScheduleOrganizer o = result.getParcelable(SCHEDULE);
-            
-            // Was there an API failure?
-            if(o.hasError()) {
-                // TODO: Show user the error.
-                Log.e(TAG, "API error: " + o.getErrorMessage());
-                mFetchInfo = null;
-                return;
-            }
-            
-            mOrganizer = o;
+            mOrganizer = result.getParcelable(SCHEDULE);
             
             updateSchedule();
             updateAlbumArt( (Bitmap) result.getParcelable(ART) );
