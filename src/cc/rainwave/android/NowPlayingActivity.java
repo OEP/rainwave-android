@@ -46,10 +46,7 @@ public class NowPlayingActivity extends Activity {
     @Override
     public void onResume() {
         super.onResume();
-        if(mSession == null) {
-            initializeSession();
-        }
-        
+        initializeSession();
         fetchSchedules();
     }
 
