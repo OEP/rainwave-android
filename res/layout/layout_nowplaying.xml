@@ -27,8 +27,7 @@
 				android:layout_width="fill_parent"
 				android:lines="1"
 				android:scrollHorizontally="true"
-				android:ellipsize="end"
-				/>
+				android:ellipsize="end" />
 			<TextView
 				android:textAppearance="?android:attr/textAppearanceMedium"
 				android:id="@+id/np_albumTitle"
@@ -53,6 +52,45 @@
 			android:layout_height="wrap_content"
 			android:id="@+id/np_albumArt"
 			android:layout_width="wrap_content"></ImageView>
+	</LinearLayout>
+	<LinearLayout
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		android:orientation="vertical">
+		<LinearLayout
+			android:layout_height="wrap_content"
+			android:layout_width="fill_parent">
+			<TextView
+				android:layout_height="wrap_content"
+				android:layout_width="wrap_content"
+				android:text="@string/label_song"
+				android:textAppearance="?android:attr/textAppearanceMedium"/>
+			<TextView
+				android:layout_height="wrap_content"
+				android:layout_width="wrap_content"
+				android:layout_weight="1"
+				android:gravity="center_horizontal"
+				android:id="@+id/np_songRating"
+				android:text="--/--"
+				android:textAppearance="?android:attr/textAppearanceLarge"/>
+		</LinearLayout>
+		<LinearLayout
+			android:layout_height="wrap_content"
+			android:layout_width="fill_parent">
+			<TextView
+				android:layout_height="wrap_content"
+				android:layout_width="wrap_content"
+				android:text="@string/label_album"
+				android:textAppearance="?android:attr/textAppearanceMedium"></TextView>
+			<TextView
+				android:layout_height="wrap_content"
+				android:layout_width="wrap_content"
+				android:layout_weight="1"
+				android:id="@+id/np_albumRating"
+				android:text="--/--"
+				android:gravity="center_horizontal"
+				android:textAppearance="?android:attr/textAppearanceLarge"></TextView>
+		</LinearLayout>
 	</LinearLayout>
 	<FrameLayout
 		android:layout_width="fill_parent"
