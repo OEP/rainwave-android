@@ -48,6 +48,11 @@ public class Session {
             throws IOException, RainwaveException {
         return getResponse(false, true, "sync");
     }
+    
+    public RainwaveResponse syncInit()
+            throws IOException, RainwaveException {
+        return getResponse(false, true, "init");
+    }
 
     public Bitmap fetchAlbumArt(String path) throws IOException {
         URL url = new URL(getUrl(path));

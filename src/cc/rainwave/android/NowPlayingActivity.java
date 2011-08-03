@@ -115,16 +115,39 @@ public class NowPlayingActivity extends Activity {
         }
     }
     
-    private void updateSchedule() {
+    private void updateUI() {
     	if(mOrganizer == null) {
     	    // TODO: Some error here.
     	    return;
     	}
     	
+    	updateSongInfo();
+    	updateRatings();
+    }
+    
+    private void updateSongInfo() {
     	Song current = mOrganizer.getCurrentSong();
     	((TextView) findViewById(R.id.np_songTitle)).setText(current.song_title);
     	((TextView) findViewById(R.id.np_albumTitle)).setText(current.album_name);
     	((TextView) findViewById(R.id.np_artist)).setText(current.collapseArtists());
+    }
+    
+    private void updateRatings() {
+    	Song current = mOrganizer.getCurrentSong();
+    	
+    	((TextView) findViewById(R.id.np_songRating))
+    	   .setText(getRatingString(current.song_rating_user, current.song_rating_avg));
+    	
+    	((TextView) findViewById(R.id.np_albumRating))
+ 	       .setText(getRatingString(current.album_rating_user, current.album_rating_avg));
+    }
+    
+    private String getRatingString(float user, float avg) {
+    	StringBuilder sb = new StringBuilder();
+    	sb.append((user >= 1.0f) ? String.format("%1.1f", user) : "--");
+    	sb.append("/");
+    	sb.append((user >= 1.0f) ? String.format("%1.1f", avg) : "--");
+    	return sb.toString();
     }
     
     private void updateAlbumArt(Bitmap art) {
@@ -143,18 +166,22 @@ public class NowPlayingActivity extends Activity {
      */
     protected class FetchInfo extends AsyncTask<Boolean, Integer, Bundle> {
         private String TAG = "Unnamed";
-        private boolean mLongPoll = false;
+        private boolean mInit = false;
 
         @Override
         protected Bundle doInBackground(Boolean ... flags) {
-            mLongPoll = flags[0];
-            TAG = (mLongPoll) ? "LongPoll" : "AsyncPoll";
+            mInit = flags[0];
+            TAG = (mInit) ? "LongPoll" : "AsyncPoll";
         	Log.d(TAG, "Fetching a schedule");
         	
             Bundle b = new Bundle();
             try {
                 RainwaveResponse organizer =
-                        (mLongPoll) ? mSession.syncGet() : mSession.asyncGet();
+                        (mInit)
+                        	? (mSession.isAuthenticated())
+                        			? mSession.syncInit()
+                        			: mSession.syncGet()
+                        	: mSession.asyncGet();
                         
                 b.putParcelable(SCHEDULE, organizer);
                 
@@ -187,7 +214,7 @@ public class NowPlayingActivity extends Activity {
             
             mOrganizer = result.getParcelable(SCHEDULE);
             
-            updateSchedule();
+            updateUI();
             updateAlbumArt( (Bitmap) result.getParcelable(ART) );
             
             if(mSession.isAuthenticated()) {

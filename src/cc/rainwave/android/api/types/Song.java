@@ -8,6 +8,8 @@ public class Song implements Parcelable {
 	public Artist artists[];
 	public String album_art;
 	public String album_name;
+	public float song_rating_user, song_rating_avg,
+		album_rating_user, album_rating_avg;
 	
 	private Song(Parcel in) {
 	    song_title = in.readString();
