@@ -6,6 +6,10 @@ import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.Song;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -15,8 +19,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import java.io.IOException;
@@ -31,11 +38,14 @@ public class NowPlayingActivity extends Activity {
 	
 	private FetchInfo mFetchInfo;
 	
+	private RateTask mRateTask;
+	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_nowplaying);
+        setListeners();
     }
     
     @Override
@@ -63,22 +73,71 @@ public class NowPlayingActivity extends Activity {
     	super.onDestroy();
     }
     
+    public Dialog onCreateDialog(int id) {
+    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    	
+    	switch(id) {
+    	case DIALOG_RATE:
+    		final RatingBar rating = new RatingBar(this);
+    		rating.setStepSize(0.5f);
+    		
+    		return builder.setTitle(R.string.label_rateSong)
+    			.setPositiveButton(R.string.label_rate, new OnClickListener() {
+					@Override
+					public void onClick(DialogInterface di, int which) {
+						mRateTask = new RateTask();
+						Song s = mOrganizer.getCurrentSong();
+						float score = rating.getRating();
+						mRateTask.execute(s.song_id, score);
+					}
+    			})
+    			.setNegativeButton(R.string.label_cancel, null)
+    			.setView(rating)
+    			.create();
+    		
+    	default:
+    		return builder.setMessage("Sorry! Your princess is in another castle!").create();
+    	}
+    }
+    
+    private void setListeners() {
+    	OnTouchListener tmp = new OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent e) {
+				switch(e.getAction()) {
+				case MotionEvent.ACTION_DOWN:
+					showDialog(DIALOG_RATE);
+					return true;
+				}
+				return false;
+			}
+    	};
+    	
+    	((TextView) findViewById(R.id.np_songRating)).setOnTouchListener(tmp);
+    	((TextView) findViewById(R.id.np_albumRating)).setOnTouchListener(tmp);
+    }
+    
     private void stopTasks() {
     	if(mFetchInfo != null) {
     		mFetchInfo.cancel(true);
     		mFetchInfo = null;
     	}
+    	
+    	if(mRateTask != null) {
+    		mRateTask.cancel(true);
+    		mRateTask = null;
+    	}
     }
     
     private void fetchSchedules() {
-        fetchSchedules(false);
-    }
-    
-    private void syncSchedules() {
         fetchSchedules(true);
     }
     
-    private void fetchSchedules(boolean longPoll) {
+    private void syncSchedules() {
+        fetchSchedules(false);
+    }
+    
+    private void fetchSchedules(boolean init) {
         if(mSession == null) {
             // TODO: Some error here.
             return;
@@ -86,7 +145,7 @@ public class NowPlayingActivity extends Activity {
         
         if(mFetchInfo == null) {
             mFetchInfo = new FetchInfo();
-            mFetchInfo.execute(longPoll);
+            mFetchInfo.execute(init);
         }
     }
     
@@ -159,6 +218,28 @@ public class NowPlayingActivity extends Activity {
         ((ImageView) findViewById(R.id.np_albumArt)).setImageBitmap(art);
     }
     
+    protected class RateTask extends AsyncTask<Object, Integer, Integer> {
+		@Override
+		protected Integer doInBackground(Object ... params) {
+			Log.d(TAG, "Submitting a rating...");
+			int songId = (Integer) params[0];
+			float rating = (Float) params[1];
+			try {
+				mSession.rateSong(songId, rating);
+			} catch (IOException e) {
+				Log.e(TAG, "IO error: " + e.getMessage());
+			} catch (RainwaveException e) {
+				Log.e(TAG, "API error: " + e.getMessage());
+			}
+			return 0;
+		}
+		
+		protected void onPostExecute(Integer result) {
+			Log.d(TAG, "Rating task ended.");
+			mRateTask = null;
+		}
+    }
+    
     /**
      * Fetches the now playing info.
      * @author pkilgo
@@ -171,7 +252,7 @@ public class NowPlayingActivity extends Activity {
         @Override
         protected Bundle doInBackground(Boolean ... flags) {
             mInit = flags[0];
-            TAG = (mInit) ? "LongPoll" : "AsyncPoll";
+            TAG = (mInit) ? "InitialPoll" : "UpdatePoll";
         	Log.d(TAG, "Fetching a schedule");
         	
             Bundle b = new Bundle();
@@ -180,8 +261,8 @@ public class NowPlayingActivity extends Activity {
                         (mInit)
                         	? (mSession.isAuthenticated())
                         			? mSession.syncInit()
-                        			: mSession.syncGet()
-                        	: mSession.asyncGet();
+                        			: mSession.asyncGet()
+                        	: mSession.syncGet();
                         
                 b.putParcelable(SCHEDULE, organizer);
                 
@@ -225,6 +306,11 @@ public class NowPlayingActivity extends Activity {
         }
     }
     
+    /** Dialog identifiers */
+    public static final int
+    	DIALOG_RATE = 0x4A7E;
+    
+    /** Bundle constants */
     public static final String
         SCHEDULE = "schedule",
         ART = "art";

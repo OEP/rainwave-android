@@ -53,6 +53,13 @@ public class Session {
             throws IOException, RainwaveException {
         return getResponse(false, true, "init");
     }
+    
+    public RainwaveResponse rateSong(int songId, float rating)
+    		throws IOException, RainwaveException {
+    	rating = Math.max(1.0f, Math.min(rating, 5.0f));
+    	return getResponse(true, true, "rate",
+    		"song_id", String.valueOf(songId), "rating", String.valueOf(rating));
+    }
 
     public Bitmap fetchAlbumArt(String path) throws IOException {
         URL url = new URL(getUrl(path));

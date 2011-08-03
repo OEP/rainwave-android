@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Song implements Parcelable {
+	public int song_id;
 	public String song_title;
 	public Artist artists[];
 	public String album_art;
@@ -12,6 +13,7 @@ public class Song implements Parcelable {
 		album_rating_user, album_rating_avg;
 	
 	private Song(Parcel in) {
+		song_id = in.readInt();
 	    song_title = in.readString();
 	    Parcelable tmp[] = in.readParcelableArray(Artist[].class.getClassLoader());
 	    album_art = in.readString();
@@ -56,6 +58,7 @@ public class Song implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+    	dest.writeInt(song_id);
         dest.writeString(song_title);
         dest.writeParcelableArray(artists, flags);
         dest.writeString(album_art);

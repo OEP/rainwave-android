@@ -12,6 +12,11 @@
     <string name="label_album">Album</string>
     <string name="label_song">Song</string>
     
+    <string name="label_rateSong">Rate song</string>
+    
+    <string name="label_cancel">Cancel</string>
+    <string name="label_rate">Rate!</string>
+    
     <string name="msg_manageAuth">You can manage these at http://rainwave.cc/auth/</string>
     
 </resources>

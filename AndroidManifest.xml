@@ -4,7 +4,20 @@
 	package="cc.rainwave.android"
 	android:versionCode="1"
 	android:versionName="1.0">
-	<uses-sdk android:minSdkVersion="3" />
+	<uses-sdk
+		android:minSdkVersion="3"
+		android:targetSdkVersion="4" />
+
+	<supports-screens
+		android:smallScreens="true"
+		android:normalScreens="true"
+		android:largeScreens="true"
+		android:anyDensity="true" />
+
+
+	<uses-sdk
+		android:minSdkVersion="3"
+		android:targetSdkVersion="4" />
 
 	<uses-permission android:name="android.permission.INTERNET" />
 
