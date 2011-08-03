@@ -23,6 +23,8 @@ public class RainwaveResponse implements Parcelable {
     
     private Error mError;
     
+    private RatingResult mRatingResult;
+    
     private RainwaveResponse(Parcel source) {
         mCurrent = source.readParcelable(Event.class.getClassLoader());
         
@@ -46,10 +48,18 @@ public class RainwaveResponse implements Parcelable {
         return mError != null;
     }
     
-    
-    
     public Error getError() {
         return mError;
+    }
+    
+    public RatingResult getRateResult() {
+        return mRatingResult;
+    }
+    
+    public void updateSongRatings(RatingResult result) {
+        Song s = getCurrentSong();
+        s.song_rating_user = result.song_rating;
+        s.album_rating_user = result.album_rating;
     }
     
     public static class Deserializer implements JsonDeserializer<RainwaveResponse> {
@@ -94,12 +104,16 @@ public class RainwaveResponse implements Parcelable {
                 else if(name.compareTo(ERROR) == 0) {
                     organizer.mError = ctx.deserialize(data, Error.class);
                 }
+                else if(name.compareTo(RATING_RESULT) == 0) {
+                    organizer.mRatingResult = ctx.deserialize(data, RatingResult.class);
+                }
             }
             
             return organizer;
         }
         
         public static final String
+            RATING_RESULT = "rate_result",
             ERROR = "error",
             SCHED_CURRENT = "sched_current",
             SCHED_NEXT = "sched_next",

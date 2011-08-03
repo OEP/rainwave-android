@@ -3,6 +3,7 @@ package cc.rainwave.android;
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.RainwaveResponse;
+import cc.rainwave.android.api.types.RatingResult;
 import cc.rainwave.android.api.types.Song;
 
 import android.app.Activity;
@@ -106,8 +107,10 @@ public class NowPlayingActivity extends Activity {
 			public boolean onTouch(View v, MotionEvent e) {
 				switch(e.getAction()) {
 				case MotionEvent.ACTION_DOWN:
-					showDialog(DIALOG_RATE);
-					return true;
+				    if(mSession.isAuthenticated()) {
+    					showDialog(DIALOG_RATE);
+    					return true;
+				    }
 				}
 				return false;
 			}
@@ -174,31 +177,33 @@ public class NowPlayingActivity extends Activity {
         }
     }
     
-    private void updateUI() {
-    	if(mOrganizer == null) {
+    private void onScheduleSync(RainwaveResponse response) {
+    	if(response == null) {
     	    // TODO: Some error here.
     	    return;
     	}
     	
-    	updateSongInfo();
-    	updateRatings();
+    	updateSongInfo(response.getCurrentSong());
+    	setRatings(response.getCurrentSong());
     }
     
-    private void updateSongInfo() {
-    	Song current = mOrganizer.getCurrentSong();
+    private void updateSongInfo(Song current) {
     	((TextView) findViewById(R.id.np_songTitle)).setText(current.song_title);
     	((TextView) findViewById(R.id.np_albumTitle)).setText(current.album_name);
     	((TextView) findViewById(R.id.np_artist)).setText(current.collapseArtists());
     }
     
-    private void updateRatings() {
-    	Song current = mOrganizer.getCurrentSong();
-    	
+    private void setRatings(Song current) {
     	((TextView) findViewById(R.id.np_songRating))
     	   .setText(getRatingString(current.song_rating_user, current.song_rating_avg));
     	
     	((TextView) findViewById(R.id.np_albumRating))
  	       .setText(getRatingString(current.album_rating_user, current.album_rating_avg));
+    }
+    
+    private void onRateSong(RatingResult result) {
+        mOrganizer.updateSongRatings(result);
+        setRatings(mOrganizer.getCurrentSong());
     }
     
     private String getRatingString(float user, float avg) {
@@ -218,25 +223,29 @@ public class NowPlayingActivity extends Activity {
         ((ImageView) findViewById(R.id.np_albumArt)).setImageBitmap(art);
     }
     
-    protected class RateTask extends AsyncTask<Object, Integer, Integer> {
+    protected class RateTask extends AsyncTask<Object, Integer, RatingResult> {
 		@Override
-		protected Integer doInBackground(Object ... params) {
+		protected RatingResult doInBackground(Object ... params) {
 			Log.d(TAG, "Submitting a rating...");
 			int songId = (Integer) params[0];
 			float rating = (Float) params[1];
 			try {
-				mSession.rateSong(songId, rating);
+				return mSession.rateSong(songId, rating);
 			} catch (IOException e) {
 				Log.e(TAG, "IO error: " + e.getMessage());
+                // TODO: Show user error.
 			} catch (RainwaveException e) {
 				Log.e(TAG, "API error: " + e.getMessage());
+				// TODO: Show user error.
 			}
-			return 0;
+			return null;
 		}
 		
-		protected void onPostExecute(Integer result) {
+		protected void onPostExecute(RatingResult result) {
 			Log.d(TAG, "Rating task ended.");
 			mRateTask = null;
+			if(result == null) return;
+			onRateSong(result);
 		}
     }
     
@@ -295,7 +304,7 @@ public class NowPlayingActivity extends Activity {
             
             mOrganizer = result.getParcelable(SCHEDULE);
             
-            updateUI();
+            onScheduleSync(mOrganizer);
             updateAlbumArt( (Bitmap) result.getParcelable(ART) );
             
             if(mSession.isAuthenticated()) {

@@ -3,17 +3,24 @@ package cc.rainwave.android.api.types;
 public class RainwaveException extends Exception {
 	private static final long serialVersionUID = -6112296581405318238L;
 
-	private Error mError;
+	private int mCode;
+	private String mMessage;
 	
 	public RainwaveException(Error error) {
-		mError = error;
+		mCode = error.code;
+		mMessage = error.text;
+	}
+	
+	public RainwaveException(int code, String message) {
+	    mCode = code;
+	    mMessage = message;
 	}
 	
 	public String getMessage() {
-		return mError.text;
+		return mMessage;
 	}
 	
 	public String toString() {
-		return super.toString() + " " + mError.text;
+		return String.format("%s: %s (%d)", super.toString(), mMessage, mCode);
 	}
 }

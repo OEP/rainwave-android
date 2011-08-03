@@ -1,5 +1,7 @@
 package cc.rainwave.android.api;
 
+import android.util.Log;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -8,6 +10,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 public class HttpHelper {
+    private static final String TAG = "HttpHelper";
+    
 	/**
 	 * Create an <code>HttpURLConnection</code> object and make it post
 	 * its parameters to the server.
@@ -36,6 +40,8 @@ public class HttpHelper {
 	public static HttpURLConnection makePost(URL baseUrl, String path, String params, String cookie)
 	throws IOException {
 		URL url = new URL(String.format("%s/%s", baseUrl.toString(), path));
+		Log.d(TAG, "POST " + url.toString() + " " + params);
+		
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("POST");
 		connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -72,6 +78,8 @@ public class HttpHelper {
 	public static HttpURLConnection makeGet(URL baseUrl, String path, String cookie)
 	throws IOException {
 		URL url = new URL(String.format("%s/%s", baseUrl.toString(), path));
+		Log.d(TAG, "GET " + url.toString());
+		
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("GET");
 		connection.setRequestProperty("Content-Language", "en-US");

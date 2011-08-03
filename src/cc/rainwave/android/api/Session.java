@@ -4,6 +4,7 @@ package cc.rainwave.android.api;
 import cc.rainwave.android.Rainwave;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.RainwaveResponse;
+import cc.rainwave.android.api.types.RatingResult;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -54,10 +55,10 @@ public class Session {
         return getResponse(false, true, "init");
     }
     
-    public RainwaveResponse rateSong(int songId, float rating)
+    public RatingResult rateSong(int songId, float rating)
     		throws IOException, RainwaveException {
     	rating = Math.max(1.0f, Math.min(rating, 5.0f));
-    	return getResponse(true, true, "rate",
+    	return getRatingResult(true, true, "rate",
     		"song_id", String.valueOf(songId), "rating", String.valueOf(rating));
     }
 
@@ -74,6 +75,14 @@ public class Session {
     
     public boolean isAuthenticated() {
         return mUserId != null && mKey != null;
+    }
+    
+    private RatingResult getRatingResult(boolean async, boolean auth, String request, String...params)
+            throws IOException, RainwaveException {
+        RainwaveResponse response = getResponse(async,auth,request,params);
+        RatingResult rateResult = response.getRateResult();
+        handleError(rateResult.code, rateResult.text);
+        return rateResult;
     }
     
     private RainwaveResponse getResponse(boolean async, boolean auth, String request,
@@ -120,6 +129,12 @@ public class Session {
         }
         
         return response;
+    }
+    
+    private void handleError(int code, String message) throws RainwaveException {
+        if(code != 1) {
+            throw new RainwaveException(code,message);
+        }
     }
 
     private Reader getReader(HttpURLConnection conn)
