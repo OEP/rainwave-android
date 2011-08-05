@@ -49,7 +49,7 @@ public class Song implements Parcelable {
 	            return sb.toString();
 	    }
 	}
-
+	
     @Override
     public int describeContents() {
         // TODO Auto-generated method stub

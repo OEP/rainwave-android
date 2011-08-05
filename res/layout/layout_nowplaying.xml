@@ -64,7 +64,7 @@
 				android:layout_height="wrap_content"
 				android:layout_width="wrap_content"
 				android:text="@string/label_song"
-				android:textAppearance="?android:attr/textAppearanceMedium"/>
+				android:textAppearance="?android:attr/textAppearanceMedium" />
 			<TextView
 				android:layout_height="wrap_content"
 				android:layout_width="wrap_content"
@@ -72,7 +72,7 @@
 				android:gravity="center_horizontal"
 				android:id="@+id/np_songRating"
 				android:text="--/--"
-				android:textAppearance="?android:attr/textAppearanceLarge"/>
+				android:textAppearance="?android:attr/textAppearanceLarge" />
 		</LinearLayout>
 		<LinearLayout
 			android:layout_height="wrap_content"
@@ -92,13 +92,10 @@
 				android:textAppearance="?android:attr/textAppearanceLarge"></TextView>
 		</LinearLayout>
 	</LinearLayout>
-	<FrameLayout
-		android:layout_width="fill_parent"
+	<ListView
 		android:layout_height="wrap_content"
-		android:orientation="vertical"
-		android:id="@+id/np_albumArtContainer"
-		android:layout_weight="1">
-		<!-- <ImageButton android:layout_gravity="center_vertical" android:layout_height="wrap_content" 
-			android:src="@drawable/ic_menu_star" android:id="@+id/np_rateButton" android:layout_width="wrap_content"></ImageButton> -->
-	</FrameLayout>
+		android:layout_width="fill_parent"
+		android:layout_weight="1"
+		android:id="@+id/np_electionList"
+		/>
 </LinearLayout>

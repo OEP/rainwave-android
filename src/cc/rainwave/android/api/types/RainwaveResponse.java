@@ -44,6 +44,10 @@ public class RainwaveResponse implements Parcelable {
         return mCurrent.song_data[0];
     }
     
+    public Song[] getElection() {
+    	return mNext[0].song_data;
+    }
+    
     public boolean hasError() {
         return mError != null;
     }

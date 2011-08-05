@@ -24,6 +24,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
@@ -253,6 +254,15 @@ public class NowPlayingActivity extends Activity {
     	
     	// Updates song, album ratings.
     	setRatings(response.getCurrentSong());
+    	
+    	// Updates election info.
+    	updateElection(response.getElection());
+    }
+    
+    private void updateElection(Song newSongs[]) {
+    	ElectionListAdapter adapter = new ElectionListAdapter(this,mSession);
+    	adapter.setSongs(newSongs);
+    	((ListView)findViewById(R.id.np_electionList)).setAdapter(adapter);
     }
     
     /**
