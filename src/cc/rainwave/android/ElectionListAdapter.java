@@ -51,6 +51,8 @@ public class ElectionListAdapter extends BaseAdapter {
 			((TextView)convertView.findViewById(R.id.election_songTitle)).setText(s.song_title);
 			((TextView)convertView.findViewById(R.id.election_songAlbum)).setText(s.album_name);
 			((TextView)convertView.findViewById(R.id.election_songArtist)).setText(s.collapseArtists());
+			
+			((CountdownView)convertView.findViewById(R.id.election_songRating)).setBoth(s.song_rating_user, s.song_rating_avg);
 		}
 		return convertView;
 	}

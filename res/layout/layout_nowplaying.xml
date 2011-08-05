@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:rainwave="http://rainwave.cc"
 	android:orientation="vertical"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent">
@@ -56,46 +57,53 @@
 	<LinearLayout
 		android:layout_height="wrap_content"
 		android:layout_width="fill_parent"
-		android:orientation="vertical">
+		android:orientation="horizontal">
 		<LinearLayout
 			android:layout_height="wrap_content"
-			android:layout_width="fill_parent">
+			android:layout_width="wrap_content"
+			android:orientation="vertical"
+			android:layout_weight="1">
 			<TextView
 				android:layout_height="wrap_content"
 				android:layout_width="wrap_content"
+				android:layout_gravity="center_horizontal"
 				android:text="@string/label_song"
 				android:textAppearance="?android:attr/textAppearanceMedium" />
-			<TextView
-				android:layout_height="wrap_content"
-				android:layout_width="wrap_content"
-				android:layout_weight="1"
-				android:gravity="center_horizontal"
+			<cc.rainwave.android.CountdownView
 				android:id="@+id/np_songRating"
-				android:text="--/--"
-				android:textAppearance="?android:attr/textAppearanceLarge" />
+				android:layout_width="60sp"
+				android:layout_height="60sp"
+				android:layout_gravity="center_vertical|center_horizontal"
+				rainwave:max="5.0"
+				rainwave:progress="0.0"
+				rainwave:alternateText="Unrated"
+				rainwave:showValue="true" />
 		</LinearLayout>
 		<LinearLayout
 			android:layout_height="wrap_content"
-			android:layout_width="fill_parent">
+			android:layout_width="wrap_content"
+			android:layout_weight="1"
+			android:orientation="vertical">
 			<TextView
 				android:layout_height="wrap_content"
 				android:layout_width="wrap_content"
+				android:layout_gravity="center_horizontal"
 				android:text="@string/label_album"
 				android:textAppearance="?android:attr/textAppearanceMedium"></TextView>
-			<TextView
-				android:layout_height="wrap_content"
-				android:layout_width="wrap_content"
-				android:layout_weight="1"
+			<cc.rainwave.android.CountdownView
 				android:id="@+id/np_albumRating"
-				android:text="--/--"
-				android:gravity="center_horizontal"
-				android:textAppearance="?android:attr/textAppearanceLarge"></TextView>
+				android:layout_width="60sp"
+				android:layout_height="60sp"
+				android:layout_gravity="center_vertical|center_horizontal"
+				rainwave:max="5.0"
+				rainwave:progress="0.0"
+				rainwave:alternateText="Unrated"
+				rainwave:showValue="true" />
 		</LinearLayout>
 	</LinearLayout>
 	<ListView
 		android:layout_height="wrap_content"
 		android:layout_width="fill_parent"
 		android:layout_weight="1"
-		android:id="@+id/np_electionList"
-		/>
+		android:id="@+id/np_electionList" />
 </LinearLayout>

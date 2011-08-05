@@ -148,8 +148,8 @@ public class NowPlayingActivity extends Activity {
     	};
     	
     	// The rating dialog should show up if the Song/Album rating TextView is clicked.
-    	((TextView) findViewById(R.id.np_songRating)).setOnTouchListener(tmp);
-    	((TextView) findViewById(R.id.np_albumRating)).setOnTouchListener(tmp);
+    	findViewById(R.id.np_songRating).setOnTouchListener(tmp);
+    	findViewById(R.id.np_albumRating).setOnTouchListener(tmp);
     }
     
     /**
@@ -281,11 +281,11 @@ public class NowPlayingActivity extends Activity {
      * @param current the current song playing
      */
     private void setRatings(Song current) {
-    	((TextView) findViewById(R.id.np_songRating))
-    	   .setText(getRatingString(current.song_rating_user, current.song_rating_avg));
+    	((CountdownView) findViewById(R.id.np_songRating))
+    	   .setBoth(current.song_rating_user, current.song_rating_avg);
     	
-    	((TextView) findViewById(R.id.np_albumRating))
- 	       .setText(getRatingString(current.album_rating_user, current.album_rating_avg));
+    	((CountdownView) findViewById(R.id.np_albumRating))
+ 	       .setBoth(current.album_rating_user, current.album_rating_avg);
     }
     
     /**
@@ -295,23 +295,6 @@ public class NowPlayingActivity extends Activity {
     private void onRateSong(RatingResult result) {
         mOrganizer.updateSongRatings(result);
         setRatings(mOrganizer.getCurrentSong());
-    }
-    
-    /**
-     * Builds a rating String string from the user rating
-     * and average rating of the format: UU/AA, where UU
-     * is the user rating or "--" if nonexistant and AA
-     * is the average rating or "--" if nonexistant.
-     * @param user the user's rating
-     * @param avg the average rating
-     * @return the rating string
-     */
-    private String getRatingString(float user, float avg) {
-    	StringBuilder sb = new StringBuilder();
-    	sb.append((user >= 1.0f) ? String.format("%1.1f", user) : "--");
-    	sb.append("/");
-    	sb.append((avg >= 1.0f) ? String.format("%1.1f", avg) : "--");
-    	return sb.toString();
     }
     
     /**
