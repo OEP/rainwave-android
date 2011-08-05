@@ -200,7 +200,7 @@ public class NowPlayingActivity extends Activity {
         // Some really bad thing happened and we don't
         // have a connection at all.
         if(mSession == null) {
-            // TODO: Some error here.
+        	Rainwave.showError(NowPlayingActivity.this, R.string.msg_sessionError);
             return;
         }
         
@@ -251,11 +251,6 @@ public class NowPlayingActivity extends Activity {
      * @param response the response the server issued
      */
     private void onScheduleSync(RainwaveResponse response) {
-    	if(response == null) {
-    	    // TODO: Some error here.
-    	    return;
-    	}
-    	
     	// Updates title, album, and artists.
     	updateSongInfo(response.getCurrentSong());
     	
@@ -310,7 +305,8 @@ public class NowPlayingActivity extends Activity {
      */
     private void updateAlbumArt(Bitmap art) {
         if(art == null) {
-            // TODO: Some error here.
+            Log.e(TAG, "Error fetching album art.");
+            Rainwave.showError(this, R.string.msg_albumArtError);
             art = BitmapFactory.decodeResource(getResources(), R.drawable.noart);
         }
         
@@ -334,10 +330,10 @@ public class NowPlayingActivity extends Activity {
 				return mSession.rateSong(songId, rating);
 			} catch (IOException e) {
 				Log.e(TAG, "IO error: " + e.getMessage());
-                // TODO: Show user error.
+                Rainwave.showError(NowPlayingActivity.this, e);
 			} catch (RainwaveException e) {
 				Log.e(TAG, "API error: " + e.getMessage());
-				// TODO: Show user error.
+				Rainwave.showError(NowPlayingActivity.this, e);
 			}
 			return null;
 		}

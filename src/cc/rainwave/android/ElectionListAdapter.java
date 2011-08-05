@@ -147,10 +147,10 @@ public class ElectionListAdapter extends BaseAdapter {
 				VoteResult result = mSession.vote(mSong.elec_entry_id);
 				return true;
 			} catch (IOException e) {
-				// TODO: User error.
+				Rainwave.showError(ElectionListAdapter.this.mContext, e);
 				Log.e(TAG, "IO Error: " + e);
 			} catch (RainwaveException e) {
-				// TODO: User error.
+				Rainwave.showError(ElectionListAdapter.this.mContext, e);
 				Log.e(TAG, "API Error: " + e);
 			}
 			

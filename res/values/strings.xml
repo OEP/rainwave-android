@@ -21,5 +21,7 @@
     <string name="label_unrated">Unrated</string>
     
     <string name="msg_manageAuth">You can manage these at http://rainwave.cc/auth/</string>
+    <string name="msg_sessionError">Failed to initialize session. Is the Rainwave URL correct?</string>
+    <string name="msg_albumArtError">Failed to fetch album art.</string>
     
 </resources>

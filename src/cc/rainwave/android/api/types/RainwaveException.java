@@ -16,6 +16,10 @@ public class RainwaveException extends Exception {
 	    mMessage = message;
 	}
 	
+	public int getCode() {
+		return mCode;
+	}
+	
 	public String getMessage() {
 		return mMessage;
 	}
