@@ -23,6 +23,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
@@ -132,8 +133,9 @@ public class NowPlayingActivity extends Activity {
      * Sets up listeners for this activity.
      */
     private void setListeners() {
-        // Pops up the rating dialog if we are authenticated.
-    	OnTouchListener tmp = new OnTouchListener() {
+    	// The rating dialog should show up if the Song rating view is clicked.
+    	findViewById(R.id.np_songRating).setOnTouchListener(
+    	new OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent e) {
 				switch(e.getAction()) {
@@ -145,11 +147,16 @@ public class NowPlayingActivity extends Activity {
 				}
 				return false;
 			}
-    	};
+    	});
     	
-    	// The rating dialog should show up if the Song/Album rating TextView is clicked.
-    	findViewById(R.id.np_songRating).setOnTouchListener(tmp);
-    	findViewById(R.id.np_albumRating).setOnTouchListener(tmp);
+
+    	final ListView election = (ListView) findViewById(R.id.np_electionList);
+    	election.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+    		public void onItemClick(AdapterView parent, View v, int i, long id) {
+    			ElectionListAdapter adapter = (ElectionListAdapter) election.getAdapter();
+    			adapter.startCountdown(i);
+    		}
+		});
     }
     
     /**
@@ -260,9 +267,8 @@ public class NowPlayingActivity extends Activity {
     }
     
     private void updateElection(Song newSongs[]) {
-    	ElectionListAdapter adapter = new ElectionListAdapter(this,mSession);
-    	adapter.setSongs(newSongs);
-    	((ListView)findViewById(R.id.np_electionList)).setAdapter(adapter);
+    	((ListView)findViewById(R.id.np_electionList))
+    	   .setAdapter(new ElectionListAdapter(this,mSession,newSongs));
     }
     
     /**

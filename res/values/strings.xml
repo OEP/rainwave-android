@@ -16,6 +16,9 @@
     
     <string name="label_cancel">Cancel</string>
     <string name="label_rate">Rate!</string>
+    <string name="label_voted">Voted!</string>
+    <string name="label_voting">Voting...</string>
+    <string name="label_unrated">Unrated</string>
     
     <string name="msg_manageAuth">You can manage these at http://rainwave.cc/auth/</string>
     

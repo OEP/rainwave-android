@@ -34,23 +34,58 @@ public class CountdownView extends View {
 		mAlternateText = attrs.getAttributeValue(rainwavens, "alternateText");
 	}
 	
-	public void decrement(float howMuch) {
-		mPrimary = Math.max(mPrimary - howMuch, 0.0f);
+	public float getPrimary() {
+		return mPrimary;
+	}
+	
+	public float getSecondary() {
+		return mSecondary;
+	}
+	
+	public void decrementPrimary(float howMuch) {
+		setPrimary(mPrimary - howMuch);
+		postInvalidate();
+	}
+	
+	public void decrementSecondary(float howMuch) {
+		setSecondary(mSecondary - howMuch);
+		postInvalidate();
+	}
+	
+	public void setShowValue(boolean value) {
+		mShowValue = value;
+		postInvalidate();
+	}
+	
+	public void setMax(float value) {
+		mMax = Math.max(0.0f, value);
+		setPrimary(mPrimary);
+		setSecondary(mSecondary);
+		postInvalidate();
 	}
 	
 	public void setPrimary(float value) {
 		mPrimary = bound(value);
-		invalidate();
+		postInvalidate();
 	}
 	
 	public void setSecondary(float value) {
 		mSecondary = bound(value);
-		invalidate();
+		postInvalidate();
 	}
 	
 	public void setBoth(float primary, float secondary) {
 		setPrimary(primary);
 		setSecondary(secondary);
+	}
+	
+	public void setAlternateText(String s) {
+		mAlternateText = s;
+		postInvalidate();
+	}
+	
+	public void setAlternateText(int rid) {
+		setAlternateText(getContext().getResources().getString(rid));
 	}
 	
 	public void onDraw(Canvas canvas) {
