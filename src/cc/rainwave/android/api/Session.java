@@ -5,6 +5,7 @@ import cc.rainwave.android.Rainwave;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.RatingResult;
+import cc.rainwave.android.api.types.VoteResult;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -61,6 +62,11 @@ public class Session {
     	return getRatingResult(true, true, "rate",
     		"song_id", String.valueOf(songId), "rating", String.valueOf(rating));
     }
+    
+    public VoteResult vote(int elecId)
+    		throws IOException, RainwaveException {
+    	return getVoteResult(true,true,"vote","elec_entry_id", String.valueOf(elecId));
+    }
 
     public Bitmap fetchAlbumArt(String path) throws IOException {
         URL url = new URL(getUrl(path));
@@ -75,6 +81,14 @@ public class Session {
     
     public boolean isAuthenticated() {
         return mUserId != null && mKey != null;
+    }
+    
+    private VoteResult getVoteResult(boolean async, boolean auth, String request, String...params) 
+    		throws IOException, RainwaveException{
+        RainwaveResponse response = getResponse(async,auth,request,params);
+        VoteResult voteResult = response.getVoteResult();
+        handleError(voteResult.code, voteResult.text);
+        return voteResult;
     }
     
     private RatingResult getRatingResult(boolean async, boolean auth, String request, String...params)

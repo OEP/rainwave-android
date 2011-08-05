@@ -25,6 +25,8 @@ public class RainwaveResponse implements Parcelable {
     
     private RatingResult mRatingResult;
     
+    private VoteResult mVoteResult;
+    
     private RainwaveResponse(Parcel source) {
         mCurrent = source.readParcelable(Event.class.getClassLoader());
         
@@ -54,6 +56,10 @@ public class RainwaveResponse implements Parcelable {
     
     public Error getError() {
         return mError;
+    }
+    
+    public VoteResult getVoteResult() {
+    	return mVoteResult;
     }
     
     public RatingResult getRateResult() {
@@ -111,12 +117,16 @@ public class RainwaveResponse implements Parcelable {
                 else if(name.compareTo(RATING_RESULT) == 0) {
                     organizer.mRatingResult = ctx.deserialize(data, RatingResult.class);
                 }
+                else if(name.compareTo(VOTE_RESULT) == 0) {
+                	organizer.mVoteResult = ctx.deserialize(data, VoteResult.class);
+                }
             }
             
             return organizer;
         }
         
         public static final String
+        	VOTE_RESULT = "vote_result",
             RATING_RESULT = "rate_result",
             ERROR = "error",
             SCHED_CURRENT = "sched_current",
