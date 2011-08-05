@@ -207,6 +207,7 @@ public class ElectionListAdapter extends BaseAdapter {
 			else {
 				reflectSong(mCountdownView, mSong);
 			}
+			mCountdownTask = null;
 		}
 		
 		public int getSelection() {
