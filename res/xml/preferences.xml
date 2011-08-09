@@ -2,7 +2,9 @@
 <PreferenceScreen
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	android:key="rainwave">
-	<PreferenceCategory android:title="@string/label_authentication" android:key="pref_auth">
+	<PreferenceCategory
+		android:title="@string/label_authentication"
+		android:key="pref_auth">
 		<EditTextPreference
 			android:title="@string/label_userId"
 			android:key="pref_userId"
@@ -14,7 +16,7 @@
 			android:title="@string/label_key"
 			android:key="pref_key"
 			android:summary="@string/msg_manageAuth"
-			android:inputType="phone"
-			android:dialogTitle="@string/label_key" />
+			android:dialogTitle="@string/label_key"
+			android:inputType="textCapCharacters" />
 	</PreferenceCategory>
 </PreferenceScreen>
