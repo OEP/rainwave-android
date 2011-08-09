@@ -12,6 +12,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -124,8 +125,11 @@ public class NowPlayingActivity extends Activity {
     			.create();
     		
     	default:
-    	    // Programmer specified invalid dialog ID.
-    		return builder.setMessage("Sorry! Your princess is in another castle!").create();
+    	    // Assume the number must be a string resource id.
+    		return builder.setTitle(R.string.label_error)
+    				.setMessage(id)
+    				.setPositiveButton(R.string.label_ok, null)
+    				.create();
     	}
     }
     
@@ -140,9 +144,13 @@ public class NowPlayingActivity extends Activity {
 			public boolean onTouch(View v, MotionEvent e) {
 				switch(e.getAction()) {
 				case MotionEvent.ACTION_DOWN:
-				    if(mSession.isAuthenticated()) {
+				    if(mOrganizer.isTunedIn() && mSession.isAuthenticated()) {
     					showDialog(DIALOG_RATE);
     					return true;
+				    }
+				    else {
+				    	showDialog(R.string.msg_tunedInRate);
+				    	return true;
 				    }
 				}
 				return false;
@@ -153,8 +161,12 @@ public class NowPlayingActivity extends Activity {
     	final ListView election = (ListView) findViewById(R.id.np_electionList);
     	election.setOnItemClickListener(new AdapterView.OnItemClickListener() {
     		public void onItemClick(AdapterView parent, View v, int i, long id) {
-    			ElectionListAdapter adapter = (ElectionListAdapter) election.getAdapter();
-    			adapter.startCountdown(i);
+    			if(mOrganizer.isTunedIn() && mSession.isAuthenticated()) {
+    				((ElectionListAdapter) election.getAdapter()).startCountdown(i);
+    			}
+    			else {
+    				showDialog(R.string.msg_tunedInVote);
+    			}
     		}
 		});
     }
@@ -259,6 +271,19 @@ public class NowPlayingActivity extends Activity {
     	
     	// Updates election info.
     	updateElection(response.getElection());
+    	
+    	// Updates tuned in state.
+    	updateTunedIn(response);
+    }
+    
+    private void updateTunedIn(RainwaveResponse response) {
+    	Resources r = getResources();
+    	String app_name = r.getString(R.string.app_name);
+    	String state = r.getString(R.string.label_nottunedin);
+    	if(response.isTunedIn()) {
+    		state = r.getString(R.string.label_tunedin);
+    	}
+    	setTitle(String.format("%s (%s)", app_name, state));
     }
     
     private void updateElection(Song newSongs[]) {
@@ -371,7 +396,7 @@ public class NowPlayingActivity extends Activity {
                         	? (mSession.isAuthenticated())
                         			? mSession.syncInit()
                         			: mSession.asyncGet()
-                        	: mSession.syncGet();
+                        	: mSession.syncGet(mOrganizer);
                         
                 b.putParcelable(SCHEDULE, organizer);
                 

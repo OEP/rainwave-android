@@ -19,9 +19,15 @@
     <string name="label_voted">Voted!</string>
     <string name="label_voting">Voting...</string>
     <string name="label_unrated">Unrated</string>
+    <string name="label_error">Error</string>
+    <string name="label_ok">OK</string>
+    <string name="label_tunedin">Tuned in</string>
+    <string name="label_nottunedin">Not tuned in</string>
     
     <string name="msg_manageAuth">You can manage these at http://rainwave.cc/auth/</string>
     <string name="msg_sessionError">Failed to initialize session. Is the Rainwave URL correct?</string>
     <string name="msg_albumArtError">Failed to fetch album art.</string>
+    <string name="msg_tunedInRate">You must be tuned in to rate.</string>
+    <string name="msg_tunedInVote">You must be tuned in to vote.</string>
     
 </resources>
