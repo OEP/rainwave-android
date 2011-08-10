@@ -178,7 +178,6 @@ public class Session {
 
     private Gson getGson() {
         GsonBuilder builder = new GsonBuilder();
-        builder.registerTypeAdapter(RainwaveResponse.class, new RainwaveResponse.Deserializer());
         return builder.create();
     }
 
