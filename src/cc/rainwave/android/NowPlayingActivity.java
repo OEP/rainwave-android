@@ -54,6 +54,7 @@ public class NowPlayingActivity extends Activity {
 	
 	/** AsyncTask for song ratings */
 	private RateTask mRateTask;
+
 	
     /** Called when the activity is first created. */
     @Override
@@ -270,7 +271,7 @@ public class NowPlayingActivity extends Activity {
     	setRatings(response.getCurrentSong());
     	
     	// Updates election info.
-    	updateElection(response.getElection());
+    	updateElection(response);
     	
     	// Updates tuned in state.
     	updateTunedIn(response);
@@ -286,9 +287,14 @@ public class NowPlayingActivity extends Activity {
     	setTitle(String.format("%s (%s)", app_name, state));
     }
     
-    private void updateElection(Song newSongs[]) {
+    private void updateElection(RainwaveResponse response) {
+    	ElectionListAdapter adapter = new ElectionListAdapter(this,mSession,response.getElection());
     	((ListView)findViewById(R.id.np_electionList))
-    	   .setAdapter(new ElectionListAdapter(this,mSession,newSongs));
+    	   .setAdapter(adapter);
+    	
+    	if(response.hasVoteResult()) {
+    		adapter.markVoted(response.getPastVote());
+    	}
     }
     
     /**

@@ -18,6 +18,8 @@ import android.widget.TextView;
 public class ElectionListAdapter extends BaseAdapter {
 	private static final String TAG = "ElectionListAdapter";
 	
+	private boolean mVoted = false;
+	
 	private View mViews[];
 	
 	private Song mSongs[];
@@ -29,6 +31,9 @@ public class ElectionListAdapter extends BaseAdapter {
 	private CountdownTask mCountdownTask;
 	
 	private VoteTask mVoteTask;
+	
+	/** Last elec_entry_id */
+	private int mLastVote;
 	
 	public ElectionListAdapter(Context ctx, Session session, Song songs[]) {
 		mContext = ctx;
@@ -60,7 +65,7 @@ public class ElectionListAdapter extends BaseAdapter {
 	}
 	
 	public boolean hasVoted() {
-		return mVoteTask != null;
+		return mVoted || mVoteTask != null;
 	}
 
 	@Override
@@ -78,6 +83,21 @@ public class ElectionListAdapter extends BaseAdapter {
 		return (mSongs == null) ? -1 : mSongs[i].song_id;
 	}
 	
+	public void markVoted(int elec_entry_id) {
+		for(int i = 0; i < mSongs.length; i++) {
+			Song s = mSongs[i];
+			if(s.elec_entry_id == elec_entry_id) {
+				mLastVote = elec_entry_id;
+				setVoteStatus(true);
+				return;
+			}
+		}
+	}
+	
+	private void setVoteStatus(boolean state) {
+		mVoted = state; 
+	}
+	
 	@Override
 	public View getView(int i, View convertView, ViewGroup parent) {
 		if(convertView == null) {
@@ -89,7 +109,12 @@ public class ElectionListAdapter extends BaseAdapter {
 			((TextView)convertView.findViewById(R.id.election_songAlbum)).setText(s.album_name);
 			((TextView)convertView.findViewById(R.id.election_songArtist)).setText(s.collapseArtists());
 			
-			reflectSong(((CountdownView)convertView.findViewById(R.id.election_songRating)), s);
+			if(s.elec_entry_id == mLastVote) {
+				setVoted(((CountdownView)convertView.findViewById(R.id.election_songRating)));
+			}
+			else {
+				reflectSong(((CountdownView)convertView.findViewById(R.id.election_songRating)), s);
+			}
 		}
 		
 		mViews[i] = convertView;
@@ -116,9 +141,12 @@ public class ElectionListAdapter extends BaseAdapter {
 	}
 	
 	private void setVoted(int i) {
-		CountdownView cnt = getCountdownView(i);
-		cnt.setBoth(0, 0);
-		cnt.setAlternateText(R.string.label_voted);
+		setVoted( getCountdownView(i) );
+	}
+	
+	private void setVoted(CountdownView view) {
+		view.setBoth(0, 0);
+		view.setAlternateText(R.string.label_voted);
 	}
 	
 	public void submitVote(int selection) {

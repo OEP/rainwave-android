@@ -39,6 +39,14 @@ public class RainwaveResponse implements Parcelable {
     	return sched_next[0].song_data;
     }
     
+    public int getPastVote() {
+    	return vote_result.elec_entry_id;
+    }
+    
+    public boolean hasVoteResult() {
+    	return vote_result != null;
+    }
+    
     public boolean hasError() {
         return error != null;
     }
