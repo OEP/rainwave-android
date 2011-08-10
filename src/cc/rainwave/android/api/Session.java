@@ -46,9 +46,9 @@ public class Session {
         return getResponse(true, false, "get");
     }
 
-    public RainwaveResponse syncGet()
+    public RainwaveResponse syncGet(RainwaveResponse oldResponse)
             throws IOException, RainwaveException {
-        return getResponse(false, true, "sync");
+        return getResponse(false, true, "sync", oldResponse);
     }
     
     public RainwaveResponse syncInit()
@@ -102,6 +102,12 @@ public class Session {
     private RainwaveResponse getResponse(boolean async, boolean auth, String request,
             String... params)
             throws IOException, RainwaveException {
+    	return getResponse(async,auth,request,new RainwaveResponse(), params);
+    }
+    
+    private RainwaveResponse getResponse(boolean async, boolean auth, String request,
+            RainwaveResponse response, String... params)
+            throws IOException, RainwaveException {
     	
     	// Make the path
         String path = String.format("%s/%s/%s", (async) ? "async" : "sync", mStation, request);
@@ -135,7 +141,9 @@ public class Session {
         Gson gson = getGson();
         JsonParser parser = new JsonParser();
         JsonElement json = parser.parse(getReader(conn));
-        RainwaveResponse response = gson.fromJson(json, RainwaveResponse.class);
+        RainwaveResponse tmp = gson.fromJson(json, RainwaveResponse.class);
+        
+        response.receiveUpdates(tmp);
         
         // Throw an exception if there was some sort of problem.
         if(response.hasError()) {
