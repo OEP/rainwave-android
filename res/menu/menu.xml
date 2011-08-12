@@ -3,4 +3,9 @@
 		android:id="@+id/menu_preferences"
 		android:title="@string/label_preferences"
 		android:icon="@drawable/ic_menu_preferences" />
+
+	<item
+		android:id="@+id/menu_refresh"
+		android:title="@string/label_refresh"
+		android:icon="@drawable/ic_menu_refresh" />
 </menu>

@@ -17,6 +17,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,6 +26,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -54,12 +57,12 @@ public class NowPlayingActivity extends Activity {
 	
 	/** AsyncTask for song ratings */
 	private RateTask mRateTask;
-
 	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setup();
         setContentView(R.layout.layout_nowplaying);
         setListeners();
     }
@@ -134,6 +137,10 @@ public class NowPlayingActivity extends Activity {
     	}
     }
     
+    private void setup() {
+    	getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+    }
+    
     /**
      * Sets up listeners for this activity.
      */
@@ -189,6 +196,15 @@ public class NowPlayingActivity extends Activity {
     }
     
     /**
+     * Stops all running tasks and re-initializes
+     * the schedule.
+     */
+    private void refresh() {
+    	stopTasks();
+    	fetchSchedules(true);
+    }
+    
+    /**
      * Performs an initial (e.g., non-longpoll) fetch
      * of our song info.
      */
@@ -239,6 +255,10 @@ public class NowPlayingActivity extends Activity {
 		case R.id.menu_preferences:
 			Intent i = new Intent(this, RainwavePreferenceActivity.class);
 			startActivity(i);
+			break;
+			
+		case R.id.menu_refresh:
+			refresh();
 			break;
 		}
 		
@@ -392,6 +412,11 @@ public class NowPlayingActivity extends Activity {
         @Override
         protected Bundle doInBackground(Boolean ... flags) {
             mInit = flags[0];
+            
+            if(mInit) {
+            	dispatchThrobberVisibility(true);
+            }
+            
             TAG = (mInit) ? "InitialPoll" : "UpdatePoll";
         	Log.d(TAG, "Fetching a schedule");
         	
@@ -427,6 +452,9 @@ public class NowPlayingActivity extends Activity {
         
         protected void onPostExecute(Bundle result) {
             super.onPostExecute(result);
+            
+            dispatchThrobberVisibility(false);
+            
             mFetchInfo = null;
             
             // Was there an IO failure?
@@ -448,6 +476,32 @@ public class NowPlayingActivity extends Activity {
             Log.d(TAG, "Exiting successfully.");
         }
     }
+    
+    private Handler mHandler = new Handler() {
+    	public void handleMessage(Message msg) {
+    		Bundle data = msg.getData();
+    		switch(msg.what) {
+    		case HANDLER_SET_INDETERMINATE:
+    			setProgressBarIndeterminateVisibility( data.getBoolean(BOOL_STATUS) );
+    			break;
+    		}
+    	}
+    };
+    
+    private void dispatchThrobberVisibility(boolean state) {
+    	Message msg = mHandler.obtainMessage(HANDLER_SET_INDETERMINATE);
+    	Bundle data = msg.getData();
+    	data.putBoolean(BOOL_STATUS, state);
+    	msg.sendToTarget();
+    }
+    
+    /** Handler codes */
+    private static final int
+    	HANDLER_SET_INDETERMINATE = 0x1D373;
+    
+    /** Handler keys */
+    private static final String
+    	BOOL_STATUS = "bool_status";
     
     /** Dialog identifiers */
     public static final int
