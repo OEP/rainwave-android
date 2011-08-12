@@ -2,9 +2,11 @@ package cc.rainwave.android;
 
 import java.io.IOException;
 
+import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.RainwaveException;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,17 +15,27 @@ import android.preference.PreferenceManager;
 import android.widget.Toast;
 
 public class Rainwave {
-    
-    public static String getUrl(Context ctx, String url) {
-        return getPreferences(ctx).getString(PREFS_URL, url);
+	public static boolean putPreference(Context ctx, String name, String value) {
+		SharedPreferences prefs = getPreferences(ctx);
+		Editor editor = prefs.edit();
+		editor.putString(name, value);
+		return editor.commit();
+	}
+	
+    public static String getUrl(Context ctx, String defUrl) {
+    	return getStringPref(ctx,PREFS_URL,defUrl);
     }
     
     public static String getUserId(Context ctx) {
-        return getPreferences(ctx).getString(PREFS_USERID, null);
+    	return getStringPref(ctx,PREFS_USERID,null);
     }
     
     public static String getKey(Context ctx) {
-        return getPreferences(ctx).getString(PREFS_KEY, null);
+        return getStringPref(ctx,PREFS_KEY,null);
+    }
+    
+    public static String getStringPref(Context ctx, String key, String defValue) {
+    	return getPreferences(ctx).getString(key, defValue);
     }
     
     public static SharedPreferences getPreferences(Context ctx) {
@@ -62,5 +74,6 @@ public class Rainwave {
     public static final String
         PREFS_URL = "pref_url",
         PREFS_USERID = "pref_userId",
+        PREFS_LASTSTATION = "lastStation",
         PREFS_KEY = "pref_key";
 }

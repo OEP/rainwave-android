@@ -327,12 +327,13 @@ public class NowPlayingActivity extends Activity {
     
     private void updateTunedIn(RainwaveResponse response) {
     	Resources r = getResources();
-    	String app_name = r.getString(R.string.app_name);
+    	String stationName = mSession.getStationName();
+    	String title = (stationName != null) ? stationName : r.getString(R.string.app_name);
     	String state = r.getString(R.string.label_nottunedin);
     	if(response.isTunedIn()) {
     		state = r.getString(R.string.label_tunedin);
     	}
-    	setTitle(String.format("%s (%s)", app_name, state));
+    	setTitle(String.format("%s (%s)", title, state));
     }
     
     private void updateElection(RainwaveResponse response) {

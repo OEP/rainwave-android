@@ -84,8 +84,33 @@ public class Session {
         mKey = key;
     }
     
+    public String getStationName() {
+    	Resources r = mContext.getResources();
+    	String names[] = r.getStringArray(R.array.station_names);
+    	String ids[] = r.getStringArray(R.array.station_ids);
+    	
+    	for(int i = 0; i < ids.length; i++) {
+    		if(mStation.compareTo(ids[i]) == 0) {
+    			return names[i];
+    		}
+    	}
+    	
+    	return null;
+    }
+    
     public void setStation(String stationId) {
     	mStation = stationId;
+    	Rainwave.putPreference(mContext, getHash(Rainwave.PREFS_LASTSTATION), stationId);
+    }
+    
+    public String getUrl() {
+    	return mBaseUrl.toString();
+    }
+    
+    private String getHash(String key) {
+    	String url = getUrl();
+    	String hash = Integer.toHexString( url.hashCode() );
+    	return String.format("%s-%s", hash, key);
     }
     
     public boolean isAuthenticated() {
@@ -200,16 +225,15 @@ public class Session {
     }
 
     public static Session makeSession(Context ctx) throws MalformedURLException {
-        Session s = new Session();
-        s.mContext = ctx;
-        s.mBaseUrl = new URL(Rainwave.getUrl(ctx, API_URL));
-        s.setUserInfo(Rainwave.getUserId(ctx), Rainwave.getKey(ctx));
-        return s;
+        return makeSession(ctx,API_URL);
     }
 
     public static Session makeSession(Context ctx, String url) throws MalformedURLException {
         Session s = new Session();
+        s.mContext = ctx;
         s.mBaseUrl = new URL(url);
+        s.mStation = Rainwave.getStringPref(ctx, s.getHash(Rainwave.PREFS_LASTSTATION), s.mStation);
+        s.setUserInfo(Rainwave.getUserId(ctx), Rainwave.getKey(ctx));
         return s;
     }
 
