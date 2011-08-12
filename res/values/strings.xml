@@ -1,35 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Rainwave</string>
-    <string name="label_nowPlaying">Now Playing</string>
-    
-    <string name="label_authentication">Authentication info</string>
-    
-    <string name="label_userId">User ID</string>
-    <string name="label_key">API Key</string>
-    <string name="label_preferences">Preferences</string>
-    <string name="label_refresh">Refresh</string>
-    
-    <string name="label_album">Album</string>
-    <string name="label_song">Song</string>
-    
-    <string name="label_rateSong">Rate song</string>
-    
-    <string name="label_cancel">Cancel</string>
-    <string name="label_rate">Rate!</string>
-    <string name="label_voted">Voted!</string>
-    <string name="label_voting">Voting...</string>
-    <string name="label_unrated">Unrated</string>
-    <string name="label_error">Error</string>
-    <string name="label_ok">OK</string>
-    <string name="label_tunedin">Tuned in</string>
-    <string name="label_nottunedin">Not tuned in</string>
-    
-    <string name="msg_manageAuth">You can manage these at http://rainwave.cc/auth/</string>
-    <string name="msg_sessionError">Failed to initialize session. Is the Rainwave URL correct?</string>
-    <string name="msg_albumArtError">Failed to fetch album art.</string>
-    <string name="msg_tunedInRate">You must be tuned in to rate.</string>
-    <string name="msg_tunedInVote">You must be tuned in to vote.</string>
-    <string name="msg_outdatedApi">This application is using an outdated API version for request: %s</string>
-    
+	<string name="app_name">Rainwave</string>
+	<string name="label_nowPlaying">Now Playing</string>
+
+	<string-array name="station_names">
+		<item>Rainwave</item>
+		<item>OC Remix</item>
+		<item>Mixwave</item>
+	</string-array>
+
+	<string-array name="station_ids">
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</string-array>
+
+	<string name="label_authentication">Authentication info</string>
+
+	<string name="label_userId">User ID</string>
+	<string name="label_key">API Key</string>
+
+	<string name="label_preferences">Preferences</string>
+	<string name="label_refresh">Refresh</string>
+	<string name="label_pickStation">Pick station</string>
+
+	<string name="label_album">Album</string>
+	<string name="label_song">Song</string>
+
+	<string name="label_rateSong">Rate song</string>
+
+	<string name="label_cancel">Cancel</string>
+	<string name="label_rate">Rate!</string>
+	<string name="label_voted">Voted!</string>
+	<string name="label_voting">Voting...</string>
+	<string name="label_unrated">Unrated</string>
+	<string name="label_error">Error</string>
+	<string name="label_ok">OK</string>
+	<string name="label_tunedin">Tuned in</string>
+	<string name="label_nottunedin">Not tuned in</string>
+
+	<string name="msg_manageAuth">You can manage these at http://rainwave.cc/auth/
+	</string>
+	<string name="msg_sessionError">Failed to initialize session. Is the Rainwave URL
+		correct?
+	</string>
+	<string name="msg_albumArtError">Failed to fetch album art.</string>
+	<string name="msg_tunedInRate">You must be tuned in to rate.</string>
+	<string name="msg_tunedInVote">You must be tuned in to vote.</string>
+	<string name="msg_outdatedApi">This application is using an outdated API version
+		for request: %s</string>
+
 </resources>

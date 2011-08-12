@@ -5,6 +5,11 @@
 		android:icon="@drawable/ic_menu_preferences" />
 
 	<item
+		android:id="@+id/menu_pickStation"
+		android:title="@string/label_pickStation"
+		android:icon="@drawable/ic_menu_clear_playlist" />
+
+	<item
 		android:id="@+id/menu_refresh"
 		android:title="@string/label_refresh"
 		android:icon="@drawable/ic_menu_refresh" />

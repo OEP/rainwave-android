@@ -84,6 +84,10 @@ public class Session {
         mKey = key;
     }
     
+    public void setStation(String stationId) {
+    	mStation = stationId;
+    }
+    
     public boolean isAuthenticated() {
         return mUserId != null && mKey != null && mUserId.length() > 0 && mKey.length() > 0;
     }

@@ -28,6 +28,7 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
@@ -126,6 +127,29 @@ public class NowPlayingActivity extends Activity {
     			})
     			.setNegativeButton(R.string.label_cancel, null)
     			.setView(rating)
+    			.create();
+    		
+    	case DIALOG_STATION_PICKER:
+    		Resources r = getResources();
+    		final String ids[] = r.getStringArray(R.array.station_ids);
+    		
+    		ListView listView = new ListView(this);
+    		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+				@Override
+				public void onItemClick(AdapterView<?> parent, View view,
+						int index, long id) {
+					mSession.setStation(ids[index]);
+					NowPlayingActivity.this.dismissDialog(DIALOG_STATION_PICKER);
+					refresh();
+				}
+			});
+    		
+    		listView.setAdapter(ArrayAdapter.createFromResource(this,
+    				R.array.station_names, android.R.layout.simple_list_item_1));
+    		
+    		return builder.setTitle(R.string.label_pickStation)
+    			.setNegativeButton(R.string.label_cancel, null)
+    			.setView(listView)
     			.create();
     		
     	default:
@@ -255,6 +279,10 @@ public class NowPlayingActivity extends Activity {
 		case R.id.menu_preferences:
 			Intent i = new Intent(this, RainwavePreferenceActivity.class);
 			startActivity(i);
+			break;
+			
+		case R.id.menu_pickStation:
+			showDialog(DIALOG_STATION_PICKER);
 			break;
 			
 		case R.id.menu_refresh:
@@ -505,6 +533,7 @@ public class NowPlayingActivity extends Activity {
     
     /** Dialog identifiers */
     public static final int
+    	DIALOG_STATION_PICKER = 0xb1c7,
     	DIALOG_RATE = 0x4A7E;
     
     /** Bundle constants */
