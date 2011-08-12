@@ -29,5 +29,6 @@
     <string name="msg_albumArtError">Failed to fetch album art.</string>
     <string name="msg_tunedInRate">You must be tuned in to rate.</string>
     <string name="msg_tunedInVote">You must be tuned in to vote.</string>
+    <string name="msg_outdatedApi">This application is using an outdated API version for request: %s</string>
     
 </resources>

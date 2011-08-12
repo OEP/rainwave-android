@@ -1,9 +1,17 @@
 package cc.rainwave.android.api.types;
 
+import android.content.Context;
+import android.content.res.Resources;
+
 public class RainwaveException extends Exception {
 	private static final long serialVersionUID = -6112296581405318238L;
 
+	private Context mContext;
+	
 	private int mCode;
+	
+	private int mResId;
+	
 	private String mMessage;
 	
 	public RainwaveException(Error error) {
@@ -21,10 +29,11 @@ public class RainwaveException extends Exception {
 	}
 	
 	public String getMessage() {
-		return mMessage;
+		return (mContext != null) ? mContext.getResources().getString(mResId)
+				: mMessage;
 	}
 	
 	public String toString() {
-		return String.format("%s: %s (%d)", super.toString(), mMessage, mCode);
+		return String.format("%s: %s (%d)", super.toString(), getMessage(), mCode);
 	}
 }

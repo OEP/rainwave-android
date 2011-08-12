@@ -1,6 +1,7 @@
 
 package cc.rainwave.android.api;
 
+import cc.rainwave.android.R;
 import cc.rainwave.android.Rainwave;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.RainwaveResponse;
@@ -10,9 +11,11 @@ import cc.rainwave.android.api.types.VoteResult;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -28,6 +31,8 @@ import java.net.URL;
 
 public class Session {
     private static final String TAG = "Session";
+    
+    private Context mContext;
 
     public String mStation = "1";
 
@@ -80,7 +85,7 @@ public class Session {
     }
     
     public boolean isAuthenticated() {
-        return mUserId != null && mKey != null;
+        return mUserId != null && mKey != null && mUserId.length() > 0 && mKey.length() > 0;
     }
     
     private VoteResult getVoteResult(boolean async, boolean auth, String request, String...params) 
@@ -141,7 +146,16 @@ public class Session {
         Gson gson = getGson();
         JsonParser parser = new JsonParser();
         JsonElement json = parser.parse(getReader(conn));
-        RainwaveResponse tmp = gson.fromJson(json, RainwaveResponse.class);
+        RainwaveResponse tmp;
+        
+        try {
+        	tmp = gson.fromJson(json, RainwaveResponse.class);
+        }
+        catch(JsonParseException e) {
+        	Resources r = mContext.getResources();
+        	String msg = String.format(r.getString(R.string.msg_outdatedApi), path);
+        	throw new RainwaveException(0, msg);
+        }
         
         response.receiveUpdates(tmp);
         
@@ -183,6 +197,7 @@ public class Session {
 
     public static Session makeSession(Context ctx) throws MalformedURLException {
         Session s = new Session();
+        s.mContext = ctx;
         s.mBaseUrl = new URL(Rainwave.getUrl(ctx, API_URL));
         s.setUserInfo(Rainwave.getUserId(ctx), Rainwave.getKey(ctx));
         return s;
@@ -197,6 +212,6 @@ public class Session {
     public static final String
             NAME_USERID = "user_id",
             NAME_KEY = "key",
-            // API_URL = "http://students.mint.ua.edu/~pmkilgo/tmp";
+//            API_URL = "http://students.mint.ua.edu/~pmkilgo/tmp";
             API_URL = "http://rainwave.cc";
 }

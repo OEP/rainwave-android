@@ -254,8 +254,8 @@ public class NowPlayingActivity extends Activity {
     private void initializeSession() {
         try {
             mSession = Session.makeSession(this);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            Rainwave.showError(this, e);
         }
     }
     
@@ -415,9 +415,11 @@ public class NowPlayingActivity extends Activity {
                 return b;
             } catch (IOException e) {
                 Log.e(TAG, "IOException occured: " + e);
+                Rainwave.showError(NowPlayingActivity.this, e);
                 return null;
             } catch (RainwaveException e) {
             	Log.e(TAG, "API error: " + e.getMessage());
+            	Rainwave.showError(NowPlayingActivity.this, e);
             	return null;
             }
             

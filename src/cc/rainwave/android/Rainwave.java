@@ -55,7 +55,7 @@ public class Rainwave {
     		Bundle data = msg.getData();
     		Context ctx = (Context) msg.obj;
     		String text = data.getString("text");
-    		Toast.makeText(ctx, text, Toast.LENGTH_SHORT).show();
+    		Toast.makeText(ctx, text, Toast.LENGTH_LONG).show();
     	}
     };
     
