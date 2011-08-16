@@ -5,6 +5,7 @@ import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.RatingResult;
 import cc.rainwave.android.api.types.Song;
+import cc.rainwave.android.api.types.Station;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -130,22 +131,22 @@ public class NowPlayingActivity extends Activity {
     			.create();
     		
     	case DIALOG_STATION_PICKER:
-    		Resources r = getResources();
-    		final String ids[] = r.getStringArray(R.array.station_ids);
+    		Station stations[] = mOrganizer.getStations();
     		
-    		ListView listView = new ListView(this);
+    		final ListView listView = new ListView(this);
     		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 				@Override
 				public void onItemClick(AdapterView<?> parent, View view,
 						int index, long id) {
-					mSession.setStation(ids[index]);
+					Station s = (Station) listView.getItemAtPosition(index);
+					mSession.setStation(s.id);
 					NowPlayingActivity.this.dismissDialog(DIALOG_STATION_PICKER);
 					refresh();
 				}
 			});
     		
-    		listView.setAdapter(ArrayAdapter.createFromResource(this,
-    				R.array.station_names, android.R.layout.simple_list_item_1));
+    		listView.setAdapter(new ArrayAdapter<Station>(
+    				this, android.R.layout.simple_list_item_1, stations));
     		
     		return builder.setTitle(R.string.label_pickStation)
     			.setNegativeButton(R.string.label_cancel, null)
@@ -327,7 +328,8 @@ public class NowPlayingActivity extends Activity {
     
     private void updateTunedIn(RainwaveResponse response) {
     	Resources r = getResources();
-    	String stationName = mSession.getStationName();
+    	int id = mSession.getStationId();
+    	String stationName = mOrganizer.getStationName(id);
     	String title = (stationName != null) ? stationName : r.getString(R.string.app_name);
     	String state = r.getString(R.string.label_nottunedin);
     	if(response.isTunedIn()) {
@@ -451,14 +453,22 @@ public class NowPlayingActivity extends Activity {
         	
             Bundle b = new Bundle();
             try {
+            	Station stations[] = null;
+            	
+            	if(mInit) {
+            		stations = mSession.getStations();
+            	}
+            	
                 RainwaveResponse organizer =
                         (mInit)
                         	? (mSession.isAuthenticated())
                         			? mSession.syncInit()
                         			: mSession.asyncGet()
                         	: mSession.syncGet(mOrganizer);
-                        
+                
+                organizer.setStations(stations);
                 b.putParcelable(SCHEDULE, organizer);
+                
                 
                 if(!organizer.hasError()) {
                     Song song = organizer.getCurrentSong();

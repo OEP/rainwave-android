@@ -16,17 +16,22 @@ public class RainwaveResponse implements Parcelable {
     
     private User user;
     
+    private Station stations[];
+    
     private RainwaveResponse(Parcel source) {
         sched_current = source.readParcelable(Event.class.getClassLoader());
         
         Parcelable history[] = source.readParcelableArray(Event.class.getClassLoader());
         Parcelable next[] = source.readParcelableArray(Event.class.getClassLoader());
+        Parcelable tmpStations[] = source.readParcelableArray(Station.class.getClassLoader());
         
         sched_history = new Event[history.length];
         sched_next = new Event[next.length];
+        stations = new Station[tmpStations.length];
         
         for(int i = 0; i < history.length; i++) { sched_history[i] = (Event) history[i]; }
         for(int i = 0; i < next.length; i++) { sched_next[i] = (Event) next[i]; }
+        for(int i = 0; i < tmpStations.length; i++) { stations[i] = (Station) tmpStations[i]; }
     }
     
     public RainwaveResponse() { }
@@ -67,6 +72,21 @@ public class RainwaveResponse implements Parcelable {
         return rate_result;
     }
     
+    public Station[] getStations() {
+    	return stations;
+    }
+    
+    public String getStationName(int id) {
+    	for(int i = 0; i < stations.length; i++) {
+    		if(id == stations[i].id) return stations[i].name;
+    	}
+    	return null;
+    }
+    
+    public void setStations(Station[] newStations) {
+    	stations = newStations;
+    }
+    
     public void receiveUpdates(RainwaveResponse other) {
     	user = (User) update(other.user, user);
     	sched_current = (Event) update(other.sched_current, sched_current);
@@ -75,11 +95,12 @@ public class RainwaveResponse implements Parcelable {
     	error = (Error) update(other.error, error);
     	rate_result = (RatingResult) update(other.rate_result, rate_result);
     	vote_result = (VoteResult) update(other.vote_result, vote_result);
+    	stations = (Station[]) update(other.stations, stations);
     }
     
-    private Object update(Object old, Object current) {
-    	if(old == null) return current;
-    	return old;
+    private Object update(Object newGuy, Object current) {
+    	if(newGuy == null) return current;
+    	return newGuy;
     }
     
     public void updateSongRatings(RatingResult result) {
@@ -96,6 +117,9 @@ public class RainwaveResponse implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeParcelable(sched_current, flags);
+        dest.writeParcelableArray(sched_history, flags);
+        dest.writeParcelableArray(sched_next, flags);
+        dest.writeParcelableArray(stations, flags);
     }
     
     public static final Parcelable.Creator<RainwaveResponse> CREATOR

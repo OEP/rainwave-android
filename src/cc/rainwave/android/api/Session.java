@@ -6,6 +6,7 @@ import cc.rainwave.android.Rainwave;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.RatingResult;
+import cc.rainwave.android.api.types.Station;
 import cc.rainwave.android.api.types.VoteResult;
 
 import com.google.gson.Gson;
@@ -34,7 +35,7 @@ public class Session {
     
     private Context mContext;
 
-    public String mStation = "1";
+    public int mStation = 1;
 
     public String mUserId;
 
@@ -72,7 +73,16 @@ public class Session {
     		throws IOException, RainwaveException {
     	return getVoteResult(true,true,"vote","elec_entry_id", String.valueOf(elecId));
     }
-
+    
+    public Station[] getStations() throws IOException, RainwaveException {
+    	boolean auth = isAuthenticated();
+    	String request = (auth)
+    			? "stations_user"
+    			: "stations";
+    	
+    	return getStationResult(true, auth, request);
+    }
+    
     public Bitmap fetchAlbumArt(String path) throws IOException {
         URL url = new URL(getUrl(path));
         InputStream is = url.openStream();
@@ -84,27 +94,17 @@ public class Session {
         mKey = key;
     }
     
-    public String getStationName() {
-    	Resources r = mContext.getResources();
-    	String names[] = r.getStringArray(R.array.station_names);
-    	String ids[] = r.getStringArray(R.array.station_ids);
-    	
-    	for(int i = 0; i < ids.length; i++) {
-    		if(mStation.compareTo(ids[i]) == 0) {
-    			return names[i];
-    		}
-    	}
-    	
-    	return null;
-    }
-    
-    public void setStation(String stationId) {
+    public void setStation(int stationId) {
     	mStation = stationId;
-    	Rainwave.putPreference(mContext, getHash(Rainwave.PREFS_LASTSTATION), stationId);
+    	Rainwave.putIntPreference(mContext, getHash(Rainwave.PREFS_LASTSTATION), stationId);
     }
     
     public String getUrl() {
     	return mBaseUrl.toString();
+    }
+    
+    public int getStationId() {
+    	return mStation;
     }
     
     private String getHash(String key) {
@@ -115,6 +115,14 @@ public class Session {
     
     public boolean isAuthenticated() {
         return mUserId != null && mKey != null && mUserId.length() > 0 && mKey.length() > 0;
+    }
+    
+    private Station[] getStationResult(boolean async, boolean auth, String request, String ...params)
+    		throws IOException, RainwaveException {
+    	RainwaveResponse response = getResponse(async,auth,request,params);
+    	Station stations[] = response.getStations();
+    	// TODO: handleError() for stations? Not sure!
+    	return stations;
     }
     
     private VoteResult getVoteResult(boolean async, boolean auth, String request, String...params) 
@@ -232,7 +240,7 @@ public class Session {
         Session s = new Session();
         s.mContext = ctx;
         s.mBaseUrl = new URL(url);
-        s.mStation = Rainwave.getStringPref(ctx, s.getHash(Rainwave.PREFS_LASTSTATION), s.mStation);
+        s.mStation = Rainwave.getIntPref(ctx, s.getHash(Rainwave.PREFS_LASTSTATION), s.mStation);
         s.setUserInfo(Rainwave.getUserId(ctx), Rainwave.getKey(ctx));
         return s;
     }

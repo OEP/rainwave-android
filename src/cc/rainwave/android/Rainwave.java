@@ -15,10 +15,10 @@ import android.preference.PreferenceManager;
 import android.widget.Toast;
 
 public class Rainwave {
-	public static boolean putPreference(Context ctx, String name, String value) {
+	public static boolean putIntPreference(Context ctx, String name, int value) {
 		SharedPreferences prefs = getPreferences(ctx);
 		Editor editor = prefs.edit();
-		editor.putString(name, value);
+		editor.putInt(name, value);
 		return editor.commit();
 	}
 	
@@ -36,6 +36,10 @@ public class Rainwave {
     
     public static String getStringPref(Context ctx, String key, String defValue) {
     	return getPreferences(ctx).getString(key, defValue);
+    }
+    
+    public static int getIntPref(Context ctx, String key, int defValue) {
+    	return getPreferences(ctx).getInt(key, defValue);
     }
     
     public static SharedPreferences getPreferences(Context ctx) {
