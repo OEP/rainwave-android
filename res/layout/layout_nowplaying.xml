@@ -69,7 +69,7 @@
 				android:layout_gravity="center_horizontal"
 				android:text="@string/label_song"
 				android:textAppearance="?android:attr/textAppearanceMedium" />
-			<cc.rainwave.android.CountdownView
+			<cc.rainwave.android.views.CountdownView
 				android:id="@+id/np_songRating"
 				android:layout_width="60sp"
 				android:layout_height="60sp"
@@ -90,7 +90,7 @@
 				android:layout_gravity="center_horizontal"
 				android:text="@string/label_album"
 				android:textAppearance="?android:attr/textAppearanceMedium"></TextView>
-			<cc.rainwave.android.CountdownView
+			<cc.rainwave.android.views.CountdownView
 				android:id="@+id/np_albumRating"
 				android:layout_width="60sp"
 				android:layout_height="60sp"

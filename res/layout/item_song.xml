@@ -42,7 +42,7 @@
 			android:layout_marginLeft="25sp"
 			android:textAppearance="?android:attr/textAppearanceMedium"></TextView>
 	</LinearLayout>
-	<cc.rainwave.android.CountdownView
+	<cc.rainwave.android.views.CountdownView
 		android:id="@+id/election_songRating"
 		android:layout_width="60sp"
 		android:layout_height="60sp"

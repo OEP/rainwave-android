@@ -1,6 +1,7 @@
 package cc.rainwave.android;
 
 import cc.rainwave.android.adapters.ElectionListAdapter;
+import cc.rainwave.android.adapters.StationListAdapter;
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.RainwaveResponse;
@@ -147,8 +148,7 @@ public class NowPlayingActivity extends Activity {
 				}
 			});
     		
-    		listView.setAdapter(new ArrayAdapter<Station>(
-    				this, android.R.layout.simple_list_item_1, stations));
+    		listView.setAdapter(new StationListAdapter(this, stations));
     		
     		return builder.setTitle(R.string.label_pickStation)
     			.setNegativeButton(R.string.label_cancel, null)
@@ -455,22 +455,19 @@ public class NowPlayingActivity extends Activity {
         	
             Bundle b = new Bundle();
             try {
-            	Station stations[] = null;
-            	
-            	if(mInit) {
-            		stations = mSession.getStations();
-            	}
-            	
                 RainwaveResponse organizer =
                         (mInit)
                         	? (mSession.isAuthenticated())
                         			? mSession.syncInit()
                         			: mSession.asyncGet()
                         	: mSession.syncGet(mOrganizer);
+            	
+            	if(mInit) {
+            		Station stations[] = mSession.getStations();
+            		organizer.setStations(stations);
+            	}
                 
-                organizer.setStations(stations);
                 b.putParcelable(SCHEDULE, organizer);
-                
                 
                 if(!organizer.hasError()) {
                     Song song = organizer.getCurrentSong();
@@ -504,7 +501,13 @@ public class NowPlayingActivity extends Activity {
             	return;
             }
             
-            mOrganizer = result.getParcelable(SCHEDULE);
+            if(mOrganizer == null) {
+            	mOrganizer = result.getParcelable(SCHEDULE);
+            }
+            else {
+            	RainwaveResponse tmp = result.getParcelable(SCHEDULE);
+            	mOrganizer.receiveUpdates(tmp);
+            }
             
             // Callback for schedule sync.
             onScheduleSync(mOrganizer);
