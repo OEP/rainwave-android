@@ -96,7 +96,7 @@ public class Session {
     
     public void setStation(int stationId) {
     	mStation = stationId;
-    	Rainwave.putIntPreference(mContext, getHash(Rainwave.PREFS_LASTSTATION), stationId);
+    	Rainwave.putLastStation(mContext, stationId);
     }
     
     public String getUrl() {
@@ -105,12 +105,6 @@ public class Session {
     
     public int getStationId() {
     	return mStation;
-    }
-    
-    private String getHash(String key) {
-    	String url = getUrl();
-    	String hash = Integer.toHexString( url.hashCode() );
-    	return String.format("%s-%s", hash, key);
     }
     
     public boolean isAuthenticated() {
@@ -233,21 +227,16 @@ public class Session {
     }
 
     public static Session makeSession(Context ctx) throws MalformedURLException {
-        return makeSession(ctx,API_URL);
-    }
-
-    public static Session makeSession(Context ctx, String url) throws MalformedURLException {
         Session s = new Session();
+        String url = Rainwave.getUrl(ctx);
         s.mContext = ctx;
         s.mBaseUrl = new URL(url);
-        s.mStation = Rainwave.getIntPref(ctx, s.getHash(Rainwave.PREFS_LASTSTATION), s.mStation);
+        s.mStation = Rainwave.getLastStation(ctx, s.mStation);
         s.setUserInfo(Rainwave.getUserId(ctx), Rainwave.getKey(ctx));
         return s;
     }
 
     public static final String
             NAME_USERID = "user_id",
-            NAME_KEY = "key",
-//            API_URL = "http://students.mint.ua.edu/~pmkilgo/tmp";
-            API_URL = "http://rainwave.cc";
+            NAME_KEY = "key";
 }

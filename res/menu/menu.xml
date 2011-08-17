@@ -3,11 +3,16 @@
 		android:id="@+id/menu_preferences"
 		android:title="@string/label_preferences"
 		android:icon="@drawable/ic_menu_preferences" />
+		
+	<item
+		android:id="@+id/menu_tuneIn"
+		android:title="@string/label_tuneIn"
+		android:icon="@drawable/ic_menu_play_clip" />
 
 	<item
 		android:id="@+id/menu_pickStation"
 		android:title="@string/label_pickStation"
-		android:icon="@drawable/ic_menu_clear_playlist" />
+		android:icon="@drawable/ic_menu_music_library" />
 
 	<item
 		android:id="@+id/menu_refresh"

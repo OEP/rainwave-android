@@ -19,6 +19,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -166,6 +167,7 @@ public class NowPlayingActivity extends Activity {
     
     private void setup() {
     	getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+    	Rainwave.forceCompatibility(this);
     }
     
     /**
@@ -276,11 +278,20 @@ public class NowPlayingActivity extends Activity {
 
 	/** Responds to menu selection */
 	public boolean onOptionsItemSelected(MenuItem item) {
+		Intent i;
 		switch(item.getItemId()) {
 		    
 		// Start RainwavePreferenceActivity.
 		case R.id.menu_preferences:
-			Intent i = new Intent(this, RainwavePreferenceActivity.class);
+			i = new Intent(this, RainwavePreferenceActivity.class);
+			startActivity(i);
+			break;
+			
+		case R.id.menu_tuneIn:
+			int stationId = mSession.getStationId();
+			Station s = mOrganizer.getStation(stationId);
+			i = new Intent(Intent.ACTION_VIEW);
+			i.setDataAndType(Uri.parse(s.stream), "audio/*");
 			startActivity(i);
 			break;
 			

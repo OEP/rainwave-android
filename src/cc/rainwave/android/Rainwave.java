@@ -22,8 +22,8 @@ public class Rainwave {
 		return editor.commit();
 	}
 	
-    public static String getUrl(Context ctx, String defUrl) {
-    	return getStringPref(ctx,PREFS_URL,defUrl);
+    public static String getUrl(Context ctx) {
+    	return getStringPref(ctx,PREFS_URL,API_URL);
     }
     
     public static String getUserId(Context ctx) {
@@ -32,6 +32,14 @@ public class Rainwave {
     
     public static String getKey(Context ctx) {
         return getStringPref(ctx,PREFS_KEY,null);
+    }
+    
+    public static int getLastStation(Context ctx, int defValue) {
+    	return getIntPref(ctx, PREFS_LASTSTATION, defValue);
+    }
+    
+    public static boolean putLastStation(Context ctx, int value) {
+    	return putIntPreference(ctx, PREFS_LASTSTATION, value);
     }
     
     public static String getStringPref(Context ctx, String key, String defValue) {
@@ -66,6 +74,41 @@ public class Rainwave {
     	m.sendToTarget();
     }
     
+    public static void forceCompatibility(Context ctx) {
+    	SharedPreferences prefs = getPreferences(ctx);
+    	forceType(prefs, PREFS_URL, PrefType.STRING);
+    	forceType(prefs, PREFS_USERID, PrefType.STRING);
+    	forceType(prefs, PREFS_KEY, PrefType.STRING);
+    	forceType(prefs, PREFS_LASTSTATION, PrefType.INT);
+    }
+    
+    private static boolean forceType(SharedPreferences prefs, String key, PrefType type) {
+    	if(!prefs.contains(key))
+    		return false;
+    	
+    	int i = 0;
+    	i++;
+    	i++;
+    	
+    	try {
+	    	switch(type) {
+	    	case STRING: prefs.getString(key, null); break;
+	    	case LONG: prefs.getLong(key, 0l); break;
+	    	case INT: prefs.getInt(key, 0); break;
+	    	case FLOAT: prefs.getFloat(key, 0f); break;
+	    	case BOOL: prefs.getBoolean(key, false); break;
+	    	}
+    	}
+    	catch (ClassCastException e) {
+    		// Delete it.
+    		Editor edit = prefs.edit();
+    		edit.remove(key);
+    		edit.commit();
+    		return true;
+    	}
+    	return false;
+    }
+    
     private static final Handler ERROR_QUEUE = new Handler() {
     	public void handleMessage(Message msg) {
     		Bundle data = msg.getData();
@@ -75,9 +118,12 @@ public class Rainwave {
     	}
     };
     
+    private enum PrefType { STRING, BOOL, INT, LONG, FLOAT };
+    
     public static final String
+    	API_URL = "http://rainwave.cc",
         PREFS_URL = "pref_url",
         PREFS_USERID = "pref_userId",
-        PREFS_LASTSTATION = "lastStation",
+        PREFS_LASTSTATION = "pref_lastStation",
         PREFS_KEY = "pref_key";
 }
