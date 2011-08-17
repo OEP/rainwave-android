@@ -1,5 +1,6 @@
 package cc.rainwave.android;
 
+import cc.rainwave.android.listeners.HexadecimalKeyListener;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.PreferenceActivity;

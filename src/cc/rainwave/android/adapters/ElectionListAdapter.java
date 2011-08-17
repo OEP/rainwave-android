@@ -1,11 +1,17 @@
-package cc.rainwave.android;
+package cc.rainwave.android.adapters;
 
 import java.io.IOException;
 
+import cc.rainwave.android.R;
+import cc.rainwave.android.Rainwave;
+import cc.rainwave.android.R.id;
+import cc.rainwave.android.R.layout;
+import cc.rainwave.android.R.string;
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.api.types.VoteResult;
+import cc.rainwave.android.views.CountdownView;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;

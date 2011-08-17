@@ -1,4 +1,4 @@
-package cc.rainwave.android;
+package cc.rainwave.android.listeners;
 
 import android.text.Editable;
 import android.text.InputType;

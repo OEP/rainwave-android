@@ -1,4 +1,4 @@
-package cc.rainwave.android;
+package cc.rainwave.android.views;
 
 import android.content.Context;
 import android.graphics.Canvas;
