@@ -5,16 +5,20 @@
 	android:orientation="vertical"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent">
-	<TextView
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:text="@string/label_nowPlaying"
-		android:gravity="center_horizontal"
-		android:textSize="30dp" />
+
+	<!-- Now playing block -->
 	<LinearLayout
 		android:layout_height="wrap_content"
 		android:orientation="horizontal"
 		android:layout_width="fill_parent">
+		<!-- Song decoration -->
+		<ImageView
+			android:layout_gravity="top|left"
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:id="@+id/np_accent"
+			android:src="@drawable/accent_song" />
+		<!-- Song title, artist, album, requester... -->
 		<LinearLayout
 			android:layout_weight="1"
 			android:layout_height="wrap_content"
@@ -45,14 +49,23 @@
 				android:ellipsize="end"
 				android:scrollHorizontally="true"
 				android:lines="1"></TextView>
+			<TextView
+				android:textAppearance="?android:attr/textAppearanceSmall"
+				android:id="@+id/np_requestor"
+				android:layout_height="wrap_content"
+				android:layout_width="fill_parent"
+				android:ellipsize="end"
+				android:scrollHorizontally="true"
+				android:lines="1"></TextView>
 		</LinearLayout>
+		<!-- Album art -->
 		<ImageView
 			android:layout_gravity="center_vertical|right"
 			android:src="@drawable/noart"
 			android:scaleType="center"
 			android:layout_height="wrap_content"
 			android:id="@+id/np_albumArt"
-			android:layout_width="wrap_content"></ImageView>
+			android:layout_width="wrap_content" />
 	</LinearLayout>
 	<LinearLayout
 		android:layout_height="wrap_content"

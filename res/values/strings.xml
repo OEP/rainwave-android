@@ -27,6 +27,7 @@
 
 	<string name="label_album">Album</string>
 	<string name="label_song">Song</string>
+	<string name="label_requestor">Requested by: %s</string>
 
 	<string name="label_rateSong">Rate song</string>
 

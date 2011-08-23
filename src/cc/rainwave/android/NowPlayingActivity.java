@@ -370,6 +370,20 @@ public class NowPlayingActivity extends Activity {
     	((TextView) findViewById(R.id.np_songTitle)).setText(current.song_title);
     	((TextView) findViewById(R.id.np_albumTitle)).setText(current.album_name);
     	((TextView) findViewById(R.id.np_artist)).setText(current.collapseArtists());
+    	
+    	ImageView accent = (ImageView)findViewById(R.id.np_accent);
+    	TextView requestor = (TextView)findViewById(R.id.np_requestor);
+    	Resources r = getResources();
+    	
+    	if(current.isRequest()) {
+    		accent.setImageResource(R.drawable.accent_song_hilight);
+    		requestor.setVisibility(View.VISIBLE);
+    		requestor.setText(String.format(r.getString(R.string.label_requestor), current.song_requestor));
+    	}
+    	else {
+    		accent.setImageResource(R.drawable.accent_song);
+    		requestor.setVisibility(View.GONE);
+    	}
     }
     
     /**

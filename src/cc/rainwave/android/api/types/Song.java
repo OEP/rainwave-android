@@ -9,6 +9,7 @@ public class Song implements Parcelable {
 	public Artist artists[];
 	public String album_art;
 	public String album_name;
+	public String song_requestor;
 	public float song_rating_user, song_rating_avg,
 		album_rating_user, album_rating_avg;
 	
@@ -20,6 +21,7 @@ public class Song implements Parcelable {
 	    Parcelable tmp[] = in.readParcelableArray(Artist[].class.getClassLoader());
 	    album_art = in.readString();
 	    album_name = in.readString();
+	    song_requestor = in.readString();
 	    
 	    artists = new Artist[tmp.length];
 	    for(int i = 0; i < tmp.length; i++) {
@@ -76,6 +78,7 @@ public class Song implements Parcelable {
         dest.writeParcelableArray(artists, flags);
         dest.writeString(album_art);
         dest.writeString(album_name);
+        dest.writeString(song_requestor);
     }
     
     public static final Parcelable.Creator<Song> CREATOR

@@ -2,24 +2,23 @@ package cc.rainwave.android.adapters;
 
 import java.io.IOException;
 
-import cc.rainwave.android.R;
-import cc.rainwave.android.Rainwave;
-import cc.rainwave.android.R.id;
-import cc.rainwave.android.R.layout;
-import cc.rainwave.android.R.string;
-import cc.rainwave.android.api.Session;
-import cc.rainwave.android.api.types.RainwaveException;
-import cc.rainwave.android.api.types.Song;
-import cc.rainwave.android.api.types.VoteResult;
-import cc.rainwave.android.views.CountdownView;
 import android.content.Context;
+import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
+import cc.rainwave.android.R;
+import cc.rainwave.android.Rainwave;
+import cc.rainwave.android.api.Session;
+import cc.rainwave.android.api.types.RainwaveException;
+import cc.rainwave.android.api.types.Song;
+import cc.rainwave.android.api.types.VoteResult;
+import cc.rainwave.android.views.CountdownView;
 
 public class ElectionListAdapter extends BaseAdapter {
 	private static final String TAG = "ElectionListAdapter";
@@ -108,12 +107,21 @@ public class ElectionListAdapter extends BaseAdapter {
 	public View getView(int i, View convertView, ViewGroup parent) {
 		if(convertView == null) {
 			Song s = mSongs[i];
+			Resources r = mContext.getResources();
 			LayoutInflater inflater = LayoutInflater.from(mContext);
 			convertView = inflater.inflate(R.layout.item_song, null);
 			
 			((TextView)convertView.findViewById(R.id.election_songTitle)).setText(s.song_title);
 			((TextView)convertView.findViewById(R.id.election_songAlbum)).setText(s.album_name);
 			((TextView)convertView.findViewById(R.id.election_songArtist)).setText(s.collapseArtists());
+			
+			if(s.isRequest()) {
+				((ImageView)convertView.findViewById(R.id.election_accent)).setImageResource(R.drawable.accent_song_hilight);
+				
+				TextView requestor = (TextView) convertView.findViewById(R.id.election_songRequestor); 
+				requestor.setVisibility(View.VISIBLE);
+				requestor.setText(String.format(r.getString(R.string.label_requestor), s.song_requestor));
+			}
 			
 			if(s.elec_entry_id == mLastVote) {
 				setVoted(((CountdownView)convertView.findViewById(R.id.election_songRating)));
@@ -248,5 +256,5 @@ public class ElectionListAdapter extends BaseAdapter {
 			return mSelection;
 		}
 	}
-
+	
 }
