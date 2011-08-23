@@ -40,6 +40,9 @@ public class ElectionListAdapter extends BaseAdapter {
 	/** Last elec_entry_id */
 	private int mLastVote;
 	
+	/** Vote deadline */
+	private long mDeadline = -1;
+	
 	public ElectionListAdapter(Context ctx, Session session, Song songs[]) {
 		mContext = ctx;
 		mSession = session;
@@ -50,23 +53,34 @@ public class ElectionListAdapter extends BaseAdapter {
 	public void startCountdown(int i) {
 		if(hasVoted()) return;
 		
-		if(mCountdownTask == null) {
+		boolean rush = rushVotes();
+		
+		if(!rush && mCountdownTask == null) {
 			mCountdownTask = new CountdownTask(i);
 			mCountdownTask.execute();
 			return;
 		}
 		
-		if(mCountdownTask.getSelection() == i) {
-			mCountdownTask.cancel(true);
+		if(rush || mCountdownTask.getSelection() == i) {
+			if(mCountdownTask != null){
+				int old = mCountdownTask.getSelection();
+				setRating(old);
+				mCountdownTask.cancel(true);
+			}
 			submitVote(i);
 		}
 		else {
 			int old = mCountdownTask.getSelection();
-			mCountdownTask.cancel(true);
-			mCountdownTask = new CountdownTask(i);
-			mCountdownTask.execute();
 			setRating(old);
+			mCountdownTask.cancel(true);
+			mCountdownTask = null;
+			startCountdown(i);
 		}
+	}
+	
+	public boolean rushVotes() {
+		long utc = System.currentTimeMillis() / 1000;
+		return mDeadline > 0 && (mDeadline - utc) <= 15;
 	}
 	
 	public boolean hasVoted() {
@@ -97,6 +111,10 @@ public class ElectionListAdapter extends BaseAdapter {
 				return;
 			}
 		}
+	}
+	
+	public void setDeadline(long utc) {
+		mDeadline = utc;
 	}
 	
 	private void setVoteStatus(boolean state) {

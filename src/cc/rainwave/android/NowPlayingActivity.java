@@ -393,6 +393,9 @@ public class NowPlayingActivity extends Activity {
     	((ListView)findViewById(R.id.np_electionList))
     	   .setAdapter(adapter);
     	
+    	// Set vote deadline for when the song ends.
+    	adapter.setDeadline(response.getEndTime());
+    	
     	if(response.hasVoteResult()) {
     		adapter.markVoted(response.getPastVote());
     	}
