@@ -64,6 +64,9 @@ public class NowPlayingActivity extends Activity {
 	/** AsyncTask for song ratings */
 	private RateTask mRateTask;
 	
+	/** AsycnTask for song timer */
+	private SongCountdownTask mSongCountdownTask;
+	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -222,6 +225,11 @@ public class NowPlayingActivity extends Activity {
     		mRateTask.cancel(true);
     		mRateTask = null;
     	}
+    	
+    	if(mSongCountdownTask != null) {
+    		mSongCountdownTask.cancel(true);
+    		mSongCountdownTask = null;
+    	}
     }
     
     /**
@@ -266,6 +274,19 @@ public class NowPlayingActivity extends Activity {
             mFetchInfo = new FetchInfo();
             mFetchInfo.execute(init);
         }
+    }
+    
+    /**
+     * Starts AsyncTask for song countdown.
+     * @param endTime the UTC time to stop counting
+     */
+    private void startCountdown(long endTime) {
+    	if(mSongCountdownTask != null) {
+    		mSongCountdownTask.cancel(true);
+    	}
+    	
+    	mSongCountdownTask = new SongCountdownTask();
+    	mSongCountdownTask.execute(endTime);
     }
     
     /** Shows the menu */
@@ -340,6 +361,20 @@ public class NowPlayingActivity extends Activity {
     }
     
     private void updateTunedIn(RainwaveResponse response) {
+    	long end = response.getEndTime();
+    	long utc = System.currentTimeMillis() / 1000;
+    	updateTitle(response, (int) (end - utc));
+    }
+    
+    private void updateTimer(int seconds) {
+    	updateTitle(mOrganizer, seconds);
+    }
+    
+    private void updateTitle(RainwaveResponse response, int seconds) {
+    	seconds = Math.max(0, seconds);
+    	int minutes = seconds / 60;
+    	seconds %= 60;
+    	
     	Resources r = getResources();
     	int id = mSession.getStationId();
     	String stationName = mOrganizer.getStationName(id);
@@ -348,7 +383,9 @@ public class NowPlayingActivity extends Activity {
     	if(response.isTunedIn()) {
     		state = r.getString(R.string.label_tunedin);
     	}
-    	setTitle(String.format("%s (%s)", title, state));
+    	
+    	// Update thread-safe since this method may be called by AsyncTask.
+    	dispatchTitleUpdate(String.format("[%d:%02d] %s (%s)", minutes, seconds, title, state));
     }
     
     private void updateElection(RainwaveResponse response) {
@@ -499,7 +536,7 @@ public class NowPlayingActivity extends Activity {
                     Bitmap art = mSession.fetchAlbumArt(song.album_art);
                     b.putParcelable(ART, art);
                 }
-
+                
                 return b;
             } catch (IOException e) {
                 Log.e(TAG, "IOException occured: " + e);
@@ -542,7 +579,35 @@ public class NowPlayingActivity extends Activity {
                 syncSchedules();
             }
             
+            startCountdown(mOrganizer.getEndTime());
+            
             Log.d(TAG, "Exiting successfully.");
+        }
+    }
+    
+    protected class SongCountdownTask extends AsyncTask<Long, Integer, Boolean> {
+        private String TAG = "Unnamed";
+
+        @Override
+        protected Boolean doInBackground(Long ... params) {
+        	long stopTime = params[0];
+
+        	long utc = System.currentTimeMillis() / 1000;
+        	
+        	while(utc < stopTime) {
+        		try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					return false;
+				}
+        		utc = System.currentTimeMillis() / 1000;
+        		updateTimer((int) (stopTime - utc));
+        	}
+        	return true;
+        }
+        
+        protected void onPostExecute(Boolean result) {
+            super.onPostExecute(result);
         }
     }
     
@@ -552,6 +617,10 @@ public class NowPlayingActivity extends Activity {
     		switch(msg.what) {
     		case HANDLER_SET_INDETERMINATE:
     			setProgressBarIndeterminateVisibility( data.getBoolean(BOOL_STATUS) );
+    			break;
+    			
+    		case UPDATE_TITLE:
+    			setTitle( data.getString(STRING_TITLE) );
     			break;
     		}
     	}
@@ -564,13 +633,25 @@ public class NowPlayingActivity extends Activity {
     	msg.sendToTarget();
     }
     
+    private void dispatchTitleUpdate(String title) {
+    	Message msg = mHandler.obtainMessage(UPDATE_TITLE);
+    	Bundle data = msg.getData();
+    	data.putString(STRING_TITLE, title);
+    	msg.sendToTarget();
+    }
+    
     /** Handler codes */
     private static final int
+    	UPDATE_TITLE = 0x71713,
     	HANDLER_SET_INDETERMINATE = 0x1D373;
     
     /** Handler keys */
     private static final String
     	BOOL_STATUS = "bool_status";
+    
+    /** Handler keys*/
+    private static final String
+    	STRING_TITLE = "string_title";
     
     /** Dialog identifiers */
     public static final int
