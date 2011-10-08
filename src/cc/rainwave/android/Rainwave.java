@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -38,7 +39,7 @@ public class Rainwave {
     }
     
     public static boolean putUserId(Context ctx, String value) {
-    	return putStringPreference(ctx, PREFS_KEY, value);
+    	return putStringPreference(ctx, PREFS_USERID, value);
     }
     
     public static String getKey(Context ctx) {
@@ -99,6 +100,8 @@ public class Rainwave {
     
     public static boolean verifyUserInfo(String userInfo) {
     	boolean seenColon = false;
+    	boolean validUserId = false;
+    	boolean validKey = false;
     	for(int i = 0; i < userInfo.length(); i++) {
     		char c = Character.toUpperCase(userInfo.charAt(i));
     		
@@ -112,7 +115,71 @@ public class Rainwave {
     		  (seenColon && (!Character.isDigit(c) && (c < 'A' || c > 'F')))) {
     			return false;
     		}
+
+    		// We saw a valid user id or key, based on whether or not
+    		// we've seen the colon yet.
+    		else if(seenColon) {
+    			validKey = true;
+    		}
+    		else {
+    			validUserId = true;
+    		}
     	}
+    	return validUserId && validKey && seenColon;
+    }
+    
+    public static boolean setPreferencesFromUri(Context ctx, Uri uri) {
+    	// Probably it is good practice to check the scheme
+    	// before we read data from the Uri.
+    	String scheme = uri.getScheme();
+    	if(!scheme.equals(Rainwave.SCHEME)) {
+    		return false;
+    	}
+    	
+    	boolean result = true;
+    	
+    	String userInfo = uri.getUserInfo();
+    	result &= Rainwave.setPreferencesFromUserInfo(ctx, userInfo);
+    	
+    	// TODO: Handle the hostname.
+    	
+    	String path = uri.getPath();
+    	result &= Rainwave.setPreferencesFromPath(ctx, path);
+    	
+    	return result;
+    }
+    
+    private static boolean setPreferencesFromUserInfo(Context ctx, String userInfo) {
+    	if(userInfo == null) return true;
+    	if(!Rainwave.verifyUserInfo(userInfo)) return false;
+    	
+    	String userId = Rainwave.extractUserId(userInfo);
+		String key = Rainwave.extractKey(userInfo);
+		
+		boolean result = true;
+		result &= Rainwave.putUserId(ctx, userId);
+		result &= Rainwave.putKey(ctx, key);
+		return result;
+    }
+    
+    private static boolean setPreferencesFromPath(Context ctx, String path) {
+    	if(path == null || path.length() < 2) return true;
+    	
+    	// Chop of leading '/'
+    	path = path.substring(1);
+    	
+    	// Chop off trailing '/'
+    	if(path.charAt(path.length()-1)  == '/') {
+    		path = path.substring(0, path.length() - 1);
+    	}
+    	
+    	// Only numbers allowed!
+    	if(path.matches("[0-9]+") == false) {
+    		return false;
+    	}
+    	
+    	int sid = Integer.parseInt(path);
+    	Rainwave.putLastStation(ctx, sid);
     	return true;
     }
     

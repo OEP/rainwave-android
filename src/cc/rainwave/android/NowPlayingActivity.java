@@ -369,36 +369,14 @@ public class NowPlayingActivity extends Activity {
     	}
     	
     	i.putExtra(HANDLED_URI, true);
-    	
-    	// Probably it is good practice to check the scheme
-    	// before we read data from the Uri.
-    	String scheme = uri.getScheme();
-    	if(!scheme.equals(Rainwave.SCHEME)) {
-    		return false;
+    	boolean out;
+    	if( !(out = Rainwave.setPreferencesFromUri(this, uri)) ) {
+    		Log.e(TAG, "Some error detected in uri: " + uri);
     	}
-    	
-    	String userInfo = uri.getUserInfo();
-    	if(userInfo != null && !Rainwave.verifyUserInfo(userInfo)) {
-    		String userId = Rainwave.extractUserId(userInfo);
-    		String key = Rainwave.extractKey(userInfo);
-    		Rainwave.putUserId(this, userId);
-    		Rainwave.putKey(this, key);
+    	else {
+    		Log.d(TAG, "Prefs from uri returns no errors!");
     	}
-    	
-    	// TODO: Handle the hostname.
-    	
-    	// TODO: Not-so-well-formed paths?
-    	String path = uri.getPath();
-    	if(path != null && path.length() == 2 && path.length() == 3) {
-	    	path = path.substring(1);
-	    	if(path.charAt(path.length()-1) == '/') {
-	    		path = path.substring(0, path.length() - 1);
-	    	}
-	    	int sid = Integer.parseInt(path);
-	    	Rainwave.putLastStation(this, sid);
-    	}
-    	
-    	return true;
+    	return out;
     }
     
     /**
