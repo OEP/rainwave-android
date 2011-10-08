@@ -378,26 +378,26 @@ public class NowPlayingActivity extends Activity {
     	}
     	
     	String userInfo = uri.getUserInfo();
-    	if(!Rainwave.verifyUserInfo(userInfo)) {
-    		return false;
+    	if(userInfo != null && !Rainwave.verifyUserInfo(userInfo)) {
+    		String userId = Rainwave.extractUserId(userInfo);
+    		String key = Rainwave.extractKey(userInfo);
+    		Rainwave.putUserId(this, userId);
+    		Rainwave.putKey(this, key);
     	}
     	
-    	String userId = Rainwave.extractUserId(userInfo);
-    	String key = Rainwave.extractKey(userInfo);
     	// TODO: Handle the hostname.
-    	String path = uri.getPath();
     	
     	// TODO: Not-so-well-formed paths?
-    	path = path.substring(1);
-    	if(path.charAt(path.length()-1) == '/') {
-    		path = path.substring(0, path.length() - 1);
+    	String path = uri.getPath();
+    	if(path != null && path.length() == 2 && path.length() == 3) {
+	    	path = path.substring(1);
+	    	if(path.charAt(path.length()-1) == '/') {
+	    		path = path.substring(0, path.length() - 1);
+	    	}
+	    	int sid = Integer.parseInt(path);
+	    	Rainwave.putLastStation(this, sid);
     	}
-    	int sid = Integer.parseInt(path);
     	
-    	
-    	Rainwave.putUserId(this, userId);
-    	Rainwave.putKey(this, key);
-    	Rainwave.putLastStation(this, sid);
     	return true;
     }
     
