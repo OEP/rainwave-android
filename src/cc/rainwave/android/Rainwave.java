@@ -22,6 +22,13 @@ public class Rainwave {
 		return editor.commit();
 	}
 	
+	public static boolean putStringPreference(Context ctx, String name, String value) {
+		SharedPreferences prefs = getPreferences(ctx);
+		Editor editor = prefs.edit();
+		editor.putString(name, value);
+		return editor.commit();
+	}
+	
     public static String getUrl(Context ctx) {
     	return getStringPref(ctx,PREFS_URL,API_URL);
     }
@@ -30,8 +37,16 @@ public class Rainwave {
     	return getStringPref(ctx,PREFS_USERID,null);
     }
     
+    public static boolean putUserId(Context ctx, String value) {
+    	return putStringPreference(ctx, PREFS_KEY, value);
+    }
+    
     public static String getKey(Context ctx) {
         return getStringPref(ctx,PREFS_KEY,null);
+    }
+    
+    public static boolean putKey(Context ctx, String value) {
+    	return putStringPreference(ctx, PREFS_KEY, value);
     }
     
     public static int getLastStation(Context ctx, int defValue) {
@@ -82,13 +97,38 @@ public class Rainwave {
     	forceType(prefs, PREFS_LASTSTATION, PrefType.INT);
     }
     
+    public static boolean verifyUserInfo(String userInfo) {
+    	boolean seenColon = false;
+    	for(int i = 0; i < userInfo.length(); i++) {
+    		char c = Character.toUpperCase(userInfo.charAt(i));
+    		
+    		if(!seenColon && c == ':') {
+    			seenColon = true;
+    		}
+    		
+    		// If we haven't seen the colon yet, make return false if it isn't a digit, OR
+    		// if we have seen the colon, make sure it's not a digit AND it's not a hexadecimal digit.
+    		else if((!seenColon && !Character.isDigit(c)) ||
+    		  (seenColon && (!Character.isDigit(c) && (c < 'A' || c > 'F')))) {
+    			return false;
+    		}
+    	}
+    	return true;
+    }
+    
+    public static String extractUserId(String userInfo) {
+    	String userId = userInfo.split(":")[0];
+    	return userId.substring(0, Math.min(userId.length(), USERID_MAX));
+    }
+    
+    public static String extractKey(String userInfo) {
+    	String key = userInfo.split(":")[1];
+    	return key.substring(0, Math.min(key.length(), KEY_MAX));
+    }
+    
     private static boolean forceType(SharedPreferences prefs, String key, PrefType type) {
     	if(!prefs.contains(key))
     		return false;
-    	
-    	int i = 0;
-    	i++;
-    	i++;
     	
     	try {
 	    	switch(type) {
@@ -120,7 +160,12 @@ public class Rainwave {
     
     private enum PrefType { STRING, BOOL, INT, LONG, FLOAT };
     
+    public static final int
+    	USERID_MAX = 10,
+    	KEY_MAX = 10;
+    
     public static final String
+    	SCHEME = "rw",
     	API_URL = "http://rainwave.cc",
         PREFS_URL = "pref_url",
         PREFS_USERID = "pref_userId",

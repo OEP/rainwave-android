@@ -336,10 +336,69 @@ public class NowPlayingActivity extends Activity {
 	 */
     private void initializeSession() {
         try {
+        	// TODO: Maybe ASK the user before we override?
+        	handleIntent(getIntent());
             mSession = Session.makeSession(this);
         } catch (IOException e) {
             Rainwave.showError(this, e);
         }
+    }
+    
+    /**
+     * Handles stuff included from the intent. Called once each
+     * time a Session is initialized.
+     * @param i the intent to handle
+     * @return true if no error occurred, false if there was some error handling the URL.
+     */
+    private boolean handleIntent(Intent i) {
+    	if(i == null) {
+    		return true;
+    	}
+    	Bundle b = i.getExtras();
+    	Uri uri = i.getData();
+    	
+    	// No uri? No need to handle.
+    	if(uri == null){
+    		return true;
+    	}
+    	
+    	boolean handled = (b != null) && b.getBoolean(HANDLED_URI, false);
+    	
+    	if(handled) {
+    		return true;
+    	}
+    	
+    	i.putExtra(HANDLED_URI, true);
+    	
+    	// Probably it is good practice to check the scheme
+    	// before we read data from the Uri.
+    	String scheme = uri.getScheme();
+    	if(!scheme.equals(Rainwave.SCHEME)) {
+    		return false;
+    	}
+    	
+    	String userInfo = uri.getUserInfo();
+    	if(!Rainwave.verifyUserInfo(userInfo)) {
+    		return false;
+    	}
+    	
+    	String userId = Rainwave.extractUserId(userInfo);
+    	String key = Rainwave.extractKey(userInfo);
+    	// TODO: Handle the hostname.
+    	String path = uri.getPath();
+    	
+    	// TODO: Not-so-well-formed paths?
+    	path = path.substring(1);
+    	if(path.charAt(path.length()-1) == '/') {
+    		path = path.substring(0, path.length() - 1);
+    	}
+    	int sid = Integer.parseInt(path);
+    	
+    	
+    	Rainwave.putUserId(this, userId);
+    	Rainwave.putKey(this, key);
+    	Rainwave.putLastStation(this, sid);
+    	return true;
     }
     
     /**
@@ -663,6 +722,7 @@ public class NowPlayingActivity extends Activity {
     
     /** Bundle constants */
     public static final String
+    	HANDLED_URI = "handled-uri",
         SCHEDULE = "schedule",
         ART = "art";
 }
