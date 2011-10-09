@@ -18,5 +18,11 @@
 			android:summary="@string/msg_manageAuth"
 			android:dialogTitle="@string/label_key"
 			android:inputType="textCapCharacters" />
+			
+		<Preference
+			android:key="import_qr"
+			android:title="Import from QR code"
+			android:summary="Import user ID and API key from a QR code."
+			/>
 	</PreferenceCategory>
 </PreferenceScreen>

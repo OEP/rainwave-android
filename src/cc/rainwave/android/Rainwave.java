@@ -237,5 +237,6 @@ public class Rainwave {
         PREFS_URL = "pref_url",
         PREFS_USERID = "pref_userId",
         PREFS_LASTSTATION = "pref_lastStation",
+        PREF_IMPORT = "import_qr",
         PREFS_KEY = "pref_key";
 }

@@ -369,14 +369,13 @@ public class NowPlayingActivity extends Activity {
     	}
     	
     	i.putExtra(HANDLED_URI, true);
-    	boolean out;
-    	if( !(out = Rainwave.setPreferencesFromUri(this, uri)) ) {
-    		Log.e(TAG, "Some error detected in uri: " + uri);
+    	boolean ok = Rainwave.setPreferencesFromUri(this, uri);
+    	
+    	if(!ok) {
+    		Rainwave.showError(this, R.string.msg_invalidUrl);
     	}
-    	else {
-    		Log.d(TAG, "Prefs from uri returns no errors!");
-    	}
-    	return out;
+    	
+    	return ok;
     }
     
     /**
