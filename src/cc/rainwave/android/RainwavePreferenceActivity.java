@@ -42,7 +42,10 @@ public class RainwavePreferenceActivity extends PreferenceActivity {
 		
 		public void onActivityResult(int request, int result, Intent data) {
 			IntentResult ir = IntentIntegrator.parseActivityResult(request, result, data);
+			if(ir == null) return;
+			
 			String raw = ir.getContents();
+			if(raw == null) return;
 			
 			Uri uri = Uri.parse(raw);
 			boolean ok = Rainwave.setPreferencesFromUri(this, uri);
