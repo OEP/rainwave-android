@@ -8,7 +8,7 @@ import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.RatingResult;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.api.types.Station;
-import cc.rainwave.android.views.CountdownView;
+import cc.rainwave.android.views.HorizontalRatingBar;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -118,25 +118,6 @@ public class NowPlayingActivity extends Activity {
     	
     	switch(id) {
     	    
-    	// The 'rate song' dialog.
-    	case DIALOG_RATE:
-    		final RatingBar rating = new RatingBar(this);
-    		rating.setStepSize(0.5f);
-    		
-    		return builder.setTitle(R.string.label_rateSong)
-    			.setPositiveButton(R.string.label_rate, new OnClickListener() {
-					@Override
-					public void onClick(DialogInterface di, int which) {
-						mRateTask = new RateTask();
-						Song s = mOrganizer.getCurrentSong();
-						float score = rating.getRating();
-						mRateTask.execute(s.song_id, score);
-					}
-    			})
-    			.setNegativeButton(R.string.label_cancel, null)
-    			.setView(rating)
-    			.create();
-    		
     	case DIALOG_STATION_PICKER:
     		Station stations[] = mOrganizer.getStations();
     		
@@ -182,16 +163,28 @@ public class NowPlayingActivity extends Activity {
     	new OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent e) {
+				if(mOrganizer == null || !mOrganizer.isTunedIn() || !mSession.isAuthenticated()) {
+					if(e.getAction() == MotionEvent.ACTION_DOWN) {
+						showDialog(R.string.msg_tunedInRate);
+					}
+					return false;
+				}
+				
+				HorizontalRatingBar hrb = (HorizontalRatingBar) v;
 				switch(e.getAction()) {
 				case MotionEvent.ACTION_DOWN:
-				    if(mOrganizer.isTunedIn() && mSession.isAuthenticated()) {
-    					showDialog(DIALOG_RATE);
-    					return true;
-				    }
-				    else {
-				    	showDialog(R.string.msg_tunedInRate);
-				    	return true;
-				    }
+				case MotionEvent.ACTION_MOVE:
+				case MotionEvent.ACTION_UP:
+					float rating = hrb.snapPositionToMinorIncrement(e.getX());
+					rating = Math.max(1.0f, Math.min(rating, 5.0f));
+					hrb.setPrimaryValue(rating);
+					
+					if(e.getAction() == MotionEvent.ACTION_UP) {
+						RateTask t = new RateTask();
+						Song s = mOrganizer.getCurrentSong();
+						t.execute(s.song_id, rating);
+					}
+					return true;
 				}
 				return false;
 			}
@@ -467,11 +460,11 @@ public class NowPlayingActivity extends Activity {
      * @param current the current song playing
      */
     private void setRatings(Song current) {
-    	((CountdownView) findViewById(R.id.np_songRating))
-    	   .setBoth(current.song_rating_user, current.song_rating_avg);
+    	((HorizontalRatingBar) findViewById(R.id.np_songRating))
+    	   .setBothValues(current.song_rating_user, current.song_rating_avg);
     	
-    	((CountdownView) findViewById(R.id.np_albumRating))
- 	       .setBoth(current.album_rating_user, current.album_rating_avg);
+    	((HorizontalRatingBar) findViewById(R.id.np_albumRating))
+ 	       .setBothValues(current.album_rating_user, current.album_rating_avg);
     }
     
     /**
@@ -694,8 +687,7 @@ public class NowPlayingActivity extends Activity {
     
     /** Dialog identifiers */
     public static final int
-    	DIALOG_STATION_PICKER = 0xb1c7,
-    	DIALOG_RATE = 0x4A7E;
+    	DIALOG_STATION_PICKER = 0xb1c7;
     
     /** Bundle constants */
     public static final String
