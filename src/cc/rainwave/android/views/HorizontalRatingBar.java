@@ -6,11 +6,14 @@ import android.graphics.Canvas;
 import android.graphics.CornerPathEffect;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
+import android.graphics.Paint.Align;
 import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.view.View;
 
 public class HorizontalRatingBar extends View {
+	
+	private static final String androidns = "http://schemas.android.com/apk/res/android";
 	
 	private String mLabel;
 	
@@ -41,6 +44,11 @@ public class HorizontalRatingBar extends View {
 	public HorizontalRatingBar(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		mResources = context.getResources();
+		int resId = attrs.getAttributeResourceValue(androidns, "text", -1);
+		
+		if(resId >= 0) {
+			setLabel(resId);
+		}
 	}
 	
 	
@@ -131,7 +139,7 @@ public class HorizontalRatingBar extends View {
 			canvas.drawLine(x, getHeight() - DEFAULT_SECONDARY_HEIGHT/2, x, getHeight(), p);
 		}
 		
-		// Minor ticks.
+		// Major ticks.
 		for(float f = mMajorIncrement; f <= mMax; f += mMajorIncrement) {
 			int x = (int) scale(getWidth(), f);
 			canvas.drawLine(x, getHeight() - DEFAULT_SECONDARY_HEIGHT, x, getHeight(), p);
@@ -139,7 +147,14 @@ public class HorizontalRatingBar extends View {
 	}
 	
 	private void drawLabel(Canvas canvas, Paint p) {
+		if(mLabel == null) return;
 		
+		p.setAntiAlias(true);
+		int fontHeight = getHeight() - 2*DEFAULT_SECONDARY_HEIGHT;
+		p.setTextSize(fontHeight);
+		p.setTextAlign(Align.CENTER);
+		
+		canvas.drawText(mLabel, getWidth() / 2, fontHeight, p);
 	}
 	
 	public static final float
