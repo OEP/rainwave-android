@@ -37,6 +37,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
+import android.widget.SlidingDrawer;
 import android.widget.TextView;
 
 import java.io.IOException;
@@ -282,6 +283,22 @@ public class NowPlayingActivity extends Activity {
     	mSongCountdownTask.execute(endTime);
     }
     
+    /**
+     * Sets the vote drawer to opened or closed.
+     * @param state, true for open, false for closed
+     */
+    private void setDrawerState(boolean state) {
+    	boolean pref = Rainwave.getAutoShowElectionFlag(this);
+    	if(!pref) return;
+    	SlidingDrawer v = (SlidingDrawer) this.findViewById(R.id.np_drawer);
+    	if(state && !v.isOpened()) {
+    		v.animateOpen();
+    	}
+    	else if(v.isOpened()) {
+    		v.animateClose();
+    	}
+    }
+    
     /** Shows the menu */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -424,6 +441,13 @@ public class NowPlayingActivity extends Activity {
     	
     	// Set vote deadline for when the song ends.
     	adapter.setDeadline(response.getEndTime());
+    	
+    	// Open the drawer if the user can vote.
+    	boolean canVote = !response.hasVoteResult() && response.isTunedIn();
+    	setDrawerState(canVote);
+    	
+    	// Set the vote listener for th list adapter.
+    	adapter.setOnVoteHandler(mHandler);
     	
     	if(response.hasVoteResult()) {
     		adapter.markVoted(response.getPastVote());
@@ -653,6 +677,12 @@ public class NowPlayingActivity extends Activity {
     			
     		case UPDATE_TITLE:
     			setTitle( data.getString(STRING_TITLE) );
+    			break;
+    			
+    		case ElectionListAdapter.CODE_VOTED:
+    			if(msg.arg1 == ElectionListAdapter.CODE_SUCCESS) {
+    				setDrawerState(false);
+    			}
     			break;
     		}
     	}

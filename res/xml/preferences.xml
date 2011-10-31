@@ -25,4 +25,14 @@
 			android:summary="Import user ID and API key from a QR code."
 			/>
 	</PreferenceCategory>
+	<PreferenceCategory
+		android:title="@string/label_ui"
+		android:key="pref_ui">
+		<CheckBoxPreference
+			android:title="@string/label_autoshow_elections"
+			android:defaultValue="true"
+			android:key="pref_autoshow_elections"
+			android:summary="@string/msg_autoshow_elections"
+			/>
+	</PreferenceCategory>
 </PreferenceScreen>

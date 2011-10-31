@@ -30,6 +30,17 @@ public class Rainwave {
 		return editor.commit();
 	}
 	
+	public static boolean putBoolPreference(Context ctx, String name, boolean value) {
+		SharedPreferences prefs = getPreferences(ctx);
+		Editor editor = prefs.edit();
+		editor.putBoolean(name, value);
+		return editor.commit();
+	}
+	
+	public static boolean getAutoShowElectionFlag(Context ctx) {
+		return getBoolPref(ctx, PREF_AUTOSHOW_ELECTION, true);
+	}
+	
     public static String getUrl(Context ctx) {
     	return getStringPref(ctx,PREFS_URL,API_URL);
     }
@@ -56,6 +67,10 @@ public class Rainwave {
     
     public static boolean putLastStation(Context ctx, int value) {
     	return putIntPreference(ctx, PREFS_LASTSTATION, value);
+    }
+    
+    public static boolean getBoolPref(Context ctx, String key, boolean defValue) {
+    	return getPreferences(ctx).getBoolean(key, defValue);
     }
     
     public static String getStringPref(Context ctx, String key, String defValue) {
@@ -238,5 +253,6 @@ public class Rainwave {
         PREFS_USERID = "pref_userId",
         PREFS_LASTSTATION = "pref_lastStation",
         PREF_IMPORT = "import_qr",
+        PREF_AUTOSHOW_ELECTION = "pref_autoshow_elections",
         PREFS_KEY = "pref_key";
 }

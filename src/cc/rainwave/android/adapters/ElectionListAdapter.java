@@ -5,6 +5,8 @@ import java.io.IOException;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,6 +38,8 @@ public class ElectionListAdapter extends BaseAdapter {
 	private CountdownTask mCountdownTask;
 	
 	private VoteTask mVoteTask;
+	
+	private Handler mVoteHandler;
 	
 	/** Last elec_entry_id */
 	private int mLastVote;
@@ -181,6 +185,10 @@ public class ElectionListAdapter extends BaseAdapter {
 		view.setAlternateText(R.string.label_voted);
 	}
 	
+	public void setOnVoteHandler(Handler handler) {
+		mVoteHandler = handler;
+	}
+	
 	public void submitVote(int selection) {
 		mVoteTask = new VoteTask(selection);
 		mVoteTask.execute(mSongs[selection]);
@@ -224,6 +232,12 @@ public class ElectionListAdapter extends BaseAdapter {
 			else {
 				reflectSong(mCountdown, mSong);
 				mVoteTask = null;
+			}
+			
+			if(mVoteHandler != null) {
+				Message msg = mVoteHandler.obtainMessage(CODE_VOTED);
+				msg.arg1 = (result) ? CODE_SUCCESS : CODE_GENERIC_FAIL;
+				msg.sendToTarget();
 			}
 		}
 	}
@@ -275,4 +289,10 @@ public class ElectionListAdapter extends BaseAdapter {
 		}
 	}
 	
+	public static final int
+		CODE_GENERIC_FAIL = 1,
+		CODE_SUCCESS = 0;
+	
+	public static final int
+		CODE_VOTED = 0xB073D;
 }
