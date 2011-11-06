@@ -1,0 +1,26 @@
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:orientation="vertical"
+	android:gravity="bottom">
+	<SlidingDrawer
+		android:id="@+id/np_drawer"
+		android:layout_width="fill_parent"
+		android:layout_height="250dp"
+		android:orientation="vertical"
+		android:handle="@+id/np_handle"
+		android:content="@+id/np_electionList">
+		<ImageView
+			android:id="@id/np_handle"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:src="@drawable/drawer_tab" />
+		<ListView
+			android:layout_height="wrap_content"
+			android:layout_width="fill_parent"
+			android:layout_weight="1"
+			android:background="#aa333333"
+			android:id="@id/np_electionList" />
+	</SlidingDrawer>
+</LinearLayout>

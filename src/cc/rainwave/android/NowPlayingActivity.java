@@ -43,6 +43,9 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
+import com.android.music.TouchInterceptor;
+import com.google.android.apps.iosched.ui.widget.Workspace;
+
 /**
  * This is the primary activity for this application. It announces
  * which song is playing, handles ratings, and also elections.
@@ -73,7 +76,7 @@ public class NowPlayingActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setup();
-        setContentView(R.layout.layout_nowplaying);
+        setContentView(R.layout.activity_main);
         setListeners();
     }
     
@@ -159,21 +162,29 @@ public class NowPlayingActivity extends Activity {
      * Sets up listeners for this activity.
      */
     private void setListeners() {
-    	// The rating dialog should show up if the Song rating view is clicked.
+    	// The rating dialog should show up if the Song rating view is clicked.    	
     	findViewById(R.id.np_songRating).setOnTouchListener(
     	new OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent e) {
+				Workspace w = (Workspace) findViewById(R.id.np_workspace);
+				
 				if(mOrganizer == null || !mOrganizer.isTunedIn() || !mSession.isAuthenticated()) {
 					if(e.getAction() == MotionEvent.ACTION_DOWN) {
+						w.lockCurrentScreen();
 						showDialog(R.string.msg_tunedInRate);
 					}
-					return false;
+					else if(e.getAction() == MotionEvent.ACTION_UP) {
+						w.unlockCurrentScreen();
+					}
+					return true;
 				}
+				
 				
 				HorizontalRatingBar hrb = (HorizontalRatingBar) v;
 				switch(e.getAction()) {
 				case MotionEvent.ACTION_DOWN:
+					w.lockCurrentScreen();
 				case MotionEvent.ACTION_MOVE:
 				case MotionEvent.ACTION_UP:
 					float rating = hrb.snapPositionToMinorIncrement(e.getX());
@@ -181,13 +192,13 @@ public class NowPlayingActivity extends Activity {
 					hrb.setPrimaryValue(rating);
 					
 					if(e.getAction() == MotionEvent.ACTION_UP) {
+						w.unlockCurrentScreen();
 						RateTask t = new RateTask();
 						Song s = mOrganizer.getCurrentSong();
 						t.execute(s.song_id, rating);
 					}
-					return true;
 				}
-				return false;
+				return true;
 			}
     	});
     	
