@@ -19,6 +19,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -113,6 +114,13 @@ public class NowPlayingActivity extends Activity {
     public void onDestroy() {
     	super.onDestroy();
     }
+    
+	@Override
+	public void onAttachedToWindow() {
+	    super.onAttachedToWindow();
+	    Window window = getWindow();
+	    window.setFormat(PixelFormat.RGBA_8888);
+	}
 
     /**
      * Dialog manufacturer.
@@ -327,16 +335,11 @@ public class NowPlayingActivity extends Activity {
 		    
 		// Start RainwavePreferenceActivity.
 		case R.id.menu_preferences:
-			i = new Intent(this, RainwavePreferenceActivity.class);
-			startActivity(i);
+			startPreferences();
 			break;
 			
 		case R.id.menu_tuneIn:
-			int stationId = mSession.getStationId();
-			Station s = mOrganizer.getStation(stationId);
-			i = new Intent(Intent.ACTION_VIEW);
-			i.setDataAndType(Uri.parse(s.stream), "audio/*");
-			startActivity(i);
+			startPlayer();
 			break;
 			
 		case R.id.menu_pickStation:
@@ -351,6 +354,19 @@ public class NowPlayingActivity extends Activity {
 		return false;
 	}
     
+	private void startPlayer() {
+		int stationId = mSession.getStationId();
+		Station s = mOrganizer.getStation(stationId);
+		Intent i = new Intent(Intent.ACTION_VIEW);
+		i.setDataAndType(Uri.parse(s.stream), "audio/*");
+		startActivity(i);
+	}
+
+	private void startPreferences() {
+		Intent i = new Intent(this, RainwavePreferenceActivity.class);
+		startActivity(i);
+	}
+
 	/**
 	 * Destroys any existing Session and creates
 	 * a new Session object for us to use, pulling

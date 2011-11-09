@@ -37,8 +37,26 @@ public class Rainwave {
 		return editor.commit();
 	}
 	
+	public static boolean clearPreferences(Context ctx) {
+		Editor editor = getPreferences(ctx).edit();
+		editor.remove(PREFS_KEY);
+		editor.remove(PREFS_FIRSTRUN);
+		editor.remove(PREFS_USERID);
+		editor.remove(PREFS_LASTSTATION);
+		editor.remove(PREF_AUTOSHOW_ELECTION);
+		return editor.commit();
+	}
+	
 	public static boolean getAutoShowElectionFlag(Context ctx) {
 		return getBoolPref(ctx, PREF_AUTOSHOW_ELECTION, true);
+	}
+	
+	public static boolean isFirstRun(Context ctx) {
+		return getBoolPref(ctx, PREFS_FIRSTRUN, true);
+	}
+	
+	public static boolean setFirstRun(Context ctx, boolean value) {
+		return putBoolPreference(ctx, PREFS_FIRSTRUN, value);
 	}
 	
     public static String getUrl(Context ctx) {
@@ -255,6 +273,7 @@ public class Rainwave {
     	SCHEME = "rw",
     	API_URL = "http://rainwave.cc",
         PREFS_URL = "pref_url",
+        PREFS_FIRSTRUN = "pref_firstRun",
         PREFS_USERID = "pref_userId",
         PREFS_LASTSTATION = "pref_lastStation",
         PREF_IMPORT = "import_qr",

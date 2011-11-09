@@ -23,6 +23,7 @@
 	<string name="label_autoshow_elections">Elections popups</string>
 
 	<string name="label_preferences">Preferences</string>
+	<string name="label_goToPreferences">Go to preferences</string>
 	<string name="label_refresh">Refresh</string>
 	<string name="label_pickStation">Pick station</string>
 	<string name="label_tuneIn">Tune in</string>
@@ -33,6 +34,9 @@
 
 	<string name="label_rateSong">Rate song</string>
 
+	<string name="label_login">Login</string>
+	<string name="label_later">Later</string>
+	<string name="label_never">Never</string>
 	<string name="label_cancel">Cancel</string>
 	<string name="label_rate">Rate!</string>
 	<string name="label_voted">Voted!</string>
@@ -42,11 +46,11 @@
 	<string name="label_ok">OK</string>
 	<string name="label_tunedin">Tuned in</string>
 	<string name="label_nottunedin">Not tuned in</string>
+	<string name="label_welcome">Welcome!</string>
 
-	<string name="msg_manageAuth">You can manage these at http://rainwave.cc/auth/</string>
-	<string name="msg_autoshow_elections">
-		Automatically extend or hide election drawer when you can cast a vote or have voted.
-	</string>
+	<string name="msg_welcome">Welcome to Rainwave</string>
+	<string name="msg_manageAuth">From the \'Manage API Keys\' page at <b>rainwave.cc</b>.</string>
+	<string name="msg_autoshow_elections">Automatically extend or hide election drawer.</string>
 	<string name="msg_sessionError">Failed to initialize session. Is the Rainwave URL
 		correct?
 	</string>
