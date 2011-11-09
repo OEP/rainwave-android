@@ -168,14 +168,16 @@ public class NowPlayingActivity extends Activity {
 			@Override
 			public boolean onTouch(View v, MotionEvent e) {
 				Workspace w = (Workspace) findViewById(R.id.np_workspace);
+				HorizontalRatingBar b = (HorizontalRatingBar) findViewById(R.id.np_songRating);
 				
 				if(mOrganizer == null || !mOrganizer.isTunedIn() || !mSession.isAuthenticated()) {
 					if(e.getAction() == MotionEvent.ACTION_DOWN) {
 						w.lockCurrentScreen();
-						showDialog(R.string.msg_tunedInRate);
+						b.setLabel(R.string.msg_tuneInFirst);
 					}
 					else if(e.getAction() == MotionEvent.ACTION_UP) {
 						w.unlockCurrentScreen();
+						b.setLabel(R.string.label_song);
 					}
 					return true;
 				}
