@@ -188,6 +188,11 @@ public class Rainwave {
     		path = path.substring(0, path.length() - 1);
     	}
     	
+    	// Stop here if no path provided.
+    	if(path.length() == 0) {
+    		return true;
+    	}
+    	
     	// Only numbers allowed!
     	if(path.matches("[0-9]+") == false) {
     		return false;
