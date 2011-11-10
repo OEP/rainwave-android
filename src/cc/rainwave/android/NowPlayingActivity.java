@@ -446,6 +446,9 @@ public class NowPlayingActivity extends Activity {
     	
     	// Updates tuned in state.
     	updateTunedIn(response);
+    	
+    	// Updates request lsit.
+    	updateRequests(response);
     }
     
     private void updateTunedIn(RainwaveResponse response) {
@@ -481,9 +484,6 @@ public class NowPlayingActivity extends Activity {
     	((ListView)findViewById(R.id.np_electionList))
     	   .setAdapter(adapter);
     	
-    	TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
-    	requestList.setAdapter(new ElectionListAdapter(this,mSession,mOrganizer.getElection()));
-    	
     	// Set vote deadline for when the song ends.
     	adapter.setDeadline(response.getEndTime());
     	
@@ -497,6 +497,11 @@ public class NowPlayingActivity extends Activity {
     	if(response.hasVoteResult()) {
     		adapter.markVoted(response.getPastVote());
     	}
+    }
+    
+    private void updateRequests(RainwaveResponse response) {
+    	TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
+    	requestList.setAdapter(new ElectionListAdapter(this,mSession,response.getRequests()));
     }
     
     /**

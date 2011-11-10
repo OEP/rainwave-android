@@ -43,6 +43,7 @@ public class Song implements Parcelable {
 	}
 	
 	public String collapseArtists(String comma, String and) {
+		if(artists == null) return "";
 	    switch(artists.length) {
 	        case 0: return "???";
 	        case 1: return artists[0].artist_name;

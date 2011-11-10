@@ -8,6 +8,8 @@ public class RainwaveResponse implements Parcelable {
     
     private Event sched_history[], sched_next[];
     
+    private Song requests_all[], requests_user[];
+    
     private Error error;
     
     private RatingResult rate_result;
@@ -76,6 +78,10 @@ public class RainwaveResponse implements Parcelable {
         return rate_result;
     }
     
+    public Song[] getRequests() {
+    	return requests_user;
+    }
+    
     public Station getStation(int stationId) {
     	for(int i = 0; i < stations.length; i++) {
     		if(stationId == stations[i].id) return stations[i];
@@ -105,6 +111,8 @@ public class RainwaveResponse implements Parcelable {
     	rate_result = (RatingResult) update(other.rate_result, rate_result);
     	vote_result = (VoteResult) update(other.vote_result, vote_result);
     	stations = (Station[]) update(other.stations, stations);
+    	requests_all = (Song[]) update(other.requests_all, requests_all);
+    	requests_user = (Song[]) update(other.requests_user, requests_user);
     }
     
     private Object update(Object newGuy, Object current) {
