@@ -1,6 +1,6 @@
 package cc.rainwave.android;
 
-import cc.rainwave.android.adapters.ElectionListAdapter;
+import cc.rainwave.android.adapters.SongListAdapter;
 import cc.rainwave.android.adapters.StationListAdapter;
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.RainwaveException;
@@ -217,7 +217,7 @@ public class NowPlayingActivity extends Activity {
     	election.setOnItemClickListener(new AdapterView.OnItemClickListener() {
     		public void onItemClick(AdapterView parent, View v, int i, long id) {
     			if(mOrganizer.isTunedIn() && mSession.isAuthenticated()) {
-    				((ElectionListAdapter) election.getAdapter()).startCountdown(i);
+    				((SongListAdapter) election.getAdapter()).startCountdown(i);
     			}
     			else {
     				showDialog(R.string.msg_tunedInVote);
@@ -229,10 +229,10 @@ public class NowPlayingActivity extends Activity {
     	requestList.setDropListener(new TouchInterceptor.DropListener() {
 			@Override
 			public void drop(int from, int to) {
-				ElectionListAdapter adapter = (ElectionListAdapter) requestList.getAdapter();
+				SongListAdapter adapter = (SongListAdapter) requestList.getAdapter();
 				Song songs[] = adapter.getSongs();
 				Rainwave.reorderSongs(songs, from, to);
-				requestList.setAdapter(new ElectionListAdapter(NowPlayingActivity.this,mSession,songs));
+				requestList.setAdapter(new SongListAdapter(NowPlayingActivity.this,mSession,songs));
 			}
 		});
     	
@@ -480,7 +480,7 @@ public class NowPlayingActivity extends Activity {
     }
     
     private void updateElection(RainwaveResponse response) {
-    	ElectionListAdapter adapter = new ElectionListAdapter(this,mSession,response.getElection());
+    	SongListAdapter adapter = new SongListAdapter(this,mSession,response.getElection());
     	((ListView)findViewById(R.id.np_electionList))
     	   .setAdapter(adapter);
     	
@@ -501,7 +501,7 @@ public class NowPlayingActivity extends Activity {
     
     private void updateRequests(RainwaveResponse response) {
     	TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
-    	requestList.setAdapter(new ElectionListAdapter(this,mSession,response.getRequests()));
+    	requestList.setAdapter(new SongListAdapter(this,mSession,response.getRequests()));
     }
     
     /**
@@ -729,8 +729,8 @@ public class NowPlayingActivity extends Activity {
     			setTitle( data.getString(STRING_TITLE) );
     			break;
     			
-    		case ElectionListAdapter.CODE_VOTED:
-    			if(msg.arg1 == ElectionListAdapter.CODE_SUCCESS) {
+    		case SongListAdapter.CODE_VOTED:
+    			if(msg.arg1 == SongListAdapter.CODE_SUCCESS) {
     				setDrawerState(false);
     			}
     			break;

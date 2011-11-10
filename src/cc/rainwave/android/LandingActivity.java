@@ -3,7 +3,7 @@ package cc.rainwave.android;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
-import cc.rainwave.android.adapters.ElectionListAdapter;
+import cc.rainwave.android.adapters.SongListAdapter;
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.RainwaveResponse;

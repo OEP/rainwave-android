@@ -22,7 +22,7 @@ import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.api.types.VoteResult;
 import cc.rainwave.android.views.CountdownView;
 
-public class ElectionListAdapter extends BaseAdapter {
+public class SongListAdapter extends BaseAdapter {
 	private static final String TAG = "ElectionListAdapter";
 	
 	private boolean mVoted = false;
@@ -47,7 +47,7 @@ public class ElectionListAdapter extends BaseAdapter {
 	/** Vote deadline */
 	private long mDeadline = -1;
 	
-	public ElectionListAdapter(Context ctx, Session session, Song songs[]) {
+	public SongListAdapter(Context ctx, Session session, Song songs[]) {
 		mContext = ctx;
 		mSession = session;
 		mSongs = songs;
@@ -219,10 +219,10 @@ public class ElectionListAdapter extends BaseAdapter {
 				VoteResult result = mSession.vote(mSong.elec_entry_id);
 				return true;
 			} catch (IOException e) {
-				Rainwave.showError(ElectionListAdapter.this.mContext, e);
+				Rainwave.showError(SongListAdapter.this.mContext, e);
 				Log.e(TAG, "IO Error: " + e);
 			} catch (RainwaveException e) {
-				Rainwave.showError(ElectionListAdapter.this.mContext, e);
+				Rainwave.showError(SongListAdapter.this.mContext, e);
 				Log.e(TAG, "API Error: " + e);
 			}
 			
@@ -255,7 +255,7 @@ public class ElectionListAdapter extends BaseAdapter {
 		
 		public CountdownTask(int selection) {
 			mSelection = selection;
-			View v = ElectionListAdapter.this.mViews[mSelection];
+			View v = SongListAdapter.this.mViews[mSelection];
 			mCountdownView = (CountdownView) v.findViewById(R.id.election_songRating);
 			mSong = mSongs[selection];
 		}
