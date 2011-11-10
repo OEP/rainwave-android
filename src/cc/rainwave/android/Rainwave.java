@@ -59,6 +59,12 @@ public class Rainwave {
 		return putBoolPreference(ctx, PREFS_FIRSTRUN, value);
 	}
 	
+	public static boolean hasUserInfo(Context ctx) {
+		String user = getUserId(ctx);
+		String key = getKey(ctx);
+		return user != null && key != null && user.length() > 0 && key.length() > 0;
+	}
+	
     public static String getUrl(Context ctx) {
     	return getStringPref(ctx,PREFS_URL,API_URL);
     }
@@ -268,6 +274,12 @@ public class Rainwave {
     public static final int
     	USERID_MAX = 10,
     	KEY_MAX = 10;
+    
+    /** Bundle constants */
+    public static final String
+    	HANDLED_URI = "handled-uri",
+        SCHEDULE = "schedule",
+        ART = "art";
     
     public static final String
     	SCHEME = "rw",

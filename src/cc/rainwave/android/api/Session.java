@@ -235,6 +235,16 @@ public class Session {
         s.setUserInfo(Rainwave.getUserId(ctx), Rainwave.getKey(ctx));
         return s;
     }
+    
+    public static Session makeSession(Context ctx, String user, String key) throws MalformedURLException {
+        Session s = new Session();
+        String url = Rainwave.getUrl(ctx);
+        s.mContext = ctx;
+        s.mBaseUrl = new URL(url);
+        s.mStation = Rainwave.getLastStation(ctx, s.mStation);
+        s.setUserInfo(user,key);
+        return s;
+    }
 
     public static final String
             NAME_USERID = "user_id",

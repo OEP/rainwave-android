@@ -401,13 +401,13 @@ public class NowPlayingActivity extends Activity {
     		return true;
     	}
     	
-    	boolean handled = (b != null) && b.getBoolean(HANDLED_URI, false);
+    	boolean handled = (b != null) && b.getBoolean(Rainwave.HANDLED_URI, false);
     	
     	if(handled) {
     		return true;
     	}
     	
-    	i.putExtra(HANDLED_URI, true);
+    	i.putExtra(Rainwave.HANDLED_URI, true);
     	boolean ok = Rainwave.setPreferencesFromUri(this, uri);
     	
     	if(!ok) {
@@ -614,12 +614,12 @@ public class NowPlayingActivity extends Activity {
             		organizer.setStations(stations);
             	}
                 
-                b.putParcelable(SCHEDULE, organizer);
+                b.putParcelable(Rainwave.SCHEDULE, organizer);
                 
                 if(!organizer.hasError()) {
                     Song song = organizer.getCurrentSong();
                     Bitmap art = mSession.fetchAlbumArt(song.album_art);
-                    b.putParcelable(ART, art);
+                    b.putParcelable(Rainwave.ART, art);
                 }
                 
                 return b;
@@ -649,16 +649,16 @@ public class NowPlayingActivity extends Activity {
             }
             
             if(mOrganizer == null) {
-            	mOrganizer = result.getParcelable(SCHEDULE);
+            	mOrganizer = result.getParcelable(Rainwave.SCHEDULE);
             }
             else {
-            	RainwaveResponse tmp = result.getParcelable(SCHEDULE);
+            	RainwaveResponse tmp = result.getParcelable(Rainwave.SCHEDULE);
             	mOrganizer.receiveUpdates(tmp);
             }
             
             // Callback for schedule sync.
             onScheduleSync(mOrganizer);
-            updateAlbumArt( (Bitmap) result.getParcelable(ART) );
+            updateAlbumArt( (Bitmap) result.getParcelable(Rainwave.ART) );
             
             if(mSession.isAuthenticated()) {
                 syncSchedules();
@@ -747,10 +747,4 @@ public class NowPlayingActivity extends Activity {
     /** Dialog identifiers */
     public static final int
     	DIALOG_STATION_PICKER = 0xb1c7;
-    
-    /** Bundle constants */
-    public static final String
-    	HANDLED_URI = "handled-uri",
-        SCHEDULE = "schedule",
-        ART = "art";
 }

@@ -48,7 +48,12 @@
 	<string name="label_nottunedin">Not tuned in</string>
 	<string name="label_welcome">Welcome!</string>
 
-	<string name="msg_welcome">Welcome to Rainwave</string>
+	<string name="msg_new">New to Rainwave?</string>
+	<string name="msg_howToRegister">You can listen to the radio right away. To vote, rate, and request
+	    you\'ll need a user account. Register at the main web site at <b>rainwave.cc</b> and enter your
+	    user ID and API key from the \'Manage API Keys\' page. 
+	</string>
+	    
 	<string name="msg_manageAuth">From the \'Manage API Keys\' page at <b>rainwave.cc</b>.</string>
 	<string name="msg_autoshow_elections">Automatically extend or hide election drawer.</string>
 	<string name="msg_sessionError">Failed to initialize session. Is the Rainwave URL

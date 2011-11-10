@@ -43,16 +43,30 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
                 android:hint="@string/label_key"
-                android:inputType="number" />
+                android:inputType="text" />
         </LinearLayout>
 
         <ImageButton
-            android:id="@+id/imageButton1"
+            android:id="@+id/land_qrButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:src="@drawable/qr_icon" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/msg_new"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/msg_howToRegister"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <FrameLayout
         android:layout_width="fill_parent"
