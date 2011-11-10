@@ -72,7 +72,13 @@ public class LandingActivity extends Activity {
 			public void onClick(View v) {
 				String user = ((EditText)findViewById(R.id.land_userId)).getText().toString();
 				String key = ((EditText)findViewById(R.id.land_apiKey)).getText().toString();
-				verifyUserInfo(user,key);
+				
+				if(user != null && user.length() > 0 && key != null & key.length() > 0) {
+					verifyUserInfo(user,key);
+				}
+				else {
+					Rainwave.showError(LandingActivity.this, R.string.msg_nullFieldError);
+				}
 			}
 		});
 		
