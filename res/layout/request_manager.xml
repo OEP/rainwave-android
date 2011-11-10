@@ -1,7 +1,8 @@
 <com.android.music.TouchInterceptor
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:id="@+id/request_list"
+	android:id="@+id/np_request_list"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
-	>
+	android:drawSelectorOnTop="false"
+	android:fastScrollEnabled="true" >
 </com.android.music.TouchInterceptor>

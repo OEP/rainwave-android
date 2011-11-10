@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.RainwaveException;
+import cc.rainwave.android.api.types.Song;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -225,6 +226,21 @@ public class Rainwave {
     	int sid = Integer.parseInt(path);
     	Rainwave.putLastStation(ctx, sid);
     	return true;
+    }
+    
+    public static void reorderSongs(Song songs[], int from, int to) {
+    	Song s = songs[from];
+    	if(to < from) {
+    		for(int i = from; i > to; i--) {
+    			songs[i] = songs[i-1];
+    		}
+    	}
+    	else {
+    		for(int i = from; i < to; i++) {
+    			songs[i] = songs[i+1];
+    		}
+    	}
+    	songs[to] = s;
     }
     
     public static String extractUserId(String userInfo) {

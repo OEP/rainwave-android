@@ -90,6 +90,10 @@ public class ElectionListAdapter extends BaseAdapter {
 	public boolean hasVoted() {
 		return mVoted || mVoteTask != null;
 	}
+	
+	public Song[] getSongs() {
+		return mSongs;
+	}
 
 	@Override
 	public int getCount() {

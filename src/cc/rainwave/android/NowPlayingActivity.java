@@ -224,6 +224,19 @@ public class NowPlayingActivity extends Activity {
     			}
     		}
 		});
+    
+    	final TouchInterceptor requestList = ((TouchInterceptor) findViewById(R.id.np_request_list));
+    	requestList.setDropListener(new TouchInterceptor.DropListener() {
+			@Override
+			public void drop(int from, int to) {
+				ElectionListAdapter adapter = (ElectionListAdapter) requestList.getAdapter();
+				Song songs[] = adapter.getSongs();
+				Rainwave.reorderSongs(songs, from, to);
+				requestList.setAdapter(new ElectionListAdapter(NowPlayingActivity.this,mSession,songs));
+			}
+		});
+    	
+    	
     }
     
     /**
@@ -467,6 +480,9 @@ public class NowPlayingActivity extends Activity {
     	ElectionListAdapter adapter = new ElectionListAdapter(this,mSession,response.getElection());
     	((ListView)findViewById(R.id.np_electionList))
     	   .setAdapter(adapter);
+    	
+    	TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
+    	requestList.setAdapter(new ElectionListAdapter(this,mSession,mOrganizer.getElection()));
     	
     	// Set vote deadline for when the song ends.
     	adapter.setDeadline(response.getEndTime());
