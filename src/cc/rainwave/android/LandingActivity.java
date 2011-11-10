@@ -83,6 +83,14 @@ public class LandingActivity extends Activity {
 			}
 		});
 		
+		findViewById(R.id.land_never).setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Rainwave.setSkipLanding(LandingActivity.this, true);
+				startNowPlaying();
+			}
+		});
+		
 		findViewById(R.id.land_qrButton).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -92,7 +100,7 @@ public class LandingActivity extends Activity {
 	}
 
 	private void preLayout() {
-		if(Rainwave.hasUserInfo(this)) {
+		if(Rainwave.hasUserInfo(this) || Rainwave.skipLanding(this)) {
 			startNowPlaying();
 		}
 		
