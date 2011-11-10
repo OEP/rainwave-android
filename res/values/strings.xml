@@ -3,20 +3,10 @@
 	<string name="app_name">Rainwave</string>
 	<string name="label_nowPlaying">Now Playing</string>
 
-	<string-array name="station_names">
-		<item>Rainwave</item>
-		<item>OCRemix</item>
-		<item>Mixwave</item>
-	</string-array>
-
-	<string-array name="station_ids">
-		<item>1</item>
-		<item>2</item>
-		<item>3</item>
-	</string-array>
-
+	<!-- Preference categories -->
 	<string name="label_authentication">Authentication info</string>
 	<string name="label_ui">User interface</string>
+	<string name="label_debug">Debugging</string>
 
 	<string name="label_userId">User ID</string>
 	<string name="label_key">API Key</string>
@@ -47,13 +37,18 @@
 	<string name="label_tunedin">Tuned in</string>
 	<string name="label_nottunedin">Not tuned in</string>
 	<string name="label_welcome">Welcome!</string>
+	
+	<string name="label_import_qr">Import from QR code</string>
+	<string name="label_clear_preferences">Clear preferences</string>
 
 	<string name="msg_new">New to Rainwave?</string>
 	<string name="msg_howToRegister">You can listen to the radio right away. To vote, rate, and request
 	    you\'ll need a user account. Register at the main web site at <b>rainwave.cc</b> and enter your
 	    user ID and API key from the \'Manage API Keys\' page. 
 	</string>
-	    
+	
+	<string name="msg_import_qr">Import user ID and API key from a QR code.</string>
+	<string name="msg_clear_preferences">Clear all preferences, including user ID and API key.</string>
 	<string name="msg_manageAuth">From the \'Manage API Keys\' page at <b>rainwave.cc</b>.</string>
 	<string name="msg_autoshow_elections">Automatically extend or hide election drawer.</string>
 	<string name="msg_sessionError">Failed to initialize session. Is the Rainwave URL

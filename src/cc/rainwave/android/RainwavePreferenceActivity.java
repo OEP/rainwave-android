@@ -38,6 +38,15 @@ public class RainwavePreferenceActivity extends PreferenceActivity {
 					return true;
 				}
 		    });
+		    
+		    Preference clear = findPreference(Rainwave.PREF_CLEAR_PREFERENCES);
+		    clear.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+				@Override
+				public boolean onPreferenceClick(Preference p) {
+					Rainwave.clearPreferences(RainwavePreferenceActivity.this);
+					return true;
+				}
+		    });
 		}
 		
 		public void onActivityResult(int request, int result, Intent data) {

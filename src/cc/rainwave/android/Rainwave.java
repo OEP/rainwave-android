@@ -289,6 +289,7 @@ public class Rainwave {
         PREFS_USERID = "pref_userId",
         PREFS_LASTSTATION = "pref_lastStation",
         PREF_IMPORT = "import_qr",
+        PREF_CLEAR_PREFERENCES = "clear_preferences",
         PREF_AUTOSHOW_ELECTION = "pref_autoshow_elections",
         PREFS_KEY = "pref_key";
 }
