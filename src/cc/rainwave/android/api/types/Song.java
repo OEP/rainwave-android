@@ -64,6 +64,10 @@ public class Song implements Parcelable {
 	    }
 	}
 	
+	public String toString() {
+		return song_title;
+	}
+	
     @Override
     public int describeContents() {
         // TODO Auto-generated method stub

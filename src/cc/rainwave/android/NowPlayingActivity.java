@@ -38,11 +38,14 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
+import android.widget.SimpleAdapter;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.android.music.TouchInterceptor;
 import com.google.android.apps.iosched.ui.widget.Workspace;
@@ -229,14 +232,29 @@ public class NowPlayingActivity extends Activity {
     	requestList.setDropListener(new TouchInterceptor.DropListener() {
 			@Override
 			public void drop(int from, int to) {
+				if(from == to) return;
 				SongListAdapter adapter = (SongListAdapter) requestList.getAdapter();
-				Song songs[] = adapter.getSongs();
-				Rainwave.reorderSongs(songs, from, to);
-				requestList.setAdapter(new SongListAdapter(NowPlayingActivity.this,R.layout.item_song_request,mSession,songs));
+				adapter.moveSong(from, to);
 			}
 		});
     	
-    	
+    	requestList.setOnTouchListener(new OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent ev) {
+				Workspace w = (Workspace) findViewById(R.id.np_workspace);
+				
+				// Benefit of the doubt: unlock in case we locked earlier.
+				if(ev.getAction() == MotionEvent.ACTION_UP) {
+					w.unlockCurrentScreen();
+				}
+				
+				float x = ev.getX();
+				if(ev.getAction() == MotionEvent.ACTION_DOWN && x < 64) {
+					w.lockCurrentScreen();
+				}
+				return false;
+			}
+    	});
     }
     
     /**
@@ -501,7 +519,14 @@ public class NowPlayingActivity extends Activity {
     
     private void updateRequests(RainwaveResponse response) {
     	TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
-    	requestList.setAdapter(new SongListAdapter(this,R.layout.item_song_request,mSession,response.getRequests()));
+    	requestList.setAdapter(
+    		new SongListAdapter(
+    			this,
+    			R.layout.item_song_request,
+    			mSession,
+    			response.getRequests()
+    		)
+    	);
     }
     
     /**

@@ -1,6 +1,7 @@
 package cc.rainwave.android;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.RainwaveException;

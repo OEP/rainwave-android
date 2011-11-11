@@ -337,7 +337,7 @@ public class TouchInterceptor extends ListView {
                         }
                         int speed = 0;
                         adjustScrollBounds(y);
-                        if (y > mLowerBound) {
+/*                        if (y > mLowerBound) {
                             // scroll the list up a bit
                             if (getLastVisiblePosition() < getCount() - 1) {
                                 speed = y > (mHeight + mLowerBound) / 2 ? 16 : 4;
@@ -355,6 +355,7 @@ public class TouchInterceptor extends ListView {
                                 speed = 0;
                             }
                         }
+*/
                         if (speed != 0) {
                             scrollBy(speed, 30);
                         }

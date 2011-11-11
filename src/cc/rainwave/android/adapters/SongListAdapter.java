@@ -1,6 +1,7 @@
 package cc.rainwave.android.adapters;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -108,6 +109,10 @@ public class SongListAdapter extends BaseAdapter {
 	public Object getItem(int i) {
 		return (mSongs == null) ? null : mSongs[i];
 	}
+	
+	public Song getSong(int i) {
+		return (mSongs == null) ? null : mSongs[i];
+	}
 
 	@Override
 	public long getItemId(int i) {
@@ -135,11 +140,13 @@ public class SongListAdapter extends BaseAdapter {
 	
 	@Override
 	public View getView(int i, View convertView, ViewGroup parent) {
-		if(convertView == null) {
+		if(mViews[i] == null || convertView == null) {
 			Song s = mSongs[i];
+			
 			Resources r = mContext.getResources();
 			LayoutInflater inflater = LayoutInflater.from(mContext);
 			convertView = inflater.inflate(mItemLayout, null);
+			mViews[i] = convertView;
 			
 			setTextIfExists(convertView, R.id.song, s.song_title);
 			setTextIfExists(convertView, R.id.album, s.album_name);
@@ -160,7 +167,6 @@ public class SongListAdapter extends BaseAdapter {
 			}
 		}
 		
-		mViews[i] = convertView;
 		return convertView;
 	}
 	
@@ -240,6 +246,20 @@ public class SongListAdapter extends BaseAdapter {
 		mVoteTask = new VoteTask(selection);
 		mVoteTask.execute(mSongs[selection]);
 		setVoting(selection);
+	}
+	
+	public void moveSong(int from, int to) {
+		Rainwave.reorderSongs(mSongs, from, to);
+		notifyDataSetChanged();
+	}
+	
+	@Override
+	public void notifyDataSetChanged() {
+		super.notifyDataSetChanged();
+		for(int i = 0; i < mViews.length; i++) {
+			mViews[i] = null;
+		}
+		Log.d(TAG, "Data set changed: " + Arrays.deepToString(mSongs));
 	}
 	
 	private class VoteTask extends AsyncTask<Song, Integer, Boolean> {
