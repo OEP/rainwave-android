@@ -1,6 +1,7 @@
 package cc.rainwave.android.adapters;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import android.content.Context;
@@ -28,9 +29,9 @@ public class SongListAdapter extends BaseAdapter {
 	
 	private boolean mVoted = false;
 	
-	private View mViews[];
+	private ArrayList<View> mViews;
 	
-	private Song mSongs[];
+	private ArrayList<Song> mSongs;
 	
 	private Context mContext;
 	
@@ -51,11 +52,14 @@ public class SongListAdapter extends BaseAdapter {
 	/** Item XML ID */
 	private int mItemLayout;
 	
-	public SongListAdapter(Context ctx, int resId, Session session, Song songs[]) {
+	public SongListAdapter(Context ctx, int resId, Session session, ArrayList<Song> songs) {
 		mContext = ctx;
 		mSession = session;
 		mSongs = songs;
-		mViews = new View[mSongs.length];
+		mViews = new ArrayList<View>();
+		for(int i = 0; i < mSongs.size(); i++) {
+			mViews.add(null);
+		}
 		mItemLayout = resId;
 	}
 	
@@ -96,32 +100,32 @@ public class SongListAdapter extends BaseAdapter {
 		return mVoted || mVoteTask != null;
 	}
 	
-	public Song[] getSongs() {
+	public ArrayList<Song> getSongs() {
 		return mSongs;
 	}
 
 	@Override
 	public int getCount() {
-		return (mSongs == null) ? 0 : mSongs.length;
+		return (mSongs == null) ? 0 : mSongs.size();
 	}
 
 	@Override
 	public Object getItem(int i) {
-		return (mSongs == null) ? null : mSongs[i];
+		return (mSongs == null) ? null : mSongs.get(i);
 	}
 	
 	public Song getSong(int i) {
-		return (mSongs == null) ? null : mSongs[i];
+		return (mSongs == null) ? null : mSongs.get(i);
 	}
 
 	@Override
 	public long getItemId(int i) {
-		return (mSongs == null) ? -1 : mSongs[i].song_id;
+		return (mSongs == null) ? -1 : mSongs.get(i).song_id;
 	}
 	
 	public void markVoted(int elec_entry_id) {
-		for(int i = 0; i < mSongs.length; i++) {
-			Song s = mSongs[i];
+		for(int i = 0; i < mSongs.size(); i++) {
+			Song s = mSongs.get(i);
 			if(s.elec_entry_id == elec_entry_id) {
 				mLastVote = elec_entry_id;
 				setVoteStatus(true);
@@ -140,13 +144,13 @@ public class SongListAdapter extends BaseAdapter {
 	
 	@Override
 	public View getView(int i, View convertView, ViewGroup parent) {
-		if(mViews[i] == null || convertView == null) {
-			Song s = mSongs[i];
+		if(mViews.get(i) == null || convertView == null) {
+			Song s = mSongs.get(i);
 			
 			Resources r = mContext.getResources();
 			LayoutInflater inflater = LayoutInflater.from(mContext);
 			convertView = inflater.inflate(mItemLayout, null);
-			mViews[i] = convertView;
+			mViews.set(i, convertView);
 			
 			setTextIfExists(convertView, R.id.song, s.song_title);
 			setTextIfExists(convertView, R.id.album, s.album_name);
@@ -210,7 +214,7 @@ public class SongListAdapter extends BaseAdapter {
 	}
 	
 	private CountdownView getCountdownView(int i) {
-		return (CountdownView) mViews[i].findViewById(R.id.circle);
+		return (CountdownView) mViews.get(i).findViewById(R.id.circle);
 	}
 	
 	private void reflectSong(CountdownView v, Song s) {
@@ -219,7 +223,7 @@ public class SongListAdapter extends BaseAdapter {
 	}
 	
 	private void setRating(int i) {
-		reflectSong(getCountdownView(i), mSongs[i]);
+		reflectSong(getCountdownView(i), mSongs.get(i));
 	}
 	
 	private void setVoting(int i) {
@@ -244,23 +248,30 @@ public class SongListAdapter extends BaseAdapter {
 	
 	public void submitVote(int selection) {
 		mVoteTask = new VoteTask(selection);
-		mVoteTask.execute(mSongs[selection]);
+		mVoteTask.execute(mSongs.get(selection));
 		setVoting(selection);
 	}
 	
-	public Song[] moveSong(int from, int to) {
-		Rainwave.reorderSongs(mSongs, from, to);
+	public ArrayList<Song> moveSong(int from, int to) {
+		Song s = mSongs.remove(from);
+		mSongs.add(to, s);
 		notifyDataSetChanged();
 		return mSongs;
+	}
+	
+	public Song removeSong(int which) {
+		Song s = mSongs.remove(which);
+		mViews.remove(which);
+		notifyDataSetChanged();
+		return s;
 	}
 	
 	@Override
 	public void notifyDataSetChanged() {
 		super.notifyDataSetChanged();
-		for(int i = 0; i < mViews.length; i++) {
-			mViews[i] = null;
+		for(int i = 0; i < mViews.size(); i++) {
+			mViews.set(i, null);
 		}
-		Log.d(TAG, "Data set changed: " + Arrays.deepToString(mSongs));
 	}
 	
 	private class VoteTask extends AsyncTask<Song, Integer, Boolean> {
@@ -319,9 +330,9 @@ public class SongListAdapter extends BaseAdapter {
 		
 		public CountdownTask(int selection) {
 			mSelection = selection;
-			View v = SongListAdapter.this.mViews[mSelection];
+			View v = SongListAdapter.this.mViews.get(mSelection);
 			mCountdownView = (CountdownView) v.findViewById(R.id.circle);
-			mSong = mSongs[selection];
+			mSong = mSongs.get(selection);
 		}
 		
 		@Override

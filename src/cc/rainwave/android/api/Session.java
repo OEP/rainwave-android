@@ -114,15 +114,15 @@ public class Session {
     	);
     }
     
-    public Song[] deleteRequest(Song request)
+    public RainwaveResponse deleteRequest(Song request)
     		throws IOException, RainwaveException {
     	return getResponse(
     			true, 
     			true, 
     			"request_delete", 
-    			"order", 
+    			"requestq_id", 
     			String.valueOf(request.requestq_id)
-    	).getRequests();
+    	);
     }
 
     public void setUserInfo(String userId, String key) {

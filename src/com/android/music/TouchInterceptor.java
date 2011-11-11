@@ -78,8 +78,7 @@ public class TouchInterceptor extends ListView {
 
     public TouchInterceptor(Context context, AttributeSet attrs) {
         super(context, attrs);
-        SharedPreferences pref = context.getSharedPreferences("Music", 3);
-        mRemoveMode = pref.getInt("deletemode", -1);
+        mRemoveMode = FLING;
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
         Resources res = getResources();
         mItemHeightNormal = res.getDimensionPixelSize(R.dimen.normal_height);
@@ -444,6 +443,11 @@ public class TouchInterceptor extends ListView {
         if (mTrashcan != null) {
             mTrashcan.setLevel(0);
         }
+    }
+    
+    public void setTrashcan(int resId) {
+    	Resources r = getContext().getResources();
+    	setTrashcan(r.getDrawable(resId));
     }
 
     public void setTrashcan(Drawable trash) {

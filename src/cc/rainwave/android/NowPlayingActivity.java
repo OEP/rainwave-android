@@ -1,6 +1,8 @@
 package cc.rainwave.android;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -61,7 +63,7 @@ public class NowPlayingActivity extends Activity {
 	private FetchInfo mFetchInfo;
 	
 	/** AsyncTask for song ratings */
-	private ActionTask mRateTask, mReorderTask;
+	private ActionTask mRateTask, mReorderTask, mRemoveTask;
 	
 	/** AsycnTask for song timer */
 	private SongCountdownTask mSongCountdownTask;
@@ -226,7 +228,18 @@ public class NowPlayingActivity extends Activity {
 				if(from == to) return;
 				SongListAdapter adapter = (SongListAdapter) requestList.getAdapter();
 				adapter.moveSong(from, to);
-				requestReorder( adapter.getSongs() );
+				
+				ArrayList<Song> songs = adapter.getSongs();
+				requestReorder( songs.toArray(new Song[songs.size()]) );
+			}
+		});
+    	
+    	requestList.setRemoveListener(new TouchInterceptor.RemoveListener() {
+			@Override
+			public void remove(int which) {
+				SongListAdapter adapter = (SongListAdapter) requestList.getAdapter();
+				Song s = adapter.removeSong(which);
+				requestRemove(s);
 			}
 		});
     	
@@ -267,6 +280,11 @@ public class NowPlayingActivity extends Activity {
     	if(mReorderTask != null) {
     		mReorderTask.cancel(true);
     		mReorderTask = null;
+    	}
+    	
+    	if(mRemoveTask != null) {
+    		mRemoveTask.cancel(true);
+    		mRemoveTask = null;
     	}
     	
     	if(mSongCountdownTask != null) {
@@ -328,6 +346,18 @@ public class NowPlayingActivity extends Activity {
         if(mReorderTask == null) {
         	mReorderTask = new ActionTask();
         	mReorderTask.execute(ActionTask.REORDER, requests);
+        }
+    }
+    
+    private void requestRemove(Song s) {
+        if(mSession == null) {
+        	Rainwave.showError(NowPlayingActivity.this, R.string.msg_sessionError);
+            return;
+        }
+        
+        if(mRemoveTask == null) {
+        	mRemoveTask = new ActionTask();
+        	mRemoveTask.execute(ActionTask.REMOVE, s);
         }
     }
     
@@ -507,7 +537,11 @@ public class NowPlayingActivity extends Activity {
     }
     
     private void updateElection(RainwaveResponse response) {
-    	SongListAdapter adapter = new SongListAdapter(this,R.layout.item_song_election,mSession,response.getElection());
+    	SongListAdapter adapter = new SongListAdapter(
+    			this,
+    			R.layout.item_song_election,mSession,
+    			new ArrayList<Song>(Arrays.asList(response.getElection()))
+    	);
     	((ListView)findViewById(R.id.np_electionList))
     	   .setAdapter(adapter);
     	
@@ -533,7 +567,7 @@ public class NowPlayingActivity extends Activity {
     			this,
     			R.layout.item_song_request,
     			mSession,
-    			response.getRequests()
+    			new ArrayList<Song>(Arrays.asList(response.getRequests()))
     		)
     	);
     }
@@ -621,6 +655,10 @@ public class NowPlayingActivity extends Activity {
 					float rating = (Float) params[2];
 					return mSession.rateSong(songId, rating);
 					
+				case REMOVE:
+					Song s = (Song) params[1];
+					return mSession.deleteRequest(s).request_delete_return;
+					
 				case REORDER:
 					Song songs[] = (Song[]) params[1];
 					return mSession.reorderRequests(songs).request_reorder_return;
@@ -650,11 +688,16 @@ public class NowPlayingActivity extends Activity {
 			case REORDER:
 				mReorderTask = null;
 				break;
+				
+			case REMOVE:
+				mRemoveTask = null;
+				break;
 			
 			}
 		}
 		
 		public static final int
+			REMOVE = 0x439023,
 			RATE = 0x4A73,
 			REORDER = 0x4304D34;
     }
