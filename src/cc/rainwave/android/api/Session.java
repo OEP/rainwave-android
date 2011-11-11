@@ -103,15 +103,15 @@ public class Session {
         return BitmapFactory.decodeStream(is);
     }
     
-    public Song[] reorderRequests(Song requests[])
+    public RainwaveResponse reorderRequests(Song requests[])
     		throws IOException, RainwaveException {
     	return getResponse(
     			true, 
     			true, 
-    			"request_reorder", 
+    			"requests_reorder", 
     			"order", 
     			Rainwave.makeRequestQueueString(requests)
-    	).getRequests();
+    	);
     }
     
     public Song[] deleteRequest(Song request)

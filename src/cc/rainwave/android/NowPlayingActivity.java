@@ -61,7 +61,7 @@ public class NowPlayingActivity extends Activity {
 	private FetchInfo mFetchInfo;
 	
 	/** AsyncTask for song ratings */
-	private RateTask mRateTask;
+	private ActionTask mRateTask, mReorderTask;
 	
 	/** AsycnTask for song timer */
 	private SongCountdownTask mSongCountdownTask;
@@ -197,9 +197,9 @@ public class NowPlayingActivity extends Activity {
 					
 					if(e.getAction() == MotionEvent.ACTION_UP) {
 						w.unlockCurrentScreen();
-						RateTask t = new RateTask();
+						ActionTask t = new ActionTask();
 						Song s = mOrganizer.getCurrentSong();
-						t.execute(s.song_id, rating);
+						t.execute(ActionTask.RATE, s.song_id, rating);
 					}
 				}
 				return true;
@@ -226,6 +226,7 @@ public class NowPlayingActivity extends Activity {
 				if(from == to) return;
 				SongListAdapter adapter = (SongListAdapter) requestList.getAdapter();
 				adapter.moveSong(from, to);
+				requestReorder( adapter.getSongs() );
 			}
 		});
     	
@@ -261,6 +262,11 @@ public class NowPlayingActivity extends Activity {
     	if(mRateTask != null) {
     		mRateTask.cancel(true);
     		mRateTask = null;
+    	}
+    	
+    	if(mReorderTask != null) {
+    		mReorderTask.cancel(true);
+    		mReorderTask = null;
     	}
     	
     	if(mSongCountdownTask != null) {
@@ -310,6 +316,18 @@ public class NowPlayingActivity extends Activity {
         if(mFetchInfo == null) {
             mFetchInfo = new FetchInfo();
             mFetchInfo.execute(init);
+        }
+    }
+    
+    private void requestReorder(Song requests[]) {
+        if(mSession == null) {
+        	Rainwave.showError(NowPlayingActivity.this, R.string.msg_sessionError);
+            return;
+        }
+        
+        if(mReorderTask == null) {
+        	mReorderTask = new ActionTask();
+        	mReorderTask.execute(ActionTask.REORDER, requests);
         }
     }
     
@@ -588,14 +606,27 @@ public class NowPlayingActivity extends Activity {
      * @author pkilgo
      *
      */
-    protected class RateTask extends AsyncTask<Object, Integer, GenericResult> {
+    protected class ActionTask extends AsyncTask<Object, Integer, GenericResult> {
+    	private int mAction;
+    	
 		@Override
 		protected GenericResult doInBackground(Object ... params) {
-			Log.d(TAG, "Submitting a rating...");
-			int songId = (Integer) params[0];
-			float rating = (Float) params[1];
+			Log.d(TAG, "Beginning ActionTask.");
+			mAction = (Integer) params[0];
+			
 			try {
-				return mSession.rateSong(songId, rating);
+				switch(mAction) {
+				case RATE:
+					int songId = (Integer) params[1];
+					float rating = (Float) params[2];
+					return mSession.rateSong(songId, rating);
+					
+				case REORDER:
+					Song songs[] = (Song[]) params[1];
+					return mSession.reorderRequests(songs).request_reorder_return;
+				
+				}
+				
 			} catch (IOException e) {
 				Log.e(TAG, "IO error: " + e.getMessage());
                 Rainwave.showError(NowPlayingActivity.this, e);
@@ -607,11 +638,25 @@ public class NowPlayingActivity extends Activity {
 		}
 		
 		protected void onPostExecute(GenericResult result) {
-			Log.d(TAG, "Rating task ended.");
-			mRateTask = null;
-			if(result == null) return;
-			onRateSong(result);
+			Log.d(TAG, "ActionTask ended.");
+			
+			switch(mAction) {
+			case RATE:
+				mRateTask = null;
+				if(result == null) return;
+				onRateSong(result);
+				break;
+				
+			case REORDER:
+				mReorderTask = null;
+				break;
+			
+			}
 		}
+		
+		public static final int
+			RATE = 0x4A73,
+			REORDER = 0x4304D34;
     }
     
     /**
