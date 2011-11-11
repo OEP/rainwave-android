@@ -1,20 +1,10 @@
 package cc.rainwave.android;
 
-import cc.rainwave.android.adapters.SongListAdapter;
-import cc.rainwave.android.adapters.StationListAdapter;
-import cc.rainwave.android.api.Session;
-import cc.rainwave.android.api.types.RainwaveException;
-import cc.rainwave.android.api.types.RainwaveResponse;
-import cc.rainwave.android.api.types.RatingResult;
-import cc.rainwave.android.api.types.Song;
-import cc.rainwave.android.api.types.Station;
-import cc.rainwave.android.views.HorizontalRatingBar;
+import java.io.IOException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -34,18 +24,19 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RatingBar;
-import android.widget.SimpleAdapter;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import cc.rainwave.android.adapters.SongListAdapter;
+import cc.rainwave.android.adapters.StationListAdapter;
+import cc.rainwave.android.api.Session;
+import cc.rainwave.android.api.types.GenericResult;
+import cc.rainwave.android.api.types.RainwaveException;
+import cc.rainwave.android.api.types.RainwaveResponse;
+import cc.rainwave.android.api.types.Song;
+import cc.rainwave.android.api.types.Station;
+import cc.rainwave.android.views.HorizontalRatingBar;
 
 import com.android.music.TouchInterceptor;
 import com.google.android.apps.iosched.ui.widget.Workspace;
@@ -570,7 +561,7 @@ public class NowPlayingActivity extends Activity {
      * Executes when a "rate song" request has finished.
      * @param result the result the server issued
      */
-    private void onRateSong(RatingResult result) {
+    private void onRateSong(GenericResult result) {
         mOrganizer.updateSongRatings(result);
         setRatings(mOrganizer.getCurrentSong());
     }
@@ -597,9 +588,9 @@ public class NowPlayingActivity extends Activity {
      * @author pkilgo
      *
      */
-    protected class RateTask extends AsyncTask<Object, Integer, RatingResult> {
+    protected class RateTask extends AsyncTask<Object, Integer, GenericResult> {
 		@Override
-		protected RatingResult doInBackground(Object ... params) {
+		protected GenericResult doInBackground(Object ... params) {
 			Log.d(TAG, "Submitting a rating...");
 			int songId = (Integer) params[0];
 			float rating = (Float) params[1];
@@ -615,7 +606,7 @@ public class NowPlayingActivity extends Activity {
 			return null;
 		}
 		
-		protected void onPostExecute(RatingResult result) {
+		protected void onPostExecute(GenericResult result) {
 			Log.d(TAG, "Rating task ended.");
 			mRateTask = null;
 			if(result == null) return;

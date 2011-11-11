@@ -254,6 +254,27 @@ public class Rainwave {
     	return key.substring(0, Math.min(key.length(), KEY_MAX));
     }
     
+    /**
+     * Makes a comma-delimited string out of an array of songs
+     * delineating the value of Song.requestq_id.
+     * @param requests
+     * @return CSV string
+     */
+    public static String makeRequestQueueString(Song requests[]) {
+    	if(requests == null || requests.length == 0) return "";
+    	if(requests.length == 1) return String.valueOf(requests[0]);
+    	
+    	StringBuilder sb = new StringBuilder();
+    	sb.append(requests[0]);
+    	
+    	for(int i = 1; i < requests.length; i++) {
+    		sb.append(",");
+    		sb.append(requests[i]);
+    	}
+    	
+    	return sb.toString();
+    }
+    
     private static boolean forceType(SharedPreferences prefs, String key, PrefType type) {
     	if(!prefs.contains(key))
     		return false;

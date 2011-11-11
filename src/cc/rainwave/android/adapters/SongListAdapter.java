@@ -18,9 +18,9 @@ import android.widget.TextView;
 import cc.rainwave.android.R;
 import cc.rainwave.android.Rainwave;
 import cc.rainwave.android.api.Session;
+import cc.rainwave.android.api.types.GenericResult;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
-import cc.rainwave.android.api.types.VoteResult;
 import cc.rainwave.android.views.CountdownView;
 
 public class SongListAdapter extends BaseAdapter {
@@ -248,9 +248,10 @@ public class SongListAdapter extends BaseAdapter {
 		setVoting(selection);
 	}
 	
-	public void moveSong(int from, int to) {
+	public Song[] moveSong(int from, int to) {
 		Rainwave.reorderSongs(mSongs, from, to);
 		notifyDataSetChanged();
+		return mSongs;
 	}
 	
 	@Override
@@ -279,7 +280,7 @@ public class SongListAdapter extends BaseAdapter {
 			mSong = params[0];
 			
 			try {
-				VoteResult result = mSession.vote(mSong.elec_entry_id);
+				GenericResult result = mSession.vote(mSong.elec_entry_id);
 				return true;
 			} catch (IOException e) {
 				Rainwave.showError(SongListAdapter.this.mContext, e);

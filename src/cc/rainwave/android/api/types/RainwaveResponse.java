@@ -1,20 +1,28 @@
 package cc.rainwave.android.api.types;
 
+import java.lang.reflect.Field;
+
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 public class RainwaveResponse implements Parcelable {
+	private static final String TAG = "RainwaveResponse";
+	
     private Event sched_current;
     
     private Event sched_history[], sched_next[];
     
     private Song requests_all[], requests_user[];
     
-    private Error error;
-    
-    private RatingResult rate_result;
-    
-    private VoteResult vote_result;
+    /** API returns these members paired to an error object if there is a problem */
+    public GenericResult
+    	error,
+    	request_return,
+    	request_delete_return,
+    	request_reorder_return,
+    	vote_result,
+    	rate_result;
     
     private User user;
     
@@ -66,15 +74,15 @@ public class RainwaveResponse implements Parcelable {
     	return user != null && user.radio_tunedin;
     }
     
-    public Error getError() {
+    public GenericResult getError() {
         return error;
     }
     
-    public VoteResult getVoteResult() {
+    public GenericResult getVoteResult() {
     	return vote_result;
     }
     
-    public RatingResult getRateResult() {
+    public GenericResult getRateResult() {
         return rate_result;
     }
     
@@ -103,16 +111,17 @@ public class RainwaveResponse implements Parcelable {
     }
     
     public void receiveUpdates(RainwaveResponse other) {
-    	user = (User) update(other.user, user);
-    	sched_current = (Event) update(other.sched_current, sched_current);
-    	sched_history = (Event[]) update(other.sched_history, sched_history);
-    	sched_next = (Event[]) update(other.sched_next, sched_next);
-    	error = (Error) update(other.error, error);
-    	rate_result = (RatingResult) update(other.rate_result, rate_result);
-    	vote_result = (VoteResult) update(other.vote_result, vote_result);
-    	stations = (Station[]) update(other.stations, stations);
-    	requests_all = (Song[]) update(other.requests_all, requests_all);
-    	requests_user = (Song[]) update(other.requests_user, requests_user);
+    	for(Field f : this.getClass().getDeclaredFields()) {
+    		try {
+				Object mine = f.get(this);
+				Object theirs = f.get(other);
+				f.set(this, update(theirs,mine));
+			} catch (IllegalArgumentException e) {
+				Log.w(TAG, "Class mismatch while updating: " + f.getName());
+			} catch (IllegalAccessException e) {
+				Log.w(TAG, "Couldn't access field: " + f.getName());
+			}
+    	}
     }
     
     private Object update(Object newGuy, Object current) {
@@ -120,7 +129,7 @@ public class RainwaveResponse implements Parcelable {
     	return newGuy;
     }
     
-    public void updateSongRatings(RatingResult result) {
+    public void updateSongRatings(GenericResult result) {
         Song s = getCurrentSong();
         s.song_rating_user = result.song_rating;
         s.album_rating_user = result.album_rating;

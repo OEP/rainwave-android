@@ -14,7 +14,7 @@ public class RainwaveException extends Exception {
 	
 	private String mMessage;
 	
-	public RainwaveException(Error error) {
+	public RainwaveException(GenericResult error) {
 		mCode = error.code;
 		mMessage = error.text;
 	}

@@ -3,11 +3,11 @@ package cc.rainwave.android.api;
 
 import cc.rainwave.android.R;
 import cc.rainwave.android.Rainwave;
+import cc.rainwave.android.api.types.GenericResult;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.RainwaveResponse;
-import cc.rainwave.android.api.types.RatingResult;
+import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.api.types.Station;
-import cc.rainwave.android.api.types.VoteResult;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -62,16 +62,26 @@ public class Session {
         return getResponse(false, true, "init");
     }
     
-    public RatingResult rateSong(int songId, float rating)
+    public GenericResult rateSong(int songId, float rating)
     		throws IOException, RainwaveException {
     	rating = Math.max(1.0f, Math.min(rating, 5.0f));
-    	return getRatingResult(true, true, "rate",
-    		"song_id", String.valueOf(songId), "rating", String.valueOf(rating));
+    	return getResponse(
+    			true,
+    			true,
+    			"rate",
+    			"song_id",String.valueOf(songId),
+    			"rating", String.valueOf(rating)
+    	).rate_result;
     }
     
-    public VoteResult vote(int elecId)
+    public GenericResult vote(int elecId)
     		throws IOException, RainwaveException {
-    	return getVoteResult(true,true,"vote","elec_entry_id", String.valueOf(elecId));
+    	return getResponse(
+    			true,
+    			true,
+    			"vote",
+    			"elec_entry_id", String.valueOf(elecId)
+    	).vote_result;
     }
     
     public Station[] getStations() throws IOException, RainwaveException {
@@ -80,13 +90,39 @@ public class Session {
     			? "stations_user"
     			: "stations";
     	
-    	return getStationResult(true, auth, request);
+    	return getResponse(
+    			true,
+    			auth,
+    			request
+    	).getStations();
     }
     
     public Bitmap fetchAlbumArt(String path) throws IOException {
         URL url = new URL(getUrl(path));
         InputStream is = url.openStream();
         return BitmapFactory.decodeStream(is);
+    }
+    
+    public Song[] reorderRequests(Song requests[])
+    		throws IOException, RainwaveException {
+    	return getResponse(
+    			true, 
+    			true, 
+    			"request_reorder", 
+    			"order", 
+    			Rainwave.makeRequestQueueString(requests)
+    	).getRequests();
+    }
+    
+    public Song[] deleteRequest(Song request)
+    		throws IOException, RainwaveException {
+    	return getResponse(
+    			true, 
+    			true, 
+    			"request_delete", 
+    			"order", 
+    			String.valueOf(request.requestq_id)
+    	).getRequests();
     }
 
     public void setUserInfo(String userId, String key) {
@@ -109,30 +145,6 @@ public class Session {
     
     public boolean isAuthenticated() {
         return mUserId != null && mKey != null && mUserId.length() > 0 && mKey.length() > 0;
-    }
-    
-    private Station[] getStationResult(boolean async, boolean auth, String request, String ...params)
-    		throws IOException, RainwaveException {
-    	RainwaveResponse response = getResponse(async,auth,request,params);
-    	Station stations[] = response.getStations();
-    	// TODO: handleError() for stations? Not sure!
-    	return stations;
-    }
-    
-    private VoteResult getVoteResult(boolean async, boolean auth, String request, String...params) 
-    		throws IOException, RainwaveException{
-        RainwaveResponse response = getResponse(async,auth,request,params);
-        VoteResult voteResult = response.getVoteResult();
-        handleError(voteResult.code, voteResult.text);
-        return voteResult;
-    }
-    
-    private RatingResult getRatingResult(boolean async, boolean auth, String request, String...params)
-            throws IOException, RainwaveException {
-        RainwaveResponse response = getResponse(async,auth,request,params);
-        RatingResult rateResult = response.getRateResult();
-        handleError(rateResult.code, rateResult.text);
-        return rateResult;
     }
     
     private RainwaveResponse getResponse(boolean async, boolean auth, String request,
@@ -191,16 +203,25 @@ public class Session {
         response.receiveUpdates(tmp);
         
         // Throw an exception if there was some sort of problem.
-        if(response.hasError()) {
-        	throw new RainwaveException(response.getError());
-        }
+        handleErrors(tmp);
         
         return response;
     }
     
-    private void handleError(int code, String message) throws RainwaveException {
-        if(code != 1) {
-            throw new RainwaveException(code,message);
+    private void handleErrors(RainwaveResponse r)
+    	throws RainwaveException {
+    	handleError(r.error);
+    	handleError(r.request_return);
+    	handleError(r.request_delete_return);
+    	handleError(r.request_reorder_return);
+    	handleError(r.vote_result);
+    	handleError(r.rate_result);
+    }
+    
+    private void handleError(GenericResult result) throws RainwaveException {
+    	if(result == null) return;
+        if(result.code != 1) {
+            throw new RainwaveException(result.code,result.text);
         }
     }
 
