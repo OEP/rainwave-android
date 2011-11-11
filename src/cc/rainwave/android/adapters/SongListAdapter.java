@@ -227,6 +227,7 @@ public class SongListAdapter extends BaseAdapter {
 	}
 	
 	private void setVoted(CountdownView view) {
+		if(view == null) return;
 		view.setBoth(0, 0);
 		view.setAlternateText(R.string.label_voted);
 	}
