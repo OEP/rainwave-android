@@ -20,7 +20,7 @@
 			android:layout_height="wrap_content"
 			android:layout_width="fill_parent"
 			android:layout_weight="1"
-			android:background="#aa333333"
+			android:background="@drawable/checkerboard_tile"
 			android:id="@id/np_electionList" />
 	</SlidingDrawer>
 </LinearLayout>
