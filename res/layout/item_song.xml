@@ -8,7 +8,7 @@
 	android:orientation="horizontal">
 	<ImageView
 		android:layout_height="wrap_content"
-		android:id="@+id/election_accent"
+		android:id="@+id/accent"
 		android:layout_width="wrap_content"
 		android:src="@drawable/accent_song" />
 	<LinearLayout
@@ -18,7 +18,7 @@
 		android:layout_gravity="center_vertical"
 		android:orientation="vertical">
 		<TextView
-			android:id="@+id/election_songTitle"
+			android:id="@+id/song"
 			android:text="[song]"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
@@ -28,7 +28,7 @@
 			android:textAppearance="?android:attr/textAppearanceLarge"
 			android:textStyle="bold"></TextView>
 		<TextView
-			android:id="@+id/election_songAlbum"
+			android:id="@+id/album"
 			android:text="[album]"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
@@ -38,7 +38,7 @@
 			android:layout_marginLeft="15sp"
 			android:textAppearance="?android:attr/textAppearanceMedium"></TextView>
 		<TextView
-			android:id="@+id/election_songArtist"
+			android:id="@+id/artist"
 			android:text="[artists...]"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
@@ -48,7 +48,7 @@
 			android:layout_marginLeft="15sp"
 			android:textAppearance="?android:attr/textAppearanceMedium"></TextView>
 		<TextView
-			android:id="@+id/election_songRequestor"
+			android:id="@+id/requestor"
 			android:text="@string/label_requestor"
 			android:visibility="gone"
 			android:layout_width="wrap_content"
@@ -60,7 +60,7 @@
 			android:textAppearance="?android:attr/textAppearanceSmall"></TextView>
 	</LinearLayout>
 	<cc.rainwave.android.views.CountdownView
-		android:id="@+id/election_songRating"
+		android:id="@+id/circle"
 		android:layout_width="60sp"
 		android:layout_height="60sp"
 		android:layout_gravity="center_vertical"

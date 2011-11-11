@@ -137,23 +137,22 @@ public class SongListAdapter extends BaseAdapter {
 			LayoutInflater inflater = LayoutInflater.from(mContext);
 			convertView = inflater.inflate(R.layout.item_song, null);
 			
-			((TextView)convertView.findViewById(R.id.election_songTitle)).setText(s.song_title);
-			((TextView)convertView.findViewById(R.id.election_songAlbum)).setText(s.album_name);
-			((TextView)convertView.findViewById(R.id.election_songArtist)).setText(s.collapseArtists());
+			setTextIfExists(convertView, R.id.song, s.song_title);
+			setTextIfExists(convertView, R.id.album, s.album_name);
+			setTextIfExists(convertView, R.id.artist, s.collapseArtists());
 			
 			if(s.isRequest()) {
-				((ImageView)convertView.findViewById(R.id.election_accent)).setImageResource(R.drawable.accent_song_hilight);
-				
-				TextView requestor = (TextView) convertView.findViewById(R.id.election_songRequestor); 
-				requestor.setVisibility(View.VISIBLE);
-				requestor.setText(String.format(r.getString(R.string.label_requestor), s.song_requestor));
+				setImageIfExists(convertView, R.id.accent, R.drawable.accent_song_hilight);
+				setVisibilityIfExists(convertView, R.id.requestor, View.VISIBLE);
+				setTextIfExists(convertView, R.id.requestor,
+						String.format(r.getString(R.string.label_requestor), s.song_requestor));
 			}
 			
 			if(s.elec_entry_id == mLastVote) {
-				setVoted(((CountdownView)convertView.findViewById(R.id.election_songRating)));
+				setVoted(((CountdownView)convertView.findViewById(R.id.circle)));
 			}
 			else {
-				reflectSong(((CountdownView)convertView.findViewById(R.id.election_songRating)), s);
+				reflectSong(((CountdownView)convertView.findViewById(R.id.circle)), s);
 			}
 		}
 		
@@ -161,8 +160,47 @@ public class SongListAdapter extends BaseAdapter {
 		return convertView;
 	}
 	
+	/**
+	 * Sets the visibility if we found the View.
+	 */
+	private void setVisibilityIfExists(View parent, int resId, int visibility) {
+		if(parent == null) return;
+		View v = parent.findViewById(resId);
+		if(v == null) return;
+		v.setVisibility(visibility);
+	}
+	
+	/**
+	 * Attempts to find the provided view ID and sets
+	 * the image source if it exists and is an ImageView.
+	 */
+	private void setImageIfExists(View parent, int resId, int picId) {
+		if(parent == null) return;
+		View v = parent.findViewById(resId);
+		if(v == null || !(v instanceof ImageView)) return;
+		ImageView iv = (ImageView) v;
+		iv.setImageResource(picId);
+	}
+	
+	/**
+	 * Attempts to find the provided view ID and sets
+	 * the text if it exists and is a TextView.
+	 * @param parent, context for findViewById
+	 * @param resId, the ID to find
+	 * @param s, the string to set
+	 */
+	private void setTextIfExists(View parent, int resId, String s){
+		if(parent == null) return;
+		if(s == null) s = "";
+		View v = parent.findViewById(resId);
+		if(v == null || !(v instanceof TextView)) return;
+		TextView tv = (TextView) v;
+		
+		tv.setText(s);
+	}
+	
 	private CountdownView getCountdownView(int i) {
-		return (CountdownView) mViews[i].findViewById(R.id.election_songRating);
+		return (CountdownView) mViews[i].findViewById(R.id.circle);
 	}
 	
 	private void reflectSong(CountdownView v, Song s) {
@@ -256,7 +294,7 @@ public class SongListAdapter extends BaseAdapter {
 		public CountdownTask(int selection) {
 			mSelection = selection;
 			View v = SongListAdapter.this.mViews[mSelection];
-			mCountdownView = (CountdownView) v.findViewById(R.id.election_songRating);
+			mCountdownView = (CountdownView) v.findViewById(R.id.circle);
 			mSong = mSongs[selection];
 		}
 		
