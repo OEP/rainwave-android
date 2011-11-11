@@ -47,11 +47,15 @@ public class SongListAdapter extends BaseAdapter {
 	/** Vote deadline */
 	private long mDeadline = -1;
 	
-	public SongListAdapter(Context ctx, Session session, Song songs[]) {
+	/** Item XML ID */
+	private int mItemLayout;
+	
+	public SongListAdapter(Context ctx, int resId, Session session, Song songs[]) {
 		mContext = ctx;
 		mSession = session;
 		mSongs = songs;
 		mViews = new View[mSongs.length];
+		mItemLayout = resId;
 	}
 	
 	public void startCountdown(int i) {
@@ -135,7 +139,7 @@ public class SongListAdapter extends BaseAdapter {
 			Song s = mSongs[i];
 			Resources r = mContext.getResources();
 			LayoutInflater inflater = LayoutInflater.from(mContext);
-			convertView = inflater.inflate(R.layout.item_song, null);
+			convertView = inflater.inflate(mItemLayout, null);
 			
 			setTextIfExists(convertView, R.id.song, s.song_title);
 			setTextIfExists(convertView, R.id.album, s.album_name);

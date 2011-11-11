@@ -232,7 +232,7 @@ public class NowPlayingActivity extends Activity {
 				SongListAdapter adapter = (SongListAdapter) requestList.getAdapter();
 				Song songs[] = adapter.getSongs();
 				Rainwave.reorderSongs(songs, from, to);
-				requestList.setAdapter(new SongListAdapter(NowPlayingActivity.this,mSession,songs));
+				requestList.setAdapter(new SongListAdapter(NowPlayingActivity.this,R.layout.item_song_election,mSession,songs));
 			}
 		});
     	
@@ -480,7 +480,7 @@ public class NowPlayingActivity extends Activity {
     }
     
     private void updateElection(RainwaveResponse response) {
-    	SongListAdapter adapter = new SongListAdapter(this,mSession,response.getElection());
+    	SongListAdapter adapter = new SongListAdapter(this,R.layout.item_song_election,mSession,response.getElection());
     	((ListView)findViewById(R.id.np_electionList))
     	   .setAdapter(adapter);
     	
@@ -501,7 +501,7 @@ public class NowPlayingActivity extends Activity {
     
     private void updateRequests(RainwaveResponse response) {
     	TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
-    	requestList.setAdapter(new SongListAdapter(this,mSession,response.getRequests()));
+    	requestList.setAdapter(new SongListAdapter(this,R.layout.item_song_election,mSession,response.getRequests()));
     }
     
     /**
