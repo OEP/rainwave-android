@@ -23,9 +23,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SlidingDrawer;
@@ -261,6 +264,28 @@ public class NowPlayingActivity extends Activity {
 				return false;
 			}
     	});
+    	
+    	
+    	// Button Listeners.
+    	ImageButton play = (ImageButton) findViewById(R.id.np_play);
+    	ImageButton station = (ImageButton) findViewById(R.id.np_stationPick);
+    	
+    	play.setEnabled(false);
+    	station.setEnabled(false);
+    	
+    	play.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				startPlayer();
+			}
+    	});
+    	
+    	station.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				showDialog(DIALOG_STATION_PICKER);
+			}
+    	});
     }
     
     /**
@@ -409,14 +434,6 @@ public class NowPlayingActivity extends Activity {
 			startPreferences();
 			break;
 			
-		case R.id.menu_tuneIn:
-			startPlayer();
-			break;
-			
-		case R.id.menu_pickStation:
-			showDialog(DIALOG_STATION_PICKER);
-			break;
-			
 		case R.id.menu_refresh:
 			refresh();
 			break;
@@ -493,6 +510,13 @@ public class NowPlayingActivity extends Activity {
      * @param response the response the server issued
      */
     private void onScheduleSync(RainwaveResponse response) {
+    	// We should enable the buttons now.
+    	ImageButton play = (ImageButton) findViewById(R.id.np_play);
+    	ImageButton station = (ImageButton) findViewById(R.id.np_stationPick);
+    	
+    	play.setEnabled(true);
+    	station.setEnabled(true);
+    	
     	// Updates title, album, and artists.
     	updateSongInfo(response.getCurrentSong());
     	
