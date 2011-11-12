@@ -1,93 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:rainwave="http://rainwave.cc"
 	android:orientation="vertical"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent">
 
-	<!-- Now playing block -->
-	<LinearLayout
-		android:id="@+id/np_nowPlayingBlock"
-		android:layout_height="wrap_content"
-		android:orientation="horizontal"
-		android:layout_width="fill_parent">
-		<!-- Song decoration -->
-		<ImageView
-			android:layout_gravity="top|left"
-			android:layout_height="wrap_content"
-			android:layout_width="wrap_content"
-			android:id="@+id/np_accent"
-			android:src="@drawable/accent_song" />
-		<!-- Song title, artist, album, requester... -->
-		<LinearLayout
-			android:layout_weight="1"
-			android:layout_height="wrap_content"
-			android:orientation="vertical"
-			android:layout_width="wrap_content">
-			<TextView
-				android:textAppearance="?android:attr/textAppearanceLarge"
-				android:id="@+id/np_songTitle"
-				android:layout_height="wrap_content"
-				android:textStyle="bold"
-				android:layout_width="fill_parent"
-				android:lines="1"
-				android:scrollHorizontally="true"
-				android:ellipsize="end" />
-			<TextView
-				android:textAppearance="?android:attr/textAppearanceMedium"
-				android:id="@+id/np_albumTitle"
-				android:layout_height="wrap_content"
-				android:layout_width="fill_parent"
-				android:ellipsize="end"
-				android:scrollHorizontally="true"
-				android:lines="1"></TextView>
-			<TextView
-				android:textAppearance="?android:attr/textAppearanceMedium"
-				android:id="@+id/np_artist"
-				android:layout_height="wrap_content"
-				android:layout_width="fill_parent"
-				android:ellipsize="end"
-				android:scrollHorizontally="true"
-				android:lines="1"></TextView>
-			<TextView
-				android:textAppearance="?android:attr/textAppearanceSmall"
-				android:id="@+id/np_requestor"
-				android:layout_height="wrap_content"
-				android:layout_width="fill_parent"
-				android:ellipsize="end"
-				android:scrollHorizontally="true"
-				android:lines="1"></TextView>
-		</LinearLayout>
-		<!-- Album art -->
-		<ImageView
-			android:layout_gravity="center_vertical|right"
-			android:src="@drawable/noart"
-			android:scaleType="center"
-			android:layout_height="wrap_content"
-			android:id="@+id/np_albumArt"
-			android:layout_width="wrap_content" />
-	</LinearLayout>
+	<include layout="@layout/song_block" />
 
-	<!-- Rating block -->
-	<LinearLayout
-		android:layout_height="wrap_content"
-		android:layout_width="fill_parent"
-		android:layout_below="@id/np_nowPlayingBlock"
-		android:padding="10sp"
-		android:orientation="vertical">
-		<cc.rainwave.android.views.HorizontalRatingBar
-			android:id="@+id/np_songRating"
-			android:text="@string/label_song"
-			android:layout_height="40sp"
-			android:layout_width="fill_parent" />
-
-		<cc.rainwave.android.views.HorizontalRatingBar
-			android:id="@+id/np_albumRating"
-			android:text="@string/label_album"
-			android:layout_height="40sp"
-			android:layout_width="fill_parent"
-			android:layout_marginTop="10sp" />
-
-	</LinearLayout>
+	<include layout="@layout/rating_bars" />
 </LinearLayout>
