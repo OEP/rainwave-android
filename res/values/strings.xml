@@ -54,6 +54,7 @@
 	<string name="msg_sessionError">Failed to initialize session. Is the Rainwave URL
 		correct?
 	</string>
+	<string name="msg_noRequests">You have no pending requests.</string>
 	<string name="msg_nullFieldError">Please fill in all fields.</string>
 	<string name="msg_albumArtError">Failed to fetch album art.</string>
 	<string name="msg_tuneInFirst">Tune in first!</string>

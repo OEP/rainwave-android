@@ -240,6 +240,7 @@ public class NowPlayingActivity extends Activity {
 				SongListAdapter adapter = (SongListAdapter) requestList.getAdapter();
 				Song s = adapter.removeSong(which);
 				requestRemove(s);
+				resyncRequests();
 			}
 		});
     	
@@ -561,15 +562,31 @@ public class NowPlayingActivity extends Activity {
     }
     
     private void updateRequests(RainwaveResponse response) {
+    	if(response == null){
+    		resyncRequests();
+    		return;
+    	}
+    	
     	TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
+    	Song songs[] = response.getRequests();
+    	
     	requestList.setAdapter(
     		new SongListAdapter(
     			this,
     			R.layout.item_song_request,
     			mSession,
-    			new ArrayList<Song>(Arrays.asList(response.getRequests()))
+    			(songs != null) ? new ArrayList<Song>(Arrays.asList(songs)) : new ArrayList<Song>()
     		)
     	);
+    	
+    	resyncRequests();
+    }
+    
+    private void resyncRequests() {
+    	TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
+    	SongListAdapter adapter = (SongListAdapter) requestList.getAdapter();
+    	int visibility = (adapter.getCount()) > 0 ? View.GONE : View.VISIBLE;
+   		findViewById(R.id.np_request_overlay).setVisibility(visibility);
     }
     
     /**
