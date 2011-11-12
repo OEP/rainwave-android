@@ -336,6 +336,15 @@ public class TouchInterceptor extends ListView {
                         }
                         int speed = 0;
                         adjustScrollBounds(y);
+                        
+                        /*
+                         * This block of code will scroll the ListView when the user is
+                         * dragging an item toward the top or the lower portion of the screen.
+                         * It has been commented out because it seems to cause problems within
+                         * the Rainwave app where the ListView will fly off out of active UI
+                         * space.
+                         */
+                        
 /*                        if (y > mLowerBound) {
                             // scroll the list up a bit
                             if (getLastVisiblePosition() < getCount() - 1) {
