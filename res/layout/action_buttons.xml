@@ -1,0 +1,23 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/np_actionButtons"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:gravity="bottom" >
+
+    <ImageButton
+        android:id="@+id/np_play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:layout_weight="1"
+        android:src="@drawable/ic_menu_play_clip" />
+
+    <ImageButton
+        android:id="@+id/np_stationPick"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:layout_weight="1"
+        android:src="@drawable/ic_menu_music_library" />
+
+</LinearLayout>
