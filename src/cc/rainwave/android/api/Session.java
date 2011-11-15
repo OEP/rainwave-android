@@ -115,6 +115,24 @@ public class Session {
     	).artist_list;
     }
     
+    public Artist getDetailedArtist(int artist_id) throws IOException, RainwaveException {
+    	return getResponse(
+    		true,
+    		true,
+    		"artist_detail",
+    		"artist_id", String.valueOf(artist_id)
+    	).artist_detail;
+    }
+    
+    public Album getDetailedAlbum(int album_id) throws IOException, RainwaveException {
+    	return getResponse(
+    		true,
+    		true,
+    		"album",
+    		"album_id", String.valueOf(album_id)
+    	).playlist_album;
+    }
+    
     public Bitmap fetchAlbumArt(String path) throws IOException {
         URL url = new URL(getUrl(path));
         InputStream is = url.openStream();

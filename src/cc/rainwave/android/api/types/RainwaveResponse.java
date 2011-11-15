@@ -19,6 +19,10 @@ public class RainwaveResponse implements Parcelable {
     
     public Artist[] artist_list;
     
+    public Artist artist_detail;
+    
+    public Album playlist_album;
+    
     /** API returns these members paired to an error object if there is a problem */
     public GenericResult
     	error,

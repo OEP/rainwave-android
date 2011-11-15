@@ -3,7 +3,7 @@ package cc.rainwave.android.api.types;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Song implements Parcelable {
+public class Song implements Parcelable, Comparable<Song> {
 	public int song_id, elec_entry_id, elec_isrequest, requestq_id;
 	public String song_title;
 	public Artist artists[];
@@ -68,6 +68,14 @@ public class Song implements Parcelable {
 		return song_title;
 	}
 	
+	@Override
+	public int compareTo(Song s) {
+		if(album_name != null && s.album_name != null && !album_name.equals(s.album_name)) {
+			return album_name.compareTo(s.album_name);
+		}
+		return song_title.compareTo(s.song_title);
+	}
+	
     @Override
     public int describeContents() {
         // TODO Auto-generated method stub
@@ -105,4 +113,5 @@ public class Song implements Parcelable {
     	ELEC_RANDOM_REQUEST = 3,
     	ELEC_NORMAL = 2,
     	ELEC_CONFLICT = 0;
+
 }
