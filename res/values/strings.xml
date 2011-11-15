@@ -20,7 +20,8 @@
 
 	<string name="label_by_album">By album</string>
 	<string name="label_by_artist">By artist</string>
-	    
+	
+	<string name="label_loading">Loading...</string>
 	<string name="label_album">Album</string>
 	<string name="label_song">Song</string>
 	<string name="label_requestor">Requested by: %s</string>

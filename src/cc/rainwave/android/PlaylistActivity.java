@@ -90,6 +90,7 @@ public class PlaylistActivity extends ListActivity {
     			setListAdapter(adapter);
     		}
     		else {
+    			setListAdapter(null);
     			fetchAlbums();
     		}
     	}
@@ -105,6 +106,7 @@ public class PlaylistActivity extends ListActivity {
     			setListAdapter(adapter);
     		}
     		else {
+    			setListAdapter(null);
     			fetchArtists();
     		}
     	}
