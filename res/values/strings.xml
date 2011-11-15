@@ -18,6 +18,9 @@
 	<string name="label_pickStation">Pick station</string>
 	<string name="label_tuneIn">Tune in</string>
 
+	<string name="label_by_album">By album</string>
+	<string name="label_by_artist">By artist</string>
+	    
 	<string name="label_album">Album</string>
 	<string name="label_song">Song</string>
 	<string name="label_requestor">Requested by: %s</string>
