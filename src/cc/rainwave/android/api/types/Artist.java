@@ -3,9 +3,11 @@ package cc.rainwave.android.api.types;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Artist implements Parcelable {
+public class Artist implements Parcelable, Comparable<Artist> {
 	public int artist_id;
 	public String artist_name;
+	
+	public Song[] songs;
 	
 	private Artist(Parcel in) {
 	    artist_id = in.readInt();
@@ -35,4 +37,13 @@ public class Artist implements Parcelable {
                 return new Artist[size];
             }
         };
+
+	@Override
+	public int compareTo(Artist another) {
+		return artist_name.compareTo(another.artist_name);
+	}
+	
+	public String toString() {
+		return artist_name;
+	}
 }

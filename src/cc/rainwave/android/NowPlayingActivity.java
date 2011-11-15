@@ -269,6 +269,7 @@ public class NowPlayingActivity extends Activity {
     	// Button Listeners.
     	ImageButton play = (ImageButton) findViewById(R.id.np_play);
     	ImageButton station = (ImageButton) findViewById(R.id.np_stationPick);
+    	ImageButton request = (ImageButton) findViewById(R.id.np_makeRequest);
     	
     	play.setEnabled(false);
     	station.setEnabled(false);
@@ -284,6 +285,13 @@ public class NowPlayingActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				showDialog(DIALOG_STATION_PICKER);
+			}
+    	});
+    	
+    	request.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				startPlaylist();
 			}
     	});
     }
@@ -447,6 +455,11 @@ public class NowPlayingActivity extends Activity {
 		Station s = mOrganizer.getStation(stationId);
 		Intent i = new Intent(Intent.ACTION_VIEW);
 		i.setDataAndType(Uri.parse(s.stream), "audio/*");
+		startActivity(i);
+	}
+	
+	private void startPlaylist() {
+		Intent i = new Intent(this, PlaylistActivity.class);
 		startActivity(i);
 	}
 

@@ -3,6 +3,8 @@ package cc.rainwave.android.api;
 
 import cc.rainwave.android.R;
 import cc.rainwave.android.Rainwave;
+import cc.rainwave.android.api.types.Album;
+import cc.rainwave.android.api.types.Artist;
 import cc.rainwave.android.api.types.GenericResult;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.RainwaveResponse;
@@ -95,6 +97,22 @@ public class Session {
     			auth,
     			request
     	).getStations();
+    }
+    
+    public Album[] getAlbums() throws IOException, RainwaveException {
+    	return getResponse(
+    		true,
+    		true,
+    		"all_albums"
+    	).playlist_all_albums;
+    }
+    
+    public Artist[] getArtists() throws IOException, RainwaveException {
+    	return getResponse(
+    		true,
+    		true,
+    		"artist_list"
+    	).artist_list;
     }
     
     public Bitmap fetchAlbumArt(String path) throws IOException {

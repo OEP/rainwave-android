@@ -51,6 +51,7 @@
 		</activity>
 
 		<activity android:name=".RainwavePreferenceActivity" />
+		<activity android:name=".PlaylistActivity" />
 
 	</application>
 </manifest>
