@@ -4,7 +4,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Song implements Parcelable, Comparable<Song> {
-	public int song_id, elec_entry_id, elec_isrequest, requestq_id;
+	public long song_releasetime;
+	
+	public int song_id, elec_entry_id, elec_isrequest, requestq_id, song_secondslong;
 	public String song_title;
 	public Artist artists[];
 	public String album_art;
@@ -66,6 +68,22 @@ public class Song implements Parcelable, Comparable<Song> {
 	
 	public String toString() {
 		return song_title;
+	}
+	
+	public String getLengthString() {
+		int m = song_secondslong / 60;
+		int s = song_secondslong % 60;
+		return String.format("%d:%02d",m,s);
+	}
+	
+	public boolean isCooling() {
+		long utc = System.currentTimeMillis() / 1000;
+		return song_releasetime > utc;
+	}
+	
+	public long getCooldown() {
+		long utc = System.currentTimeMillis() / 1000;
+		return song_releasetime - utc;
 	}
 	
 	@Override

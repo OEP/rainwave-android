@@ -9,15 +9,19 @@ import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.Artist;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
+import cc.rainwave.android.views.CountdownView;
 import android.app.Activity;
 import android.app.ListActivity;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -25,6 +29,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 
 public class PlaylistActivity extends ListActivity {
 	
@@ -48,6 +53,20 @@ public class PlaylistActivity extends ListActivity {
 	
 	private int mMode = MODE_TOP_LEVEL;
 	
+	private Comparator<Song> mAlbumSongComparator = new Comparator<Song>() {
+		@Override
+		public int compare(Song lhs, Song rhs) {
+			if(lhs.isCooling() && !rhs.isCooling()) {
+				return 1;
+			}
+			else if(rhs.isCooling() && !lhs.isCooling()) {
+				return -1;
+			}
+			
+			return lhs.song_title.compareTo(rhs.song_title);
+		}
+	};
+	
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 		setContentView(R.layout.activity_playlist);
@@ -63,7 +82,7 @@ public class PlaylistActivity extends ListActivity {
 	public boolean onKeyDown(int keyCode, KeyEvent ev) {
 		switch(keyCode) {
 		case KeyEvent.KEYCODE_BACK:
-			if(mMode == MODE_DETAIL) {
+			if(mMode == MODE_DETAIL_ALBUM || mMode == MODE_DETAIL_ARTIST) {
 				mMode = MODE_TOP_LEVEL;
 				setTheData();
 				return true;
@@ -104,14 +123,14 @@ public class PlaylistActivity extends ListActivity {
 				if(mMode == MODE_TOP_LEVEL && isByAlbum()) {
 					ArrayAdapter<Album> adapter = (ArrayAdapter<Album>) getListAdapter();
 					setListAdapter(null);
-					mMode = MODE_DETAIL;
+					mMode = MODE_DETAIL_ALBUM;
 					Album choice = adapter.getItem(position);
 					fetchAlbum(choice.album_id);
 				}
 				else if(mMode == MODE_TOP_LEVEL) {
 					ArrayAdapter<Artist> adapter = (ArrayAdapter<Artist>) getListAdapter();
 					setListAdapter(null);
-					mMode = MODE_DETAIL;
+					mMode = MODE_DETAIL_ARTIST;
 					Artist choice = adapter.getItem(position);
 					fetchArtist(choice.artist_id);
 				}
@@ -155,15 +174,54 @@ public class PlaylistActivity extends ListActivity {
     			fetchArtists();
     		}
     	}
-    	else if(mMode == MODE_DETAIL) {
+    	else if(mMode == MODE_DETAIL_ALBUM || mMode == MODE_DETAIL_ARTIST) {
+    		Log.d("DERP", "The mode is: " + mMode);
     		if(mSongs != null) {
-    			ArrayAdapter<Song> adapter = new ArrayAdapter<Song>(this, android.R.layout.simple_list_item_1, mSongs);
-    			adapter.sort(new Comparator<Song>() {
-					@Override
-					public int compare(Song a, Song b) {
-						return a.compareTo(b);
-					}
-    			});
+    			ArrayAdapter<Song> adapter = new ArrayAdapter<Song>(this, R.layout.item_song_playlist, mSongs) {
+    				public View getView(int position, View convertView, ViewGroup parent) {
+    					if(convertView == null) {
+    						Song s = getItem(position);
+    						Context ctx = getContext();
+    						LayoutInflater inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    						
+    						convertView = inflater.inflate(R.layout.item_song_playlist, null);
+    						
+    						TextView text1 = (TextView) convertView.findViewById(android.R.id.text1);
+    						TextView text2 = (TextView) convertView.findViewById(android.R.id.text2);
+
+    						CountdownView circle = (CountdownView) convertView.findViewById(R.id.circle);
+    						TextView time = (TextView) convertView.findViewById(R.id.time);
+    						TextView cooldown = (TextView) convertView.findViewById(R.id.cooldown);
+    						
+    						// We should have at least this much for both views.
+    						text1.setText(s.song_title);
+    						time.setText(s.getLengthString());
+    						
+    						if(s.isCooling()) {
+    							// TODO: Set cooldown.
+    						}
+    						else {
+    							cooldown.setVisibility(View.GONE);
+    						}
+    						
+    						if(mMode == MODE_DETAIL_ALBUM) {
+    							circle.setVisibility(View.VISIBLE);
+	    						circle.setBoth(s.song_rating_user,s.song_rating_avg);
+	    						text2.setText(s.collapseArtists());
+    						}
+    						else {
+    							circle.setVisibility(View.GONE);
+    							Log.d("HERP", "Setting the album name to " + s.album_name);
+    							text2.setText(s.album_name);
+    						}
+    					}
+    					
+    					return convertView;
+    				}
+    			};
+    			
+    			// TODO: Properly choose comparator.
+    			adapter.sort(mAlbumSongComparator);
     			setListAdapter(adapter);
     		}
     	}
@@ -340,7 +398,8 @@ public class PlaylistActivity extends ListActivity {
 	
     public static final int
     	MODE_TOP_LEVEL = 1,
-    	MODE_DETAIL = 2;
+    	MODE_DETAIL_ALBUM = 2,
+    	MODE_DETAIL_ARTIST = 4;
     
 	public static final int
 		SET_THE_DATA = 0x5E7DA7A;
