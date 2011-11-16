@@ -286,6 +286,30 @@ public class Rainwave {
     	return sb.toString();
     }
     
+    public static String getTimeTemplate(Context ctx, long time) {
+    	long d = time / 86400, h = time / 3600, m = time / 60;
+		String template;
+		Resources r = ctx.getResources();
+		long n;
+		if(d > 0) {
+			n = d;
+			template = r.getString(R.string.template_days);
+		}
+		else if(h > 0) {
+			n = h;
+			template = r.getString(R.string.template_hours);
+		}
+		else if(m > 0) {
+			n = m;
+			template = r.getString(R.string.template_minutes);
+		}
+		else {
+			n = time;
+			template = r.getString(R.string.template_seconds);
+		}
+		return String.format(template, n);
+    }
+    
     private static boolean forceType(SharedPreferences prefs, String key, PrefType type) {
     	if(!prefs.contains(key))
     		return false;

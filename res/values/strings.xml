@@ -44,6 +44,11 @@
 	
 	<string name="label_import_qr">Import from QR code</string>
 	<string name="label_clear_preferences">Clear preferences</string>
+	
+		    <string name="template_days">%dd</string>
+		    <string name="template_hours">%dh</string>
+		    <string name="template_minutes">%dm</string>
+		    <string name="template_seconds">%ds</string>
 
 	<string name="msg_new">New to Rainwave?</string>
 	<string name="msg_howToRegister">You can listen to the radio right away. To vote, rate, and request

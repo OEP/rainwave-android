@@ -13,6 +13,8 @@ import cc.rainwave.android.views.CountdownView;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -56,11 +58,9 @@ public class PlaylistActivity extends ListActivity {
 	private Comparator<Song> mAlbumSongComparator = new Comparator<Song>() {
 		@Override
 		public int compare(Song lhs, Song rhs) {
-			if(lhs.isCooling() && !rhs.isCooling()) {
-				return 1;
-			}
-			else if(rhs.isCooling() && !lhs.isCooling()) {
-				return -1;
+			if(lhs.isCooling() ^ rhs.isCooling()) {
+				Log.d("DERP", String.format("Cooling detection '%s' '%s'", lhs, rhs));
+				return (lhs.isCooling()) ? 1 : -1;
 			}
 			
 			return lhs.song_title.compareTo(rhs.song_title);
@@ -177,48 +177,7 @@ public class PlaylistActivity extends ListActivity {
     	else if(mMode == MODE_DETAIL_ALBUM || mMode == MODE_DETAIL_ARTIST) {
     		Log.d("DERP", "The mode is: " + mMode);
     		if(mSongs != null) {
-    			ArrayAdapter<Song> adapter = new ArrayAdapter<Song>(this, R.layout.item_song_playlist, mSongs) {
-    				public View getView(int position, View convertView, ViewGroup parent) {
-    					if(convertView == null) {
-    						Song s = getItem(position);
-    						Context ctx = getContext();
-    						LayoutInflater inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    						
-    						convertView = inflater.inflate(R.layout.item_song_playlist, null);
-    						
-    						TextView text1 = (TextView) convertView.findViewById(android.R.id.text1);
-    						TextView text2 = (TextView) convertView.findViewById(android.R.id.text2);
-
-    						CountdownView circle = (CountdownView) convertView.findViewById(R.id.circle);
-    						TextView time = (TextView) convertView.findViewById(R.id.time);
-    						TextView cooldown = (TextView) convertView.findViewById(R.id.cooldown);
-    						
-    						// We should have at least this much for both views.
-    						text1.setText(s.song_title);
-    						time.setText(s.getLengthString());
-    						
-    						if(s.isCooling()) {
-    							// TODO: Set cooldown.
-    						}
-    						else {
-    							cooldown.setVisibility(View.GONE);
-    						}
-    						
-    						if(mMode == MODE_DETAIL_ALBUM) {
-    							circle.setVisibility(View.VISIBLE);
-	    						circle.setBoth(s.song_rating_user,s.song_rating_avg);
-	    						text2.setText(s.collapseArtists());
-    						}
-    						else {
-    							circle.setVisibility(View.GONE);
-    							Log.d("HERP", "Setting the album name to " + s.album_name);
-    							text2.setText(s.album_name);
-    						}
-    					}
-    					
-    					return convertView;
-    				}
-    			};
+    			SongArrayAdapter adapter = new SongArrayAdapter(this, R.layout.item_song_playlist, mSongs, mMode);
     			
     			// TODO: Properly choose comparator.
     			adapter.sort(mAlbumSongComparator);
@@ -392,9 +351,75 @@ public class PlaylistActivity extends ListActivity {
     			break;
     		}
     	}
-
-    	
     };
+    
+    private class SongArrayAdapter extends ArrayAdapter<Song> {
+		class ViewHolder {
+			TextView text1, text2, time, cooldown;
+			CountdownView circle;
+		}
+		
+		private int mLayout;
+		private int mMode;
+		
+		public SongArrayAdapter(Context context, int layout, Song songs[], int mode) {
+			super(context,layout,songs);
+			mLayout = layout;
+			mMode = mode;
+		}
+		
+		public View getView(int position, View convertView, ViewGroup parent) {
+			Song s = getItem(position);
+			ViewHolder holder;
+			if(convertView == null) {
+				Context ctx = getContext();
+				LayoutInflater inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				
+				convertView = inflater.inflate(R.layout.item_song_playlist, null);
+				holder = new ViewHolder();
+				
+				holder.text1 = (TextView) convertView.findViewById(android.R.id.text1);
+				holder.text2 = (TextView) convertView.findViewById(android.R.id.text2);
+				holder.circle = (CountdownView) convertView.findViewById(R.id.circle);
+				holder.time = (TextView) convertView.findViewById(R.id.time);
+				holder.cooldown = (TextView) convertView.findViewById(R.id.cooldown);
+				convertView.setTag(holder);
+			}
+			else {
+				holder = (ViewHolder) convertView.getTag();
+			}
+			
+			
+			// We should have at least this much for both views.
+			holder.text1.setText(s.song_title);
+			holder.time.setText(s.getLengthString());
+			
+			if(s.isCooling()) {
+				long time = s.getCooldown();
+				holder.cooldown.setText(Rainwave.getTimeTemplate(getContext(), time));
+				holder.cooldown.setVisibility(View.VISIBLE);
+				
+				Drawable d = getContext().getResources().getDrawable(R.drawable.gradient_cooldown);
+				convertView.setBackgroundDrawable(d);
+			}
+			else {
+				holder.cooldown.setVisibility(View.GONE);
+				convertView.setBackgroundDrawable(null);
+			}
+			
+			if(mMode == MODE_DETAIL_ALBUM) {
+				holder.circle.setVisibility(View.VISIBLE);
+				holder.circle.setBoth(s.song_rating_user,s.song_rating_avg);
+				holder.text2.setText(s.collapseArtists());
+			}
+			else {
+				holder.circle.setVisibility(View.GONE);
+				holder.text2.setText(s.album_name);
+			}
+			
+			return convertView;
+		}
+    }
 	
     public static final int
     	MODE_TOP_LEVEL = 1,
