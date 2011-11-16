@@ -59,8 +59,18 @@ public class PlaylistActivity extends ListActivity {
 		@Override
 		public int compare(Song lhs, Song rhs) {
 			if(lhs.isCooling() ^ rhs.isCooling()) {
-				Log.d("DERP", String.format("Cooling detection '%s' '%s'", lhs, rhs));
 				return (lhs.isCooling()) ? 1 : -1;
+			}
+			
+			return lhs.song_title.compareTo(rhs.song_title);
+		}
+	};
+	
+	private Comparator<Song> mArtistSongComparator = new Comparator<Song>() {
+		@Override
+		public int compare(Song lhs, Song rhs) {
+			if(!lhs.album_name.equals(rhs.album_name)) {
+				return lhs.album_name.compareTo(rhs.album_name);
 			}
 			
 			return lhs.song_title.compareTo(rhs.song_title);
@@ -179,8 +189,7 @@ public class PlaylistActivity extends ListActivity {
     		if(mSongs != null) {
     			SongArrayAdapter adapter = new SongArrayAdapter(this, R.layout.item_song_playlist, mSongs, mMode);
     			
-    			// TODO: Properly choose comparator.
-    			adapter.sort(mAlbumSongComparator);
+    			adapter.sort((mMode == MODE_DETAIL_ALBUM) ? mAlbumSongComparator : mArtistSongComparator);
     			setListAdapter(adapter);
     		}
     	}
