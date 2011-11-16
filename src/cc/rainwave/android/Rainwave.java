@@ -18,8 +18,8 @@ import android.preference.PreferenceManager;
 import android.widget.Toast;
 
 public class Rainwave {
-	public static final boolean DEBUG = true;
-	public static final boolean DEMO = true;
+	public static final boolean DEBUG = false;
+	public static final boolean DEMO = false;
 	
 	
 	public static boolean putIntPreference(Context ctx, String name, int value) {

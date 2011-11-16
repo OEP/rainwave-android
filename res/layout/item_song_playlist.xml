@@ -2,7 +2,7 @@
     xmlns:rainwave="http://rainwave.cc"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="5dp"
+    android:padding="5dp"
     android:gravity="center_vertical" >
 
     <LinearLayout
@@ -15,6 +15,9 @@
             android:id="@android:id/text1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:lines="1"
+            android:scrollHorizontally="true"
             android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
@@ -22,6 +25,9 @@
             android:id="@android:id/text2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:lines="1"
+            android:scrollHorizontally="true"
             android:text="Medium Text"
             android:textAppearance="?android:attr/textAppearanceMedium" />
     </LinearLayout>
@@ -45,11 +51,11 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_margin="5dp"
-            android:visibility="gone"
             rainwave:alternateText="Unrated"
             rainwave:max="5.0"
             rainwave:progress="0.0"
-            rainwave:showValue="true" />
+            rainwave:showValue="true"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/cooldown"

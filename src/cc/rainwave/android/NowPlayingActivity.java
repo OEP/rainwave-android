@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -119,6 +120,22 @@ public class NowPlayingActivity extends Activity {
 	    super.onAttachedToWindow();
 	    Window window = getWindow();
 	    window.setFormat(PixelFormat.RGBA_8888);
+	}
+	
+	public boolean onKeyDown(int keyCode, KeyEvent ev) {
+		switch(keyCode) {
+		case KeyEvent.KEYCODE_BACK:
+			SlidingDrawer drawer = (SlidingDrawer) findViewById(R.id.np_drawer);
+			if(drawer.isOpened()) {
+				drawer.animateClose();
+				return true;
+			}
+			else if(drawer.isMoving()) {
+				drawer.close();
+				return true;
+			}
+		}
+		return super.onKeyDown(keyCode, ev);
 	}
 
     /**

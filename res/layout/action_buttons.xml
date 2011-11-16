@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:layout_weight="1"
-        android:src="@drawable/ic_menu_music_library" />
+        android:src="@drawable/ic_menu_archive" />
 
     <ImageButton
         android:id="@+id/np_makeRequest"
@@ -26,6 +26,6 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:layout_weight="1"
-        android:src="@drawable/ic_menu_clear_playlist" />
+        android:src="@drawable/ic_menu_music_library" />
 
 </LinearLayout>

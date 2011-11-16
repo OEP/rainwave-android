@@ -3,19 +3,8 @@ package cc.rainwave.android;
 import java.io.IOException;
 import java.util.Comparator;
 
-import cc.rainwave.android.adapters.SongListAdapter;
-import cc.rainwave.android.api.Session;
-import cc.rainwave.android.api.types.Album;
-import cc.rainwave.android.api.types.Artist;
-import cc.rainwave.android.api.types.GenericResult;
-import cc.rainwave.android.api.types.RainwaveException;
-import cc.rainwave.android.api.types.RainwaveResponse;
-import cc.rainwave.android.api.types.Song;
-import cc.rainwave.android.views.CountdownView;
-import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -29,18 +18,22 @@ import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnLongClickListener;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import cc.rainwave.android.api.Session;
+import cc.rainwave.android.api.types.Album;
+import cc.rainwave.android.api.types.Artist;
+import cc.rainwave.android.api.types.RainwaveException;
+import cc.rainwave.android.api.types.RainwaveResponse;
+import cc.rainwave.android.api.types.Song;
+import cc.rainwave.android.views.CountdownView;
 
 public class PlaylistActivity extends ListActivity {
 	
@@ -73,7 +66,7 @@ public class PlaylistActivity extends ListActivity {
 				return (lhs.isCooling()) ? 1 : -1;
 			}
 			
-			return lhs.song_title.compareTo(rhs.song_title);
+			return lhs.song_title.toLowerCase().compareTo(rhs.song_title.toLowerCase());
 		}
 	};
 	
@@ -84,7 +77,14 @@ public class PlaylistActivity extends ListActivity {
 				return lhs.album_name.compareTo(rhs.album_name);
 			}
 			
-			return lhs.song_title.compareTo(rhs.song_title);
+			return lhs.song_title.toLowerCase().compareTo(rhs.song_title.toLowerCase());
+		}
+	};
+	
+	private Comparator<Artist> mArtistComparator = new Comparator<Artist>() {
+		@Override
+		public int compare(Artist lhs, Artist rhs) {
+			return lhs.artist_name.toLowerCase().compareTo(rhs.artist_name.toLowerCase());
 		}
 	};
 	
@@ -95,7 +95,7 @@ public class PlaylistActivity extends ListActivity {
 				return (lhs.isCooling()) ? 1 : -1;
 			}
 			
-			return lhs.album_name.compareTo(rhs.album_name);
+			return lhs.album_name.toLowerCase().compareTo(rhs.album_name.toLowerCase());
 		}
 	};
 	
@@ -230,12 +230,7 @@ public class PlaylistActivity extends ListActivity {
     	else if(mMode == MODE_TOP_LEVEL){
     		if(mArtists != null) {
     			ArrayAdapter<Artist> adapter = new ArrayAdapter<Artist>(this, android.R.layout.simple_list_item_1, mArtists);
-    			adapter.sort(new Comparator<Artist>() {
-					@Override
-					public int compare(Artist a, Artist b) {
-						return a.compareTo(b);
-					}
-    			});
+    			adapter.sort(mArtistComparator);
     			setListAdapter(adapter);
     		}
     		else {
