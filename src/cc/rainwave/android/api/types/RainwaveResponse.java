@@ -26,7 +26,7 @@ public class RainwaveResponse implements Parcelable {
     /** API returns these members paired to an error object if there is a problem */
     public GenericResult
     	error,
-    	request_return,
+    	request_result,
     	request_delete_return,
     	request_reorder_return,
     	vote_result,

@@ -448,8 +448,12 @@ public class PlaylistActivity extends ListActivity {
 		}
 		
 		protected void onPostExecute(RainwaveResponse r) {
-			if(r == null) return;
+			if(r == null){
+				mRequest = null;
+				return;
+			}
 			postSuccessfulRequestMessage();
+			mRequest = null;
 		}
     	
     }

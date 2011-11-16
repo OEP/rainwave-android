@@ -256,7 +256,7 @@ public class Session {
     private void handleErrors(RainwaveResponse r)
     	throws RainwaveException {
     	handleError(r.error);
-    	handleError(r.request_return);
+    	handleError(r.request_result);
     	handleError(r.request_delete_return);
     	handleError(r.request_reorder_return);
     	handleError(r.vote_result);
