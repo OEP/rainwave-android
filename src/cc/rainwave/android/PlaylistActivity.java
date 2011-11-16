@@ -77,6 +77,17 @@ public class PlaylistActivity extends ListActivity {
 		}
 	};
 	
+	private Comparator<Album> mAlbumComparator = new Comparator<Album>() {
+		@Override
+		public int compare(Album lhs, Album rhs) {
+			if(lhs.isCooling() ^ rhs.isCooling()) {
+				return (lhs.isCooling()) ? 1 : -1;
+			}
+			
+			return lhs.album_name.compareTo(rhs.album_name);
+		}
+	};
+	
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 		setContentView(R.layout.activity_playlist);
@@ -154,13 +165,20 @@ public class PlaylistActivity extends ListActivity {
     private void setTheData() {
     	if(isByAlbum() && mMode == MODE_TOP_LEVEL) {
     		if(mAlbums != null) {
-    			ArrayAdapter<Album> adapter = new ArrayAdapter<Album>(this, android.R.layout.simple_list_item_1, mAlbums);
-    			adapter.sort(new Comparator<Album>() {
-					@Override
-					public int compare(Album a, Album b) {
-						return a.compareTo(b);
-					}
-    			});
+    			ArrayAdapter<Album> adapter = new ArrayAdapter<Album>(this, android.R.layout.simple_list_item_1, mAlbums) {
+    				public View getView(int position, View convertView, ViewGroup parent) {
+    					View v = super.getView(position, convertView, parent);
+    					Album a = getItem(position);
+    					if(a.isCooling()) {
+    						v.setBackgroundResource(R.drawable.gradient_cooldown);
+    					}
+    					else {
+    						v.setBackgroundDrawable(null);
+    					}
+    					return v;
+    				}
+    			};
+    			adapter.sort(mAlbumComparator);
     			setListAdapter(adapter);
     		}
     		else {

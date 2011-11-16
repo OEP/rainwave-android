@@ -16,6 +16,15 @@ public class Album implements Comparable<Album> {
 	public String toString() {
 		return album_name;
 	}
+	
+	public boolean isCooling() {
+		return getCooldown() > 0;
+	}
+	
+	public long getCooldown() {
+		long utc = System.currentTimeMillis() / 1000;
+		return album_lowest_oa - utc;
+	}
 
 	@Override
 	public int compareTo(Album a) {
