@@ -133,6 +133,15 @@ public class Session {
     	).playlist_album;
     }
     
+    public RainwaveResponse request(int song_id) throws IOException, RainwaveException {
+    	return getResponse(
+    		true,
+    		true,
+    		"request",
+    		"song_id", String.valueOf(song_id)
+    	);
+    }
+    
     public Bitmap fetchAlbumArt(String path) throws IOException {
         URL url = new URL(getUrl(path));
         InputStream is = url.openStream();

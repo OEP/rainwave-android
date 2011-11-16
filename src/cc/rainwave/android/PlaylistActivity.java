@@ -7,7 +7,9 @@ import cc.rainwave.android.adapters.SongListAdapter;
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.Artist;
+import cc.rainwave.android.api.types.GenericResult;
 import cc.rainwave.android.api.types.RainwaveException;
+import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.views.CountdownView;
 import android.app.Activity;
@@ -20,18 +22,25 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class PlaylistActivity extends ListActivity {
 	
@@ -52,6 +61,8 @@ public class PlaylistActivity extends ListActivity {
 	private FetchDetailedAlbumTask mFetchAlbum;
 	
 	private FetchDetailedArtistTask mFetchArtist;
+	
+	private RequestTask mRequest;
 	
 	private int mMode = MODE_TOP_LEVEL;
 	
@@ -88,6 +99,7 @@ public class PlaylistActivity extends ListActivity {
 		}
 	};
 	
+	
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 		setContentView(R.layout.activity_playlist);
@@ -110,6 +122,29 @@ public class PlaylistActivity extends ListActivity {
 			}
 		}
 		return super.onKeyDown(keyCode, ev);
+	}
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, v, menuInfo);
+		
+		if(mMode == MODE_DETAIL_ALBUM || mMode == MODE_DETAIL_ARTIST) {
+			MenuInflater inflater = getMenuInflater();
+			inflater.inflate(R.menu.playlist_menu, menu);
+		}
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+		switch (item.getItemId()) {
+		case R.id.request:
+			Song s = (Song) getListView().getItemAtPosition(info.position);
+			request(s.song_id);
+			return true;
+		default:
+			return super.onContextItemSelected(item);
+		}
 	}
 	
 	/**
@@ -160,6 +195,8 @@ public class PlaylistActivity extends ListActivity {
     	
     	a.setOnClickListener(tmp);
     	b.setOnClickListener(tmp);
+    	
+    	registerForContextMenu(getListView());
     }
     
     private void setTheData() {
@@ -234,6 +271,12 @@ public class PlaylistActivity extends ListActivity {
 			mFetchArtist.cancel(true);
 			mFetchArtist = null;
 		}
+	}
+	
+	private void request(int song_id) {
+		if(mRequest != null) return;
+		mRequest = new RequestTask();
+		mRequest.execute(song_id);
 	}
 	
 	private void fetchAlbums() {
@@ -369,6 +412,10 @@ public class PlaylistActivity extends ListActivity {
 		mHandler.obtainMessage(SET_THE_DATA).sendToTarget();
 	}
 	
+	private void postSuccessfulRequestMessage() {
+		mHandler.obtainMessage(SUCCESSFUL_REQUEST).sendToTarget();
+	}
+	
     private Handler mHandler = new Handler() {
     	public void handleMessage(Message msg) {
     		Bundle data = msg.getData();
@@ -376,9 +423,37 @@ public class PlaylistActivity extends ListActivity {
     		case SET_THE_DATA:
     			setTheData();
     			break;
+    			
+    		case SUCCESSFUL_REQUEST:
+    			Toast.makeText(PlaylistActivity.this, R.string.msg_requested, Toast.LENGTH_SHORT).show();
+    			break;
     		}
     	}
     };
+    
+    private class RequestTask extends AsyncTask<Integer,Integer,RainwaveResponse> {
+		@Override
+		protected RainwaveResponse doInBackground(Integer... args) {
+			int song_id = args[0];
+			
+			try {
+				return mSession.request(song_id);
+			} catch (IOException e) {
+				Rainwave.showError(PlaylistActivity.this, e);
+				Log.e(TAG, "IO Error: " + e);
+			} catch (RainwaveException e) {
+				Rainwave.showError(PlaylistActivity.this, e);
+				Log.e(TAG, "API Error: " + e);
+			}
+			return null;
+		}
+		
+		protected void onPostExecute(RainwaveResponse r) {
+			if(r == null) return;
+			postSuccessfulRequestMessage();
+		}
+    	
+    }
     
     private class SongArrayAdapter extends ArrayAdapter<Song> {
 		class ViewHolder {
@@ -454,5 +529,6 @@ public class PlaylistActivity extends ListActivity {
     	MODE_DETAIL_ARTIST = 4;
     
 	public static final int
+		SUCCESSFUL_REQUEST = 0x43C357,
 		SET_THE_DATA = 0x5E7DA7A;
 }
