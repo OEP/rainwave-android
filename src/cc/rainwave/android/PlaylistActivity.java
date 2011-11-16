@@ -132,6 +132,10 @@ public class PlaylistActivity extends ListActivity {
 			MenuInflater inflater = getMenuInflater();
 			inflater.inflate(R.menu.playlist_menu, menu);
 		}
+		
+		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+		Song s = (Song) getListView().getItemAtPosition(info.position);
+		menu.setHeaderTitle(s.song_title);
 	}
 	
 	@Override
