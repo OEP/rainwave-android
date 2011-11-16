@@ -128,11 +128,16 @@ public class PlaylistActivity extends ListActivity {
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
 		
-		if(mMode == MODE_DETAIL_ALBUM || mMode == MODE_DETAIL_ARTIST) {
-			MenuInflater inflater = getMenuInflater();
-			inflater.inflate(R.menu.playlist_menu, menu);
+		switch(mMode) {
+		case MODE_DETAIL_ALBUM:
+		case MODE_DETAIL_ARTIST:
+			break;
+		default:
+			return;
 		}
 		
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.playlist_menu, menu);
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		Song s = (Song) getListView().getItemAtPosition(info.position);
 		menu.setHeaderTitle(s.song_title);
