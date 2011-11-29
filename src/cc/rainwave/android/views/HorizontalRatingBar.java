@@ -52,6 +52,18 @@ public class HorizontalRatingBar extends View {
 	}
 	
 	
+	public float getPrimary() {
+		return mPrimary;
+	}
+	
+	public float getSecondary() {
+		return mSecondary;
+	}
+	
+	public float getMax() {
+		return mMax;
+	}
+	
 	public void setLabel(String label) {
 		mLabel = label;
 		postInvalidate();

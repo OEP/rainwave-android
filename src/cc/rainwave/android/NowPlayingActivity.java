@@ -208,20 +208,68 @@ public class NowPlayingActivity extends Activity {
 				
 				
 				HorizontalRatingBar hrb = (HorizontalRatingBar) v;
+				float rating = 0.0f;
+				float max = 5.0f;
 				switch(e.getAction()) {
 				case MotionEvent.ACTION_DOWN:
 					w.lockCurrentScreen();
 				case MotionEvent.ACTION_MOVE:
 				case MotionEvent.ACTION_UP:
-					float rating = hrb.snapPositionToMinorIncrement(e.getX());
+					rating = hrb.snapPositionToMinorIncrement(e.getX());
 					rating = Math.max(1.0f, Math.min(rating, 5.0f));
+					max = hrb.getMax();
 					hrb.setPrimaryValue(rating);
+					String label = String.format("%.1f/%.1f",rating,max);
+					hrb.setLabel(label);
 					
 					if(e.getAction() == MotionEvent.ACTION_UP) {
 						w.unlockCurrentScreen();
 						ActionTask t = new ActionTask();
 						Song s = mOrganizer.getCurrentSong();
 						t.execute(ActionTask.RATE, s.song_id, rating);
+						b.setLabel(R.string.label_song);
+					}
+				}
+				return true;
+			}
+    	});
+    	
+    	findViewById(R.id.np_albumRating).setOnTouchListener(
+    	new OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent e) {
+				Workspace w = (Workspace) findViewById(R.id.np_workspace);
+				HorizontalRatingBar b = (HorizontalRatingBar) findViewById(R.id.np_albumRating);
+				
+				if(mOrganizer == null || !mOrganizer.isTunedIn() || !mSession.isAuthenticated()) {
+					if(e.getAction() == MotionEvent.ACTION_DOWN) {
+						w.lockCurrentScreen();
+						b.setLabel(R.string.msg_tuneInFirst);
+					}
+					else if(e.getAction() == MotionEvent.ACTION_UP) {
+						w.unlockCurrentScreen();
+						b.setLabel(R.string.label_album);
+					}
+					return true;
+				}
+				
+				
+				HorizontalRatingBar hrb = (HorizontalRatingBar) v;
+				float rating = 0.0f;
+				float max = 5.0f;
+				switch(e.getAction()) {
+				case MotionEvent.ACTION_DOWN:
+					w.lockCurrentScreen();
+				case MotionEvent.ACTION_MOVE:
+				case MotionEvent.ACTION_UP:
+					rating = hrb.getPrimary();
+					max = hrb.getMax();
+					String label = String.format("%.1f/%.1f",rating,max);
+					hrb.setLabel(label);
+					
+					if(e.getAction() == MotionEvent.ACTION_UP) {
+						w.unlockCurrentScreen();
+						b.setLabel(R.string.label_album);
 					}
 				}
 				return true;
