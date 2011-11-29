@@ -10,6 +10,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -20,10 +22,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -173,6 +177,7 @@ public class PlaylistActivity extends ListActivity {
     private void setListeners() {
     	RadioButton a = (RadioButton) findViewById(R.id.by_album);
     	RadioButton b = (RadioButton) findViewById(R.id.by_artist);
+    	EditText filterText = (EditText) findViewById(R.id.filterText);
     	
     	OnClickListener tmp = new OnClickListener() {
 			@Override
@@ -205,10 +210,45 @@ public class PlaylistActivity extends ListActivity {
     	a.setOnClickListener(tmp);
     	b.setOnClickListener(tmp);
     	
+    	filterText.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void afterTextChanged(Editable e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+				
+			}
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+				if(mMode != MODE_TOP_LEVEL) return;
+				if(isByAlbum()) {
+					ArrayAdapter<Album> adapter = (ArrayAdapter<Album>) getListAdapter();
+					if(adapter == null) return;
+					adapter.getFilter().filter(s);
+				}
+				else {
+					ArrayAdapter<Artist> adapter = (ArrayAdapter<Artist>) getListAdapter();
+					if(adapter == null) return;
+					adapter.getFilter().filter(s);
+				}
+			}
+    		
+    	});
+    	
     	registerForContextMenu(getListView());
     }
     
     private void setTheData() {
+    	EditText filterText = (EditText) findViewById(R.id.filterText);
+    	filterText.setVisibility(View.GONE);
+    	InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+    	imm.hideSoftInputFromWindow(filterText.getWindowToken(), 0);
     	if(isByAlbum() && mMode == MODE_TOP_LEVEL) {
     		if(mAlbums != null) {
     			ArrayAdapter<Album> adapter = new ArrayAdapter<Album>(this, android.R.layout.simple_list_item_1, mAlbums) {
@@ -226,6 +266,9 @@ public class PlaylistActivity extends ListActivity {
     			};
     			adapter.sort(mAlbumComparator);
     			setListAdapter(adapter);
+    			filterText.setHint(R.string.msg_filterAlbum);
+    			filterText.setVisibility(View.VISIBLE);
+    			filterText.setText("");
     		}
     		else {
     			setListAdapter(null);
@@ -237,6 +280,9 @@ public class PlaylistActivity extends ListActivity {
     			ArrayAdapter<Artist> adapter = new ArrayAdapter<Artist>(this, android.R.layout.simple_list_item_1, mArtists);
     			adapter.sort(mArtistComparator);
     			setListAdapter(adapter);
+    			filterText.setHint(R.string.msg_filterArtist);
+    			filterText.setVisibility(View.VISIBLE);
+    			filterText.setText("");
     		}
     		else {
     			setListAdapter(null);
@@ -244,10 +290,8 @@ public class PlaylistActivity extends ListActivity {
     		}
     	}
     	else if(mMode == MODE_DETAIL_ALBUM || mMode == MODE_DETAIL_ARTIST) {
-    		Log.d("DERP", "The mode is: " + mMode);
     		if(mSongs != null) {
     			SongArrayAdapter adapter = new SongArrayAdapter(this, R.layout.item_song_playlist, mSongs, mMode);
-    			
     			adapter.sort((mMode == MODE_DETAIL_ALBUM) ? mAlbumSongComparator : mArtistSongComparator);
     			setListAdapter(adapter);
     		}

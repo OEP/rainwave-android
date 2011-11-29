@@ -75,5 +75,7 @@
 	<string name="msg_invalidUrl">Unsure of how to handle URI. Parts may have been omitted.</string>
 	<string name="msg_outdatedApi">This application is using an outdated API version
 		for request: %s</string>
+		<string name="msg_filterAlbum">Filter by album...</string>
+		<string name="msg_filterArtist">Filter by artist...</string>
 
 </resources>

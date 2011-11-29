@@ -4,7 +4,7 @@
     android:orientation="vertical" >
 
     <include layout="@layout/playlist_heading" />
-    
+
     <RadioGroup
         android:id="@+id/artist_album_group"
         android:layout_width="fill_parent"
@@ -35,13 +35,22 @@
         android:fastScrollEnabled="true"
         android:visibility="gone" />
 
+    <EditText
+        android:id="@+id/filterText"
+        android:hint="@string/msg_filterAlbum"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:inputType="textFilter"
+        />
+
     <LinearLayout
         android:id="@android:id/empty"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center_horizontal|center_vertical" >
+        android:gravity="center_horizontal|center_vertical"
+        android:orientation="vertical" >
 
         <ProgressBar
             android:layout_width="wrap_content"
@@ -53,7 +62,6 @@
             android:layout_height="wrap_content"
             android:text="@string/label_loading"
             android:textAppearance="?android:attr/textAppearanceSmall" />
-        
     </LinearLayout>
 
 </LinearLayout>

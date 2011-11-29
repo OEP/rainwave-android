@@ -4,13 +4,13 @@
     android:layout_height="fill_parent"
     >
     
-    <include layout="@layout/queue_heading" />
+    <include android:id="@id/heading" layout="@layout/queue_heading" />
 
     <com.android.music.TouchInterceptor
         android:id="@+id/np_request_list"
+        android:layout_below="@id/heading"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_below="@id/heading"
         android:drawSelectorOnTop="false"
         android:fastScrollEnabled="true" />
 
