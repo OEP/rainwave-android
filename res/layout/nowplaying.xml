@@ -4,6 +4,8 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
+	<include layout="@layout/np_heading" />
+
     <include layout="@layout/song_block" />
 
     <include layout="@layout/rating_bars" />

@@ -2,6 +2,8 @@
 <resources>
 	<string name="app_name">Rainwave</string>
 	<string name="label_nowPlaying">Now Playing</string>
+	<string name="label_requestQueue">Request Queue</string>
+	<string name="label_playlist">Playlist</string>
 
 	<!-- Preference categories -->
 	<string name="label_authentication">Authentication info</string>

@@ -3,6 +3,8 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
+    <include layout="@layout/playlist_heading" />
+    
     <RadioGroup
         android:id="@+id/artist_album_group"
         android:layout_width="fill_parent"

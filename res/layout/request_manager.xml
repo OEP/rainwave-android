@@ -1,29 +1,32 @@
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/request_root"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     >
-	<com.android.music.TouchInterceptor
-		android:id="@+id/np_request_list"
-		android:layout_width="fill_parent"
-		android:layout_height="fill_parent"
-		android:drawSelectorOnTop="false"
-		android:fastScrollEnabled="true" />
-	
+    
+    <include layout="@layout/queue_heading" />
 
-	<LinearLayout
-	    android:id="@+id/np_request_overlay"
-	    android:layout_height="fill_parent"
-	    android:layout_width="fill_parent"
-	    android:orientation="vertical"
-	    android:gravity="center_vertical|center_horizontal">
-		<TextView
-		    android:id="@+id/np_request_message"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:text="@string/msg_noRequests"
-		    android:gravity="center_vertical|center_horizontal"
-		    />
-	</LinearLayout>
+    <com.android.music.TouchInterceptor
+        android:id="@+id/np_request_list"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@id/heading"
+        android:drawSelectorOnTop="false"
+        android:fastScrollEnabled="true" />
+
+    <LinearLayout
+        android:id="@+id/np_request_overlay"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:gravity="center_vertical|center_horizontal"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/np_request_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical|center_horizontal"
+            android:text="@string/msg_noRequests" />
+    </LinearLayout>
+
 </RelativeLayout>
