@@ -48,6 +48,11 @@ public class PagerWidget extends View {
 		int w = getWidth();
 		float barWidth = (w - (getCount() - 1) * DEFAULT_SPACE) / getCount();
 		
+		for(int i = 0; i < getCount(); i++) {
+			float x = i * (barWidth + DEFAULT_SPACE);
+			p.setColor((getCount() == i) ? COLOR_HILIGHT : COLOR_DEFAULT);
+			canvas.drawRect(x, 0, x+barWidth, h, p);
+		}
 	}
 	
 	public static final int
