@@ -10,7 +10,7 @@
 	<string name="label_ui">User interface</string>
 	<string name="label_debug">Debugging</string>
 
-	<string name="label_userId">User ID</string>
+	<string name="label_userId">Numeric User ID</string>
 	<string name="label_key">API Key</string>
 	<string name="label_autoshow_elections">Elections popups</string>
 
@@ -30,6 +30,7 @@
 
 	<string name="label_rateSong">Rate song</string>
 
+	    <string name="label_remove">Remove</string>
 	<string name="label_request">Request</string>
 	<string name="label_login">Login</string>
 	<string name="label_later">Later</string>
@@ -43,6 +44,7 @@
 	<string name="label_ok">OK</string>
 	<string name="label_tunedin">Tuned in</string>
 	<string name="label_nottunedin">Not tuned in</string>
+	<string name="label_anonymous">Anonymous</string>
 	<string name="label_welcome">Welcome!</string>
 	
 	<string name="label_import_qr">Import from QR code</string>

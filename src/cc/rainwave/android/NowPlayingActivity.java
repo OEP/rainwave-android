@@ -18,12 +18,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
@@ -34,6 +36,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import cc.rainwave.android.adapters.SongListAdapter;
 import cc.rainwave.android.adapters.StationListAdapter;
 import cc.rainwave.android.api.Session;
@@ -79,6 +82,7 @@ public class NowPlayingActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setup();
+        initializeSession();
         setContentView(R.layout.activity_main);
         setListeners();
     }
@@ -178,6 +182,33 @@ public class NowPlayingActivity extends Activity {
     				.create();
     	}
     }
+    
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, v, menuInfo);
+		MenuInflater inflater = getMenuInflater();
+		TouchInterceptor list = (TouchInterceptor) findViewById(R.id.np_request_list);
+		inflater.inflate(R.menu.queue_menu, menu);
+		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+		Song s = (Song) list.getItemAtPosition(info.position);
+		menu.setHeaderTitle(s.song_title);
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+		switch (item.getItemId()) {
+		case R.id.remove:
+			TouchInterceptor list = (TouchInterceptor) findViewById(R.id.np_request_list);
+			SongListAdapter adapter = (SongListAdapter) list.getAdapter();
+			Song s = adapter.removeSong(info.position);
+			requestRemove(s);
+			resyncRequests();
+			return true;
+		default:
+			return super.onContextItemSelected(item);
+		}
+	}
     
     private void setup() {
     	getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
@@ -304,19 +335,10 @@ public class NowPlayingActivity extends Activity {
 			}
 		});
     	
-    	requestList.setRemoveListener(new TouchInterceptor.RemoveListener() {
-			@Override
-			public void remove(int which) {
-				SongListAdapter adapter = (SongListAdapter) requestList.getAdapter();
-				Song s = adapter.removeSong(which);
-				requestRemove(s);
-				resyncRequests();
-			}
-		});
-    	
     	requestList.setOnTouchListener(new OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent ev) {
+				if(requestList.getCount() == 0) return false;
 				Workspace w = (Workspace) findViewById(R.id.np_workspace);
 				
 				// Benefit of the doubt: unlock in case we locked earlier.
@@ -375,6 +397,8 @@ public class NowPlayingActivity extends Activity {
 				startPlaylist();
 			}
     	});
+    	
+    	registerForContextMenu(findViewById(R.id.np_request_list));
     }
     
     /**
@@ -563,6 +587,13 @@ public class NowPlayingActivity extends Activity {
         } catch (IOException e) {
             Rainwave.showError(this, e);
         }
+        
+        View playlistButton = findViewById(R.id.np_makeRequest);
+        if(playlistButton != null) {
+	        playlistButton.setVisibility(
+	        	(mSession != null && mSession.isAuthenticated()) ? View.VISIBLE : View.GONE
+	        );
+        }
     }
     
     /**
@@ -647,7 +678,11 @@ public class NowPlayingActivity extends Activity {
     	String stationName = mOrganizer.getStationName(id);
     	String title = (stationName != null) ? stationName : r.getString(R.string.app_name);
     	String state = r.getString(R.string.label_nottunedin);
-    	if(response.isTunedIn()) {
+    	
+    	if(!mSession.isAuthenticated()) {
+    		state = r.getString(R.string.label_anonymous);
+    	}
+    	else if(response.isTunedIn()) {
     		state = r.getString(R.string.label_tunedin);
     	}
     	

@@ -192,6 +192,7 @@ public class PlaylistActivity extends ListActivity {
 			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 				if(mMode == MODE_TOP_LEVEL && isByAlbum()) {
 					ArrayAdapter<Album> adapter = (ArrayAdapter<Album>) getListAdapter();
+					hideFilter();
 					setListAdapter(null);
 					mMode = MODE_DETAIL_ALBUM;
 					Album choice = adapter.getItem(position);
@@ -199,6 +200,7 @@ public class PlaylistActivity extends ListActivity {
 				}
 				else if(mMode == MODE_TOP_LEVEL) {
 					ArrayAdapter<Artist> adapter = (ArrayAdapter<Artist>) getListAdapter();
+					hideFilter();
 					setListAdapter(null);
 					mMode = MODE_DETAIL_ARTIST;
 					Artist choice = adapter.getItem(position);
@@ -244,11 +246,16 @@ public class PlaylistActivity extends ListActivity {
     	registerForContextMenu(getListView());
     }
     
-    private void setTheData() {
+    private EditText hideFilter() {
     	EditText filterText = (EditText) findViewById(R.id.filterText);
     	filterText.setVisibility(View.GONE);
     	InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
     	imm.hideSoftInputFromWindow(filterText.getWindowToken(), 0);
+    	return filterText;
+    }
+    
+    private void setTheData() {
+    	EditText filterText = hideFilter();
     	if(isByAlbum() && mMode == MODE_TOP_LEVEL) {
     		if(mAlbums != null) {
     			ArrayAdapter<Album> adapter = new ArrayAdapter<Album>(this, android.R.layout.simple_list_item_1, mAlbums) {
@@ -265,10 +272,10 @@ public class PlaylistActivity extends ListActivity {
     				}
     			};
     			adapter.sort(mAlbumComparator);
-    			setListAdapter(adapter);
-    			filterText.setHint(R.string.msg_filterAlbum);
-    			filterText.setVisibility(View.VISIBLE);
     			filterText.setText("");
+    			filterText.setHint(R.string.msg_filterAlbum);
+    			setListAdapter(adapter);
+    			filterText.setVisibility(View.VISIBLE);
     		}
     		else {
     			setListAdapter(null);
@@ -279,10 +286,10 @@ public class PlaylistActivity extends ListActivity {
     		if(mArtists != null) {
     			ArrayAdapter<Artist> adapter = new ArrayAdapter<Artist>(this, android.R.layout.simple_list_item_1, mArtists);
     			adapter.sort(mArtistComparator);
-    			setListAdapter(adapter);
     			filterText.setHint(R.string.msg_filterArtist);
-    			filterText.setVisibility(View.VISIBLE);
     			filterText.setText("");
+    			setListAdapter(adapter);
+    			filterText.setVisibility(View.VISIBLE);
     		}
     		else {
     			setListAdapter(null);
