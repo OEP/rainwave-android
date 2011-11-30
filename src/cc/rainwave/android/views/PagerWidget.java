@@ -35,10 +35,12 @@ public class PagerWidget extends View {
 	
 	public void setCurrent(int current) {
 		mCurrent = Math.max(0, Math.min(current, mCount-1));
+		invalidate();
 	}
 	
 	public void setCount(int count) {
 		mCount = Math.max(1, count);
+		invalidate();
 	}
 	
 	public void onDraw(Canvas canvas) {
@@ -50,13 +52,13 @@ public class PagerWidget extends View {
 		
 		for(int i = 0; i < getCount(); i++) {
 			float x = i * (barWidth + DEFAULT_SPACE);
-			p.setColor((getCount() == i) ? COLOR_HILIGHT : COLOR_DEFAULT);
+			p.setColor((getCurrent() == i) ? COLOR_HILIGHT : COLOR_DEFAULT);
 			canvas.drawRect(x, 0, x+barWidth, h, p);
 		}
 	}
 	
 	public static final int
-		COLOR_DEFAULT = 0xCCFFFFFF,
+		COLOR_DEFAULT = 0x55FFFFFF,
 		COLOR_HILIGHT = 0xFF00BB00;
 	
 	public static final float

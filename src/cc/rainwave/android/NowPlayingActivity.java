@@ -43,9 +43,11 @@ import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.api.types.Station;
 import cc.rainwave.android.views.HorizontalRatingBar;
+import cc.rainwave.android.views.PagerWidget;
 
 import com.android.music.TouchInterceptor;
 import com.google.android.apps.iosched.ui.widget.Workspace;
+import com.google.android.apps.iosched.ui.widget.Workspace.OnScreenChangeListener;
 
 /**
  * This is the primary activity for this application. It announces
@@ -327,6 +329,20 @@ public class NowPlayingActivity extends Activity {
 					w.lockCurrentScreen();
 				}
 				return false;
+			}
+    	});
+    	
+    	Workspace w = (Workspace) findViewById(R.id.np_workspace);
+    	w.setOnScreenChangeListener(new OnScreenChangeListener() {
+			@Override
+			public void onScreenChanged(View newScreen, int newScreenIndex) {
+				PagerWidget pw = (PagerWidget) findViewById(R.id.pager);
+				pw.setCurrent(newScreenIndex);
+			}
+
+			@Override
+			public void onScreenChanging(View newScreen, int newScreenIndex) {
+				
 			}
     	});
     	
