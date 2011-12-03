@@ -6,26 +6,21 @@
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:orientation="vertical"
-        android:layout_marginBottom="40dp" >
+        android:layout_marginBottom="40dp"
+        android:orientation="vertical" >
 
-        <com.google.android.apps.iosched.ui.widget.Workspace
-            android:id="@+id/np_workspace"
+        <android.support.v4.view.ViewPager
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1" >
+            android:layout_weight="1"
+            android:id="@+id/fragmentPager"
+            />
 
-            <include layout="@layout/nowplaying" />
-
-            <include layout="@layout/request_manager" />
-        </com.google.android.apps.iosched.ui.widget.Workspace>
-        
         <cc.rainwave.android.views.PagerWidget
             android:id="@+id/pager"
             android:layout_width="40dp"
             android:layout_height="5dp"
-            android:layout_gravity="center"
-            />
+            android:layout_gravity="center" />
     </LinearLayout>
 
     <include layout="@layout/election_drawer" />

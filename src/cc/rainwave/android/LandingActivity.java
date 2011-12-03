@@ -86,7 +86,7 @@ public class LandingActivity extends Activity {
 		findViewById(R.id.land_later).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				startNowPlaying();
+				startMainActivity();
 			}
 		});
 		
@@ -94,7 +94,7 @@ public class LandingActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				Rainwave.setSkipLanding(LandingActivity.this, true);
-				startNowPlaying();
+				startMainActivity();
 			}
 		});
 		
@@ -108,7 +108,7 @@ public class LandingActivity extends Activity {
 
 	private void preLayout() {
 		if(Rainwave.hasUserInfo(this) || Rainwave.skipLanding(this)) {
-			startNowPlaying();
+			startMainActivity();
 		}
 		
 		getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
@@ -129,11 +129,11 @@ public class LandingActivity extends Activity {
 	private void setInfoAndStart(String user, String key) {
 		Rainwave.putUserId(this, user);
 		Rainwave.putKey(this, key);
-		startNowPlaying();
+		startMainActivity();
 	}
 	
-	private void startNowPlaying() {
-		Intent i = new Intent(this, NowPlayingActivity.class);
+	private void startMainActivity() {
+		Intent i = new Intent(this, MainActivity.class);
 		startActivity(i);
 		finish();
 	}
