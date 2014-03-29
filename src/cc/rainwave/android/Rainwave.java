@@ -356,7 +356,7 @@ public class Rainwave {
     
     public static final String
     	SCHEME = "rw",
-    	API_URL = "http://rainwave.cc/api",
+    	API_URL = "http://rainwave.cc/api4",
         PREFS_URL = "pref_url",
         PREFS_SKIPLANDING = "pref_skipLanding",
         PREFS_USERID = "pref_userId",
