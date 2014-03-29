@@ -51,7 +51,7 @@ public class Session {
 
     public RainwaveResponse asyncGet()
             throws IOException, RainwaveException {
-        return getResponse(true, false, "get");
+        return getResponse(true, false, "info");
     }
 
     public RainwaveResponse syncGet(RainwaveResponse oldResponse)
@@ -198,33 +198,22 @@ public class Session {
     	return getResponse(async,auth,request,new RainwaveResponse(), params);
     }
     
-    private RainwaveResponse getResponse(boolean async, boolean auth, String request,
+    private RainwaveResponse getResponse(boolean async, boolean auth, String path,
             RainwaveResponse response, String... params)
             throws IOException, RainwaveException {
     	
-    	// Make the path
-        String path = String.format("%s/%s/%s", (async) ? "async" : "sync", mStation, request);
+        // Construct arguments
+        Arguments httpArgs = new Arguments(params);
+        httpArgs.put(NAME_STATION, String.valueOf(mStation));
+
+        if(auth && mUserId != null && mKey != null) {
+          httpArgs.put(NAME_USERID, mUserId);
+          httpArgs.put(NAME_KEY, mKey);
+        }
 
         HttpURLConnection conn;
         if (auth && mUserId != null && mKey != null) {
-            // Extend the var-args into an array with 4 more slots.
-            String tmp[] = (params != null) ? new String[params.length + 4] : new String[4];
-            int begin = (params != null) ? params.length : 0;
-            for (int i = 0; i < params.length; i++) {
-                tmp[i] = params[i];
-            }
-
-            // Insert in the new data.
-            tmp[begin] = NAME_USERID;
-            tmp[begin + 1] = mUserId;
-            tmp[begin + 2] = NAME_KEY;
-            tmp[begin + 3] = mKey;
-
-            // Get new urlencoded string
-            String paramString = HttpHelper.encodeParams(tmp);
-
-            // Return HttpURLConnection
-            conn = HttpHelper.makePost(mBaseUrl, path, paramString);
+            conn = HttpHelper.makePost(mBaseUrl, path, httpArgs.encode());
         }
         else {
             conn = HttpHelper.makeGet(mBaseUrl, path, "");
@@ -313,6 +302,7 @@ public class Session {
     }
 
     public static final String
+            NAME_STATION = "sid",
             NAME_USERID = "user_id",
             NAME_KEY = "key";
 }
