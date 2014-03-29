@@ -903,10 +903,21 @@ public class NowPlayingActivity extends Activity {
                         			? mSession.syncInit()
                         			: mSession.asyncGet()
                         	: mSession.syncGet(mOrganizer);
-            	
-            	if(mInit) {
-            		Station stations[] = mSession.getStations();
-            		organizer.setStations(stations);
+            	     			
+                // fetch stations if we don't have them
+            	if(mOrganizer == null || mOrganizer.getStations() == null) {
+            		// it should be safe to keep going even if the station endpoint fails for some reason
+            		try {
+	            		Station stations[] = mSession.getStations();
+	            		organizer.setStations(stations);
+            		}
+            		catch(IOException e) {
+            			Log.e(TAG, "IOException occured: " + e);
+                        Rainwave.showError(NowPlayingActivity.this, e);
+            		} catch (RainwaveException e) {
+                    	Log.e(TAG, "API error: " + e.getMessage());
+                    	Rainwave.showError(NowPlayingActivity.this, e);
+            		}
             	}
                 
                 b.putParcelable(Rainwave.SCHEDULE, organizer);

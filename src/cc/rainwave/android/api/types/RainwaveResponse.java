@@ -99,6 +99,9 @@ public class RainwaveResponse implements Parcelable {
     }
     
     public Station getStation(int stationId) {
+    	if(stations == null) {
+    		return null;
+    	}
     	for(int i = 0; i < stations.length; i++) {
     		if(stationId == stations[i].id) return stations[i];
     	}
