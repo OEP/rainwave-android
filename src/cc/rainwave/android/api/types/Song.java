@@ -49,15 +49,15 @@ public class Song implements Parcelable, Comparable<Song> {
 	}
 	
 	public String collapseArtists(String comma, String and) {
-		if(artists == null) return "";
+		if(artists == null) return "???";
 	    switch(artists.length) {
 	        case 0: return "???";
-	        case 1: return artists[0].artist_name;
-	        case 2: return artists[0].artist_name + " " + and + " " + artists[1].artist_name;
+	        case 1: return artists[0].name;
+	        case 2: return artists[0].name + " " + and + " " + artists[1].name;
 	        default:
 	            StringBuilder sb = new StringBuilder();
 	            for(int i = 0; i < artists.length; i++) {
-	                sb.append(artists[i].artist_name);
+	                sb.append(artists[i].name);
 	                
 	                if(i < artists.length - 2) {
 	                    sb.append(comma);

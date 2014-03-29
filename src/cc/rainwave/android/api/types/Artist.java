@@ -4,14 +4,14 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Artist implements Parcelable, Comparable<Artist> {
-	public int artist_id;
-	public String artist_name;
+	public int id;
+	public String name;
 	
 	public Song[] songs;
 	
 	private Artist(Parcel in) {
-	    artist_id = in.readInt();
-	    artist_name = in.readString();
+	    id = in.readInt();
+	    name = in.readString();
 	}
 	
     @Override
@@ -21,8 +21,8 @@ public class Artist implements Parcelable, Comparable<Artist> {
     
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(artist_id);
-        dest.writeString(artist_name);
+        dest.writeInt(id);
+        dest.writeString(name);
     }
     
     public static final Parcelable.Creator<Artist> CREATOR
@@ -40,10 +40,10 @@ public class Artist implements Parcelable, Comparable<Artist> {
 
 	@Override
 	public int compareTo(Artist another) {
-		return artist_name.compareTo(another.artist_name);
+		return name.compareTo(another.name);
 	}
 	
 	public String toString() {
-		return artist_name;
+		return name;
 	}
 }

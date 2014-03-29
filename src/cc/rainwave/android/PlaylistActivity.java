@@ -90,7 +90,7 @@ public class PlaylistActivity extends ListActivity {
 	private Comparator<Artist> mArtistComparator = new Comparator<Artist>() {
 		@Override
 		public int compare(Artist lhs, Artist rhs) {
-			return lhs.artist_name.toLowerCase().compareTo(rhs.artist_name.toLowerCase());
+			return lhs.name.toLowerCase().compareTo(rhs.name.toLowerCase());
 		}
 	};
 	
@@ -206,7 +206,7 @@ public class PlaylistActivity extends ListActivity {
 					setListAdapter(null);
 					mMode = MODE_DETAIL_ARTIST;
 					Artist choice = adapter.getItem(position);
-					fetchArtist(choice.artist_id);
+					fetchArtist(choice.id);
 				}
 			}
     	});
