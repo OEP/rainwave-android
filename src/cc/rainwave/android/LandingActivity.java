@@ -9,7 +9,6 @@ import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.api.types.Station;
-import cc.rainwave.android.listeners.HexadecimalKeyListener;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
@@ -66,8 +65,6 @@ public class LandingActivity extends Activity {
 	}
 	
 	private void postLayout() {
-		((EditText)findViewById(R.id.land_apiKey)).setKeyListener(new HexadecimalKeyListener());
-		
 		findViewById(R.id.land_login).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {

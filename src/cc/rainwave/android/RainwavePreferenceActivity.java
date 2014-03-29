@@ -3,7 +3,6 @@ package cc.rainwave.android;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
-import cc.rainwave.android.listeners.HexadecimalKeyListener;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
@@ -27,8 +26,6 @@ public class RainwavePreferenceActivity extends PreferenceActivity {
 		
 		private void setupUI() {
 		    EditTextPreference key = (EditTextPreference) findPreference(Rainwave.PREFS_KEY);
-		    EditText field = key.getEditText();
-		    field.setKeyListener(new HexadecimalKeyListener());
 		    
 		    Preference qr = findPreference(Rainwave.PREF_IMPORT);
 		    qr.setOnPreferenceClickListener(new OnPreferenceClickListener() {
