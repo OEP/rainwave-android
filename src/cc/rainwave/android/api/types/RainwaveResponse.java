@@ -55,7 +55,7 @@ public class RainwaveResponse implements Parcelable {
     public RainwaveResponse() { }
 
     public Song getCurrentSong() {
-        return sched_current.song_data[0];
+        return sched_current.songs[0];
     }
     
     public long getEndTime() {
@@ -63,7 +63,7 @@ public class RainwaveResponse implements Parcelable {
     }
     
     public Song[] getElection() {
-    	return sched_next[0].song_data;
+    	return sched_next[0].songs;
     }
     
     public int getPastVote() {
@@ -139,7 +139,7 @@ public class RainwaveResponse implements Parcelable {
     
     public void updateSongRatings(GenericResult result) {
         Song s = getCurrentSong();
-        s.song_rating_user = result.song_rating;
+        s.rating_user = result.song_rating;
         s.album_rating_user = result.album_rating;
     }
     

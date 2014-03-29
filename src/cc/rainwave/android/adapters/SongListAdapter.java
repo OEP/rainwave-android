@@ -120,7 +120,7 @@ public class SongListAdapter extends BaseAdapter {
 
 	@Override
 	public long getItemId(int i) {
-		return (mSongs == null) ? -1 : mSongs.get(i).song_id;
+		return (mSongs == null) ? -1 : mSongs.get(i).id;
 	}
 	
 	public void markVoted(int elec_entry_id) {
@@ -152,7 +152,7 @@ public class SongListAdapter extends BaseAdapter {
 			convertView = inflater.inflate(mItemLayout, null);
 			mViews.set(i, convertView);
 			
-			setTextIfExists(convertView, R.id.song, s.song_title);
+			setTextIfExists(convertView, R.id.song, s.title);
 			setTextIfExists(convertView, R.id.album, s.album_name);
 			setTextIfExists(convertView, R.id.artist, s.collapseArtists());
 			
@@ -218,7 +218,7 @@ public class SongListAdapter extends BaseAdapter {
 	}
 	
 	private void reflectSong(CountdownView v, Song s) {
-		v.setBoth(s.song_rating_user, s.song_rating_avg);
+		v.setBoth(s.rating_user, s.rating);
 		v.setAlternateText(R.string.label_unrated);
 	}
 	

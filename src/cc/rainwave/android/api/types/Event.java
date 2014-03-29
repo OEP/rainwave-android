@@ -4,16 +4,16 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Event implements Parcelable {
-	public Song song_data[];
+	public Song songs[];
 	public long sched_endtime;
 
     private Event(Parcel source) {
         Parcelable tmp[] = source.readParcelableArray(Song[].class.getClassLoader());
         sched_endtime = source.readLong();
-        song_data = new Song[tmp.length];
+        songs = new Song[tmp.length];
         
         for(int i = 0; i < tmp.length; i++) {
-            song_data[i] = (Song) tmp[i];
+            songs[i] = (Song) tmp[i];
         }
     }
 
@@ -24,7 +24,7 @@ public class Event implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeParcelableArray(song_data, flags);
+        dest.writeParcelableArray(songs, flags);
         dest.writeLong(sched_endtime);
     }
     

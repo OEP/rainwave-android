@@ -70,7 +70,7 @@ public class PlaylistActivity extends ListActivity {
 				return (lhs.isCooling()) ? 1 : -1;
 			}
 			
-			return lhs.song_title.toLowerCase().compareTo(rhs.song_title.toLowerCase());
+			return lhs.title.toLowerCase().compareTo(rhs.title.toLowerCase());
 		}
 	};
 	
@@ -81,7 +81,7 @@ public class PlaylistActivity extends ListActivity {
 				return lhs.album_name.compareTo(rhs.album_name);
 			}
 			
-			return lhs.song_title.toLowerCase().compareTo(rhs.song_title.toLowerCase());
+			return lhs.title.toLowerCase().compareTo(rhs.title.toLowerCase());
 		}
 	};
 	
@@ -144,7 +144,7 @@ public class PlaylistActivity extends ListActivity {
 		inflater.inflate(R.menu.playlist_menu, menu);
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		Song s = (Song) getListView().getItemAtPosition(info.position);
-		menu.setHeaderTitle(s.song_title);
+		menu.setHeaderTitle(s.title);
 	}
 	
 	@Override
@@ -153,7 +153,7 @@ public class PlaylistActivity extends ListActivity {
 		switch (item.getItemId()) {
 		case R.id.request:
 			Song s = (Song) getListView().getItemAtPosition(info.position);
-			request(s.song_id);
+			request(s.id);
 			return true;
 		default:
 			return super.onContextItemSelected(item);
@@ -552,7 +552,7 @@ public class PlaylistActivity extends ListActivity {
 			
 			
 			// We should have at least this much for both views.
-			holder.text1.setText(s.song_title);
+			holder.text1.setText(s.title);
 			holder.time.setText(s.getLengthString());
 			
 			if(s.isCooling()) {
@@ -570,7 +570,7 @@ public class PlaylistActivity extends ListActivity {
 			
 			if(mMode == MODE_DETAIL_ALBUM) {
 				holder.circle.setVisibility(View.VISIBLE);
-				holder.circle.setBoth(s.song_rating_user,s.song_rating_avg);
+				holder.circle.setBoth(s.rating_user,s.rating);
 				holder.text2.setText(s.collapseArtists());
 			}
 			else {

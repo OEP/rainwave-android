@@ -191,7 +191,7 @@ public class NowPlayingActivity extends Activity {
 		inflater.inflate(R.menu.queue_menu, menu);
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		Song s = (Song) list.getItemAtPosition(info.position);
-		menu.setHeaderTitle(s.song_title);
+		menu.setHeaderTitle(s.title);
 	}
 	
 	@Override
@@ -259,7 +259,7 @@ public class NowPlayingActivity extends Activity {
 						w.unlockCurrentScreen();
 						ActionTask t = new ActionTask();
 						Song s = mOrganizer.getCurrentSong();
-						t.execute(ActionTask.RATE, s.song_id, rating);
+						t.execute(ActionTask.RATE, s.id, rating);
 						b.setLabel(R.string.label_song);
 					}
 				}
@@ -748,7 +748,7 @@ public class NowPlayingActivity extends Activity {
      * @param current the current song that's playing.
      */
     private void updateSongInfo(Song current) {
-    	((TextView) findViewById(R.id.np_songTitle)).setText(current.song_title);
+    	((TextView) findViewById(R.id.np_songTitle)).setText(current.title);
     	((TextView) findViewById(R.id.np_albumTitle)).setText(current.album_name);
     	((TextView) findViewById(R.id.np_artist)).setText(current.collapseArtists());
     	
@@ -773,7 +773,7 @@ public class NowPlayingActivity extends Activity {
      */
     private void setRatings(Song current) {
     	((HorizontalRatingBar) findViewById(R.id.np_songRating))
-    	   .setBothValues(current.song_rating_user, current.song_rating_avg);
+    	   .setBothValues(current.rating_user, current.rating);
     	
     	((HorizontalRatingBar) findViewById(R.id.np_albumRating))
  	       .setBothValues(current.album_rating_user, current.album_rating_avg);

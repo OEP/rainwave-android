@@ -6,20 +6,20 @@ import android.os.Parcelable;
 public class Song implements Parcelable, Comparable<Song> {
 	public long song_releasetime;
 	
-	public int song_id, elec_entry_id, elec_isrequest, requestq_id, song_secondslong;
-	public String song_title;
+	public int id, elec_entry_id, elec_isrequest, requestq_id, song_secondslong;
+	public String title;
 	public Artist artists[];
 	public String album_art;
 	public String album_name;
 	public String song_requestor;
-	public float song_rating_user, song_rating_avg,
+	public float rating_user, rating,
 		album_rating_user, album_rating_avg;
 	
 	private Song(Parcel in) {
-		song_id = in.readInt();
+		id = in.readInt();
 		elec_entry_id = in.readInt();
 		elec_isrequest = in.readInt();
-	    song_title = in.readString();
+	    title = in.readString();
 	    Parcelable tmp[] = in.readParcelableArray(Artist[].class.getClassLoader());
 	    album_art = in.readString();
 	    album_name = in.readString();
@@ -67,7 +67,7 @@ public class Song implements Parcelable, Comparable<Song> {
 	}
 	
 	public String toString() {
-		return song_title;
+		return title;
 	}
 	
 	public String getLengthString() {
@@ -91,7 +91,7 @@ public class Song implements Parcelable, Comparable<Song> {
 		if(album_name != null && s.album_name != null && !album_name.equals(s.album_name)) {
 			return album_name.compareTo(s.album_name);
 		}
-		return song_title.compareTo(s.song_title);
+		return title.compareTo(s.title);
 	}
 	
     @Override
@@ -102,10 +102,10 @@ public class Song implements Parcelable, Comparable<Song> {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-    	dest.writeInt(song_id);
+    	dest.writeInt(id);
     	dest.writeInt(elec_entry_id);
     	dest.writeInt(elec_isrequest);
-        dest.writeString(song_title);
+        dest.writeString(title);
         dest.writeParcelableArray(artists, flags);
         dest.writeString(album_art);
         dest.writeString(album_name);
