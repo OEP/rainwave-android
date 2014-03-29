@@ -264,16 +264,11 @@ public class Session {
         return new BufferedReader(new InputStreamReader(conn.getInputStream()));
     }
 
-    private String getUrl(String path) {
+    private String getUrl(String path) throws MalformedURLException {
         if (path == null || path.length() == 0)
             return mBaseUrl.toString();
-
-        if (path.charAt(0) != '/') {
-            return String.format("%s/%s", mBaseUrl.toString(), path);
-        }
-        else {
-            return String.format("%s%s", mBaseUrl.toString(), path);
-        }
+        final URL url = new URL(mBaseUrl, path);
+        return url.toString();
     }
 
     private Gson getGson() {
