@@ -1,9 +1,7 @@
 package cc.rainwave.android;
 
 import java.io.IOException;
-import java.util.Arrays;
 
-import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
 import android.content.Context;
@@ -18,9 +16,6 @@ import android.preference.PreferenceManager;
 import android.widget.Toast;
 
 public class Rainwave {
-	public static final boolean DEBUG = false;
-	public static final boolean DEMO = false;
-	
 	
 	public static boolean putIntPreference(Context ctx, String name, int value) {
 		SharedPreferences prefs = getPreferences(ctx);
@@ -258,13 +253,6 @@ public class Rainwave {
     	return key.substring(0, Math.min(key.length(), KEY_MAX));
     }
     
-    public static void onApplicationInit(Context ctx) {
-    	if(DEMO) {
-    		Rainwave.putUserId(ctx, DEMO_USER);
-    		Rainwave.putKey(ctx, DEMO_KEY);
-    	}
-    }
-    
     /**
      * Makes a comma-delimited string out of an array of songs
      * delineating the value of Song.requestq_id.
@@ -365,8 +353,4 @@ public class Rainwave {
         PREF_CLEAR_PREFERENCES = "clear_preferences",
         PREF_AUTOSHOW_ELECTION = "pref_autoshow_elections",
         PREFS_KEY = "pref_key";
-    
-    public static final String
-    	DEMO_USER = "18793",
-    	DEMO_KEY = "8690164126";
 }

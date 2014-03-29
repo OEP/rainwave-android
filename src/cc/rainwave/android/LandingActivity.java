@@ -42,7 +42,6 @@ public class LandingActivity extends Activity {
 
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
-		Rainwave.onApplicationInit(this);
 		preLayout();
 		setContentView(R.layout.activity_landing);
 		postLayout();
