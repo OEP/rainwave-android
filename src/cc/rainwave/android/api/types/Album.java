@@ -1,20 +1,24 @@
 package cc.rainwave.android.api.types;
 
-public class Album implements Comparable<Album> {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Album implements Parcelable, Comparable<Album> {
 	public boolean album_favourite;
 	
 	public long album_lowest_oa;
 	
 	public float album_rating_avg, album_rating_user;
 	
-	public String album_name;
+	public String name;
+	public String art;
 	
 	public int album_id;
 	
 	public Song song_data[];
 	
 	public String toString() {
-		return album_name;
+		return name;
 	}
 	
 	public boolean isCooling() {
@@ -28,6 +32,22 @@ public class Album implements Comparable<Album> {
 
 	@Override
 	public int compareTo(Album a) {
-		return album_name.compareTo(a.album_name);
+		return name.compareTo(a.name);
+	}
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeLong(album_lowest_oa);
+		dest.writeFloat(album_rating_avg);
+		dest.writeFloat(album_rating_user);
+		dest.writeString(name);
+		dest.writeString(art);
+		dest.writeInt(album_id);
+		dest.writeParcelableArray(song_data, flags);
 	}
 }

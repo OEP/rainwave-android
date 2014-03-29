@@ -77,8 +77,10 @@ public class PlaylistActivity extends ListActivity {
 	private Comparator<Song> mArtistSongComparator = new Comparator<Song>() {
 		@Override
 		public int compare(Song lhs, Song rhs) {
-			if(!lhs.album_name.equals(rhs.album_name)) {
-				return lhs.album_name.compareTo(rhs.album_name);
+			final String lhsAlbumName = lhs.albums[0].name;
+			final String rhsAlbumName = rhs.albums[0].name;
+			if(!lhsAlbumName.equals(rhsAlbumName)) {
+				return lhsAlbumName.compareTo(rhsAlbumName);
 			}
 			
 			return lhs.title.toLowerCase().compareTo(rhs.title.toLowerCase());
@@ -99,7 +101,7 @@ public class PlaylistActivity extends ListActivity {
 				return (lhs.isCooling()) ? 1 : -1;
 			}
 			
-			return lhs.album_name.toLowerCase().compareTo(rhs.album_name.toLowerCase());
+			return lhs.name.toLowerCase().compareTo(rhs.name.toLowerCase());
 		}
 	};
 	
@@ -575,7 +577,7 @@ public class PlaylistActivity extends ListActivity {
 			}
 			else {
 				holder.circle.setVisibility(View.GONE);
-				holder.text2.setText(s.album_name);
+				holder.text2.setText(s.albums[0].name);
 			}
 			
 			return convertView;

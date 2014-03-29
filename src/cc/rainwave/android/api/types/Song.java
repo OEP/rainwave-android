@@ -9,8 +9,8 @@ public class Song implements Parcelable, Comparable<Song> {
 	public int id, elec_entry_id, elec_isrequest, requestq_id, song_secondslong;
 	public String title;
 	public Artist artists[];
-	public String album_art;
-	public String album_name;
+	public Album albums[];
+	
 	public String song_requestor;
 	public float rating_user, rating,
 		album_rating_user, album_rating_avg;
@@ -20,14 +20,18 @@ public class Song implements Parcelable, Comparable<Song> {
 		elec_entry_id = in.readInt();
 		elec_isrequest = in.readInt();
 	    title = in.readString();
-	    Parcelable tmp[] = in.readParcelableArray(Artist[].class.getClassLoader());
-	    album_art = in.readString();
-	    album_name = in.readString();
+	    Parcelable tmpArtists[] = in.readParcelableArray(Artist[].class.getClassLoader());
+	    Parcelable tmpAlbums[] = in.readParcelableArray(Album[].class.getClassLoader());
 	    song_requestor = in.readString();
 	    
-	    artists = new Artist[tmp.length];
-	    for(int i = 0; i < tmp.length; i++) {
-	        artists[i] = (Artist) tmp[i];
+	    artists = new Artist[tmpArtists.length];
+	    for(int i = 0; i < tmpArtists.length; i++) {
+	        artists[i] = (Artist) tmpArtists[i];
+	    }
+	    
+	    albums = new Album[tmpAlbums.length];
+	    for(int i = 0; i < tmpAlbums.length; i++) {
+	    	albums[i] = (Album) tmpAlbums[i];
 	    }
 	}
 	
@@ -88,8 +92,10 @@ public class Song implements Parcelable, Comparable<Song> {
 	
 	@Override
 	public int compareTo(Song s) {
-		if(album_name != null && s.album_name != null && !album_name.equals(s.album_name)) {
-			return album_name.compareTo(s.album_name);
+		final String album_name = albums[0].name;
+		final String other_album_name = s.albums[0].name;
+		if(album_name != null && other_album_name != null && !album_name.equals(other_album_name)) {
+			return album_name.compareTo(other_album_name);
 		}
 		return title.compareTo(s.title);
 	}
@@ -107,8 +113,7 @@ public class Song implements Parcelable, Comparable<Song> {
     	dest.writeInt(elec_isrequest);
         dest.writeString(title);
         dest.writeParcelableArray(artists, flags);
-        dest.writeString(album_art);
-        dest.writeString(album_name);
+        dest.writeParcelableArray(albums, flags);
         dest.writeString(song_requestor);
     }
     

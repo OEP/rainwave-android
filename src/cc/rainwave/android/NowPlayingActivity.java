@@ -749,7 +749,7 @@ public class NowPlayingActivity extends Activity {
      */
     private void updateSongInfo(Song current) {
     	((TextView) findViewById(R.id.np_songTitle)).setText(current.title);
-    	((TextView) findViewById(R.id.np_albumTitle)).setText(current.album_name);
+    	((TextView) findViewById(R.id.np_albumTitle)).setText(current.albums[0].name);
     	((TextView) findViewById(R.id.np_artist)).setText(current.collapseArtists());
     	
     	ImageView accent = (ImageView)findViewById(R.id.np_accent);
@@ -795,8 +795,6 @@ public class NowPlayingActivity extends Activity {
      */
     private void updateAlbumArt(Bitmap art) {
         if(art == null) {
-            Log.e(TAG, "Error fetching album art.");
-            Rainwave.showError(this, R.string.msg_albumArtError);
             art = BitmapFactory.decodeResource(getResources(), R.drawable.noart);
         }
         
@@ -924,8 +922,17 @@ public class NowPlayingActivity extends Activity {
                 
                 if(!organizer.hasError()) {
                     Song song = organizer.getCurrentSong();
-                    Bitmap art = mSession.fetchAlbumArt(song.album_art);
-                    b.putParcelable(Rainwave.ART, art);
+                    try {
+                    	final String art = song.albums[0].art;
+                    	if(art != null && art.length() > 0) {
+	                    	final Bitmap bmArt = mSession.fetchAlbumArt(song.albums[0].art);
+	                    	b.putParcelable(Rainwave.ART, bmArt);
+                    	}
+                    }
+                    catch(final IOException exc) {
+                    	Log.e(TAG, String.valueOf(exc));
+                    	Rainwave.showError(NowPlayingActivity.this, R.string.msg_albumArtError);
+                    }
                 }
                 
                 return b;
