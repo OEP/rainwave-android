@@ -12,8 +12,7 @@ public class Song implements Parcelable, Comparable<Song> {
 	public Album albums[];
 	
 	public String song_requestor;
-	public float rating_user, rating,
-		album_rating_user, album_rating_avg;
+	public float rating_user, rating;
 	
 	private Song(Parcel in) {
 		id = in.readInt();

@@ -41,6 +41,7 @@ import android.widget.Toast;
 import cc.rainwave.android.adapters.SongListAdapter;
 import cc.rainwave.android.adapters.StationListAdapter;
 import cc.rainwave.android.api.Session;
+import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.GenericResult;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.RainwaveResponse;
@@ -778,11 +779,12 @@ public class NowPlayingActivity extends Activity {
      * @param current the current song playing
      */
     private void setRatings(Song current) {
+    	final Album album = current.albums[0];
     	((HorizontalRatingBar) findViewById(R.id.np_songRating))
     	   .setBothValues(current.rating_user, current.rating);
     	
     	((HorizontalRatingBar) findViewById(R.id.np_albumRating))
- 	       .setBothValues(current.album_rating_user, current.album_rating_avg);
+ 	       .setBothValues(album.rating_user, album.rating);
     }
     
     /**
