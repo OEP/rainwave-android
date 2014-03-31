@@ -43,8 +43,8 @@ public class SongListAdapter extends BaseAdapter {
 	
 	private Handler mVoteHandler;
 	
-	/** Last elec_entry_id */
-	private int mLastVote;
+	/** Records last known election id vote. Set to -1 to imply no vote. */
+	private int mLastVote = -1;
 	
 	/** Vote deadline */
 	private long mDeadline = -1;
@@ -126,7 +126,7 @@ public class SongListAdapter extends BaseAdapter {
 	public void markVoted(int elec_entry_id) {
 		for(int i = 0; i < mSongs.size(); i++) {
 			Song s = mSongs.get(i);
-			if(s.elec_entry_id == elec_entry_id) {
+			if(s.entry_id == elec_entry_id) {
 				mLastVote = elec_entry_id;
 				setVoteStatus(true);
 				return;
@@ -163,7 +163,7 @@ public class SongListAdapter extends BaseAdapter {
 						String.format(r.getString(R.string.label_requestor), s.song_requestor));
 			}
 			
-			if(s.elec_entry_id == mLastVote) {
+			if(s.entry_id == mLastVote) {
 				setVoted(((CountdownView)convertView.findViewById(R.id.circle)));
 			}
 			else {
@@ -291,7 +291,7 @@ public class SongListAdapter extends BaseAdapter {
 			mSong = params[0];
 			
 			try {
-				GenericResult result = mSession.vote(mSong.elec_entry_id);
+				GenericResult result = mSession.vote(mSong.entry_id);
 				return true;
 			} catch (IOException e) {
 				Rainwave.showError(SongListAdapter.this.mContext, e);

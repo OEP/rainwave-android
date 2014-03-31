@@ -6,7 +6,7 @@ import android.os.Parcelable;
 public class Song implements Parcelable, Comparable<Song> {
 	public long song_releasetime;
 	
-	public int id, elec_entry_id, elec_isrequest, requestq_id, song_secondslong;
+	public int id, entry_id, elec_isrequest, requestq_id, song_secondslong;
 	public String title;
 	public Artist artists[];
 	public Album albums[];
@@ -16,7 +16,7 @@ public class Song implements Parcelable, Comparable<Song> {
 	
 	private Song(Parcel in) {
 		id = in.readInt();
-		elec_entry_id = in.readInt();
+		entry_id = in.readInt();
 		elec_isrequest = in.readInt();
 	    title = in.readString();
 	    Parcelable tmpArtists[] = in.readParcelableArray(Artist[].class.getClassLoader());
@@ -108,7 +108,7 @@ public class Song implements Parcelable, Comparable<Song> {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
     	dest.writeInt(id);
-    	dest.writeInt(elec_entry_id);
+    	dest.writeInt(entry_id);
     	dest.writeInt(elec_isrequest);
         dest.writeString(title);
         dest.writeParcelableArray(artists, flags);
