@@ -931,7 +931,8 @@ public class NowPlayingActivity extends Activity {
                     try {
                     	final String art = song.albums[0].art;
                     	if(art != null && art.length() > 0) {
-	                    	final Bitmap bmArt = mSession.fetchAlbumArt(song.albums[0].art);
+                    		final int minWidth = (NowPlayingActivity.this.findViewById(R.id.np_albumArt)).getWidth();
+	                    	final Bitmap bmArt = mSession.fetchAlbumArt(art, minWidth);
 	                    	b.putParcelable(Rainwave.ART, bmArt);
                     	}
                     }
