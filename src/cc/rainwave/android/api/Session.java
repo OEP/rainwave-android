@@ -22,6 +22,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -142,8 +143,41 @@ public class Session {
     	);
     }
     
+    /**
+     * Fetch a full resolution album art.
+     * 
+     * @param path base url to album art
+     * @return bitmap of album art
+     * @throws IOException
+     */
     public Bitmap fetchAlbumArt(String path) throws IOException {
+    	return fetchAlbumArtHelper(path + ".jpg");
+    }
+
+    /**
+     * Fetch a minimum width album art. The returned bitmap is guaranteed to
+     * be at least the requested width.
+     * 
+     * @param path base url to album art
+     * @param width minimum width required
+     * @return bitmap of album art
+     * @throws IOException
+     */
+    public Bitmap fetchAlbumArt(String path, int width) throws IOException {
+    	if(width <= 120) {
+    		return fetchAlbumArtHelper(path + "_120.jpg");
+    	}
+    	else if(width <= 240) {
+    		return fetchAlbumArtHelper(path + "_240.jpg");
+    	}
+    	else {
+    		return fetchAlbumArt(path);
+    	}
+    }
+    
+    private Bitmap fetchAlbumArtHelper(String path) throws IOException {
         URL url = new URL(getUrl(path));
+    	Log.d(TAG, "GET " + url.toString());
         InputStream is = url.openStream();
         return BitmapFactory.decodeStream(is);
     }
