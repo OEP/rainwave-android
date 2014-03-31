@@ -37,6 +37,7 @@ import android.widget.ListView;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.Toast;
 import cc.rainwave.android.adapters.SongListAdapter;
 import cc.rainwave.android.adapters.StationListAdapter;
 import cc.rainwave.android.api.Session;
@@ -558,9 +559,14 @@ public class NowPlayingActivity extends Activity {
 	private void startPlayer() {
 		int stationId = mSession.getStationId();
 		Station s = mOrganizer.getStation(stationId);
-		Intent i = new Intent(Intent.ACTION_VIEW);
-		i.setDataAndType(Uri.parse(s.stream), "audio/*");
-		startActivity(i);
+		if(s != null) {
+			Intent i = new Intent(Intent.ACTION_VIEW);
+			i.setDataAndType(Uri.parse(s.stream), "audio/*");
+			startActivity(i);	
+		}
+		else {
+			Toast.makeText(this, R.string.msg_streamNotKnown, Toast.LENGTH_SHORT).show();
+		}
 	}
 	
 	private void startPlaylist() {

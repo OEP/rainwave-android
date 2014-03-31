@@ -79,5 +79,6 @@
 		for request: %s</string>
 		<string name="msg_filterAlbum">Filter by album...</string>
 		<string name="msg_filterArtist">Filter by artist...</string>
+	<string name="msg_streamNotKnown">Stream URL is not known!</string>
 
 </resources>
