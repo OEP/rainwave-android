@@ -14,5 +14,5 @@ public class GenericResult {
     public int song_id, album_id;
     
     /** Song/album rating. Returned after a rating is submitted. */
-    public float album_rating, song_rating;
+    public float rating_user;
 }
