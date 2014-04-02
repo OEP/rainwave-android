@@ -227,7 +227,7 @@ public class Session {
         }
         catch(JsonParseException e) {
         	Resources r = mContext.getResources();
-        	String msg = String.format(r.getString(R.string.msg_outdatedApi), path);
+        	String msg = String.format(r.getString(R.string.msgfmt_parseError), path, e.getMessage());
         	throw new RainwaveException(0, msg);
         }
         

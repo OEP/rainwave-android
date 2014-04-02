@@ -2,6 +2,8 @@ package cc.rainwave.android.api.types;
 
 import java.lang.reflect.Type;
 
+import cc.rainwave.android.api.JsonHelper;
+
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -141,13 +143,13 @@ public class Album implements Parcelable, Comparable<Album> {
 		) throws JsonParseException {
 			final JsonObject obj = element.getAsJsonObject();
 			final Album a = new Album();
-			a.mArt = obj.get("art").getAsString();
-			a.mRating = obj.get("rating").getAsFloat();
-			a.mUserRating = obj.get("rating_user").getAsFloat();
-			a.mName = obj.get("name").getAsString();
-			a.mArt = obj.get("art").getAsString();
-			a.mId = obj.get("id").getAsInt();
-			a.mSongs = ctx.deserialize(obj.get("songs"), Song.class);
+			a.mArt = JsonHelper.getString(element, "art");
+			a.mRating = JsonHelper.getFloat(element, "rating");
+			a.mUserRating = JsonHelper.getFloat(element, "rating_user");
+			a.mName = JsonHelper.getString(element, "name");
+			a.mArt = JsonHelper.getString(element, "art");
+			a.mId = JsonHelper.getInt(element, "id");
+			a.mSongs = ctx.deserialize(obj.get("songs"), Song[].class);
 			return a;
 		}
 	}
