@@ -50,94 +50,59 @@ public class Session {
     private Session() {
     }
 
-    public RainwaveResponse asyncGet()
+    public RainwaveResponse info()
             throws IOException, RainwaveException {
-        return getResponse(true, false, "info");
+        return get("info");
+    }
+    
+    public RainwaveResponse sync()
+            throws IOException, RainwaveException {
+        return post("sync");
     }
 
-    public RainwaveResponse syncGet(RainwaveResponse oldResponse)
-            throws IOException, RainwaveException {
-        return getResponse(false, true, "sync", oldResponse);
-    }
-    
-    public RainwaveResponse syncInit()
-            throws IOException, RainwaveException {
-        return getResponse(false, true, "init");
-    }
-    
     public GenericResult rateSong(int songId, float rating)
     		throws IOException, RainwaveException {
     	rating = Math.max(1.0f, Math.min(rating, 5.0f));
-    	return getResponse(
-    			true,
-    			true,
-    			"rate",
-    			"song_id",String.valueOf(songId),
+    	return post("rate",
+    			"song_id", String.valueOf(songId),
     			"rating", String.valueOf(rating)
     	).rate_result;
     }
     
     public GenericResult vote(int elecId)
     		throws IOException, RainwaveException {
-    	return getResponse(
-    			true,
-    			true,
-    			"vote",
+    	return post("vote",
     			"elec_entry_id", String.valueOf(elecId)
     	).vote_result;
     }
     
     public Station[] getStations() throws IOException, RainwaveException {
-    	boolean auth = isAuthenticated();
-    	String request = (auth)
-    			? "stations_user"
-    			: "stations";
-    	
-    	return getResponse(
-    			true,
-    			auth,
-    			request
-    	).getStations();
+    	return post("stations").getStations();
     }
     
     public Album[] getAlbums() throws IOException, RainwaveException {
-    	return getResponse(
-    		true,
-    		true,
-    		"all_albums"
-    	).playlist_all_albums;
+    	return post("all_albums").playlist_all_albums;
     }
     
     public Artist[] getArtists() throws IOException, RainwaveException {
-    	return getResponse(
-    		true,
-    		true,
-    		"artist_list"
-    	).artist_list;
+    	return post("all_artists").artist_list;
     }
     
     public Artist getDetailedArtist(int artist_id) throws IOException, RainwaveException {
-    	return getResponse(
-    		true,
-    		true,
-    		"artist_detail",
-    		"artist_id", String.valueOf(artist_id)
+    	return post("artist",
+    		"id", String.valueOf(artist_id)
     	).artist_detail;
     }
     
     public Album getDetailedAlbum(int album_id) throws IOException, RainwaveException {
-    	return getResponse(
-    		true,
-    		true,
+    	return post(
     		"album",
-    		"album_id", String.valueOf(album_id)
+    		"id", String.valueOf(album_id)
     	).playlist_album;
     }
     
-    public RainwaveResponse request(int song_id) throws IOException, RainwaveException {
-    	return getResponse(
-    		true,
-    		true,
+    public RainwaveResponse submitRequest(int song_id) throws IOException, RainwaveException {
+    	return post(
     		"request",
     		"song_id", String.valueOf(song_id)
     	);
@@ -184,23 +149,17 @@ public class Session {
     
     public RainwaveResponse reorderRequests(Song requests[])
     		throws IOException, RainwaveException {
-    	return getResponse(
-    			true, 
-    			true, 
-    			"requests_reorder", 
-    			"order", 
-    			Rainwave.makeRequestQueueString(requests)
+    	return post(
+    			"order_requests", 
+    			"order", Rainwave.makeRequestQueueString(requests)
     	);
     }
     
     public RainwaveResponse deleteRequest(Song request)
     		throws IOException, RainwaveException {
-    	return getResponse(
-    			true, 
-    			true, 
-    			"request_delete", 
-    			"requestq_id", 
-    			String.valueOf(request.requestq_id)
+    	return post(
+    			"delete_request", 
+    			"song_id", String.valueOf(request.requestq_id)
     	);
     }
 
@@ -226,27 +185,30 @@ public class Session {
         return mUserId != null && mKey != null && mUserId.length() > 0 && mKey.length() > 0;
     }
     
-    private RainwaveResponse getResponse(boolean async, boolean auth, String request,
-            String... params)
-            throws IOException, RainwaveException {
-    	return getResponse(async,auth,request,new RainwaveResponse(), params);
+    private RainwaveResponse get(String path, String... params)
+    throws IOException, RainwaveException {
+    	return request(false, path, params);
     }
     
-    private RainwaveResponse getResponse(boolean async, boolean auth, String path,
-            RainwaveResponse response, String... params)
+    private RainwaveResponse post(String path, String... params)
+    throws IOException, RainwaveException {
+    	return request(true, path, params);
+    }
+    
+    private RainwaveResponse request(final boolean post, String path, String... params)
             throws IOException, RainwaveException {
     	
         // Construct arguments
         Arguments httpArgs = new Arguments(params);
         httpArgs.put(NAME_STATION, String.valueOf(mStation));
 
-        if(auth && mUserId != null && mKey != null) {
+        if(this.isAuthenticated()) {
           httpArgs.put(NAME_USERID, mUserId);
           httpArgs.put(NAME_KEY, mKey);
         }
 
         HttpURLConnection conn;
-        if (auth && mUserId != null && mKey != null) {
+        if (post) {
             conn = HttpHelper.makePost(mBaseUrl, path, httpArgs.encode());
         }
         else {
@@ -257,10 +219,10 @@ public class Session {
         Gson gson = getGson();
         JsonParser parser = new JsonParser();
         JsonElement json = parser.parse(getReader(conn));
-        RainwaveResponse tmp;
+        RainwaveResponse response;
         
         try {
-        	tmp = gson.fromJson(json, RainwaveResponse.class);
+        	response = gson.fromJson(json, RainwaveResponse.class);
         }
         catch(JsonParseException e) {
         	Resources r = mContext.getResources();
@@ -268,10 +230,8 @@ public class Session {
         	throw new RainwaveException(0, msg);
         }
         
-        response.receiveUpdates(tmp);
-        
         // Throw an exception if there was some sort of problem.
-        handleErrors(tmp);
+        handleErrors(response);
         
         return response;
     }
