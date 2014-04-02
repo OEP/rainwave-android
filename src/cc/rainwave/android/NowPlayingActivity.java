@@ -666,7 +666,7 @@ public class NowPlayingActivity extends Activity {
     }
     
     private void updateTunedIn(RainwaveResponse response) {
-    	long end = response.getEndTime();
+    	long end = response.getCurrentEvent().end;
     	long utc = System.currentTimeMillis() / 1000;
     	updateTitle(response, (int) (end - utc));
     }
@@ -707,7 +707,7 @@ public class NowPlayingActivity extends Activity {
     	   .setAdapter(adapter);
     	
     	// Set vote deadline for when the song ends.
-    	adapter.setDeadline(response.getEndTime());
+    	adapter.setDeadline(response.getCurrentEvent().end);
     	
     	// Open the drawer if the user can vote.
     	boolean canVote = !response.hasVoteResult() && response.isTunedIn();
@@ -988,7 +988,7 @@ public class NowPlayingActivity extends Activity {
                 syncSchedules();
             }
             
-            startCountdown(mOrganizer.getEndTime());
+            startCountdown(mOrganizer.getCurrentEvent().end);
             
             Log.d(TAG, "Exiting successfully.");
         }

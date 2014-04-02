@@ -58,8 +58,8 @@ public class RainwaveResponse implements Parcelable {
         return sched_current.songs[0];
     }
     
-    public long getEndTime() {
-    	return sched_current.sched_endtime;
+    public Event getCurrentEvent() {
+    	return sched_current;
     }
     
     public Song[] getElection() {
