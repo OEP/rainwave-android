@@ -193,7 +193,7 @@ public class NowPlayingActivity extends Activity {
 		inflater.inflate(R.menu.queue_menu, menu);
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		Song s = (Song) list.getItemAtPosition(info.position);
-		menu.setHeaderTitle(s.title);
+		menu.setHeaderTitle(s.getTitle());
 	}
 	
 	@Override
@@ -261,7 +261,7 @@ public class NowPlayingActivity extends Activity {
 						w.unlockCurrentScreen();
 						ActionTask t = new ActionTask();
 						Song s = mOrganizer.getCurrentSong();
-						t.execute(ActionTask.RATE, s.id, rating);
+						t.execute(ActionTask.RATE, s.getId(), rating);
 						b.setLabel(R.string.label_song);
 					}
 				}
@@ -755,8 +755,8 @@ public class NowPlayingActivity extends Activity {
      * @param current the current song that's playing.
      */
     private void updateSongInfo(Song current) {
-    	((TextView) findViewById(R.id.np_songTitle)).setText(current.title);
-    	((TextView) findViewById(R.id.np_albumTitle)).setText(current.albums[0].getName());
+    	((TextView) findViewById(R.id.np_songTitle)).setText(current.getTitle());
+    	((TextView) findViewById(R.id.np_albumTitle)).setText(current.getDefaultAlbum().getName());
     	((TextView) findViewById(R.id.np_artist)).setText(current.collapseArtists());
     	
     	ImageView accent = (ImageView)findViewById(R.id.np_accent);
@@ -766,7 +766,7 @@ public class NowPlayingActivity extends Activity {
     	if(current.isRequest()) {
     		accent.setImageResource(R.drawable.accent_song_hilight);
     		requestor.setVisibility(View.VISIBLE);
-    		requestor.setText(String.format(r.getString(R.string.label_requestor), current.song_requestor));
+    		requestor.setText(String.format(r.getString(R.string.label_requestor), current.getRequestor()));
     	}
     	else {
     		accent.setImageResource(R.drawable.accent_song);
@@ -779,9 +779,9 @@ public class NowPlayingActivity extends Activity {
      * @param current the current song playing
      */
     private void setRatings(Song current) {
-    	final Album album = current.albums[0];
+    	final Album album = current.getDefaultAlbum();
     	((HorizontalRatingBar) findViewById(R.id.np_songRating))
-    	   .setBothValues(current.rating_user, current.rating);
+    	   .setBothValues(current.getUserRating(), current.getCommunityRating());
     	
     	((HorizontalRatingBar) findViewById(R.id.np_albumRating))
  	       .setBothValues(album.getUserRating(), album.getRating());
@@ -933,7 +933,7 @@ public class NowPlayingActivity extends Activity {
                 if(!organizer.hasError()) {
                     Song song = organizer.getCurrentSong();
                     try {
-                    	final String art = song.albums[0].getArt();
+                    	final String art = song.getDefaultAlbum().getArt();
                     	if(art != null && art.length() > 0) {
                     		final int minWidth = (NowPlayingActivity.this.findViewById(R.id.np_albumArt)).getWidth();
 	                    	final Bitmap bmArt = mSession.fetchAlbumArt(art, minWidth);

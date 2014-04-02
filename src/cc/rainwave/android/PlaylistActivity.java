@@ -70,20 +70,20 @@ public class PlaylistActivity extends ListActivity {
 				return (lhs.isCooling()) ? 1 : -1;
 			}
 			
-			return lhs.title.toLowerCase().compareTo(rhs.title.toLowerCase());
+			return lhs.getTitle().toLowerCase().compareTo(rhs.getTitle().toLowerCase());
 		}
 	};
 	
 	private Comparator<Song> mArtistSongComparator = new Comparator<Song>() {
 		@Override
 		public int compare(Song lhs, Song rhs) {
-			final String lhsAlbumName = lhs.albums[0].getName();
-			final String rhsAlbumName = rhs.albums[0].getName();
+			final String lhsAlbumName = lhs.getDefaultAlbum().getName();
+			final String rhsAlbumName = rhs.getDefaultAlbum().getName();
 			if(!lhsAlbumName.equals(rhsAlbumName)) {
 				return lhsAlbumName.compareTo(rhsAlbumName);
 			}
 			
-			return lhs.title.toLowerCase().compareTo(rhs.title.toLowerCase());
+			return lhs.getTitle().toLowerCase().compareTo(rhs.getTitle().toLowerCase());
 		}
 	};
 	
@@ -146,7 +146,7 @@ public class PlaylistActivity extends ListActivity {
 		inflater.inflate(R.menu.playlist_menu, menu);
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		Song s = (Song) getListView().getItemAtPosition(info.position);
-		menu.setHeaderTitle(s.title);
+		menu.setHeaderTitle(s.getTitle());
 	}
 	
 	@Override
@@ -155,7 +155,7 @@ public class PlaylistActivity extends ListActivity {
 		switch (item.getItemId()) {
 		case R.id.request:
 			Song s = (Song) getListView().getItemAtPosition(info.position);
-			request(s.id);
+			request(s.getId());
 			return true;
 		default:
 			return super.onContextItemSelected(item);
@@ -557,7 +557,7 @@ public class PlaylistActivity extends ListActivity {
 			
 			
 			// We should have at least this much for both views.
-			holder.text1.setText(s.title);
+			holder.text1.setText(s.getTitle());
 			holder.time.setText(s.getLengthString());
 			
 			if(s.isCooling()) {
@@ -575,12 +575,12 @@ public class PlaylistActivity extends ListActivity {
 			
 			if(mMode == MODE_DETAIL_ALBUM) {
 				holder.circle.setVisibility(View.VISIBLE);
-				holder.circle.setBoth(s.rating_user,s.rating);
+				holder.circle.setBoth(s.getUserRating(), s.getCommunityRating());
 				holder.text2.setText(s.collapseArtists());
 			}
 			else {
 				holder.circle.setVisibility(View.GONE);
-				holder.text2.setText(s.albums[0].getName());
+				holder.text2.setText(s.getDefaultAlbum().getName());
 			}
 			
 			return convertView;

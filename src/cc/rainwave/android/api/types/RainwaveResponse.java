@@ -142,8 +142,8 @@ public class RainwaveResponse implements Parcelable {
     
     public void updateSongRatings(GenericResult result) {
         Song s = getCurrentSong();
-        final Album album = s.albums[0];
-        s.rating_user = result.rating_user;
+        final Album album = s.getDefaultAlbum();
+        s.setUserRating(result.rating_user);
         // FIXME: album ratings come in as array "updated_album_ratings"
         // FIXME: album.rating_user = result.album_rating;
     }

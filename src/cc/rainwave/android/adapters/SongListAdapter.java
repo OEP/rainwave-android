@@ -120,13 +120,13 @@ public class SongListAdapter extends BaseAdapter {
 
 	@Override
 	public long getItemId(int i) {
-		return (mSongs == null) ? -1 : mSongs.get(i).id;
+		return (mSongs == null) ? -1 : mSongs.get(i).getId();
 	}
 	
 	public void markVoted(int elec_entry_id) {
 		for(int i = 0; i < mSongs.size(); i++) {
 			Song s = mSongs.get(i);
-			if(s.entry_id == elec_entry_id) {
+			if(s.getElectionEntryId() == elec_entry_id) {
 				mLastVote = elec_entry_id;
 				setVoteStatus(true);
 				return;
@@ -152,18 +152,18 @@ public class SongListAdapter extends BaseAdapter {
 			convertView = inflater.inflate(mItemLayout, null);
 			mViews.set(i, convertView);
 			
-			setTextIfExists(convertView, R.id.song, s.title);
-			setTextIfExists(convertView, R.id.album, s.albums[0].getName());
+			setTextIfExists(convertView, R.id.song, s.getTitle());
+			setTextIfExists(convertView, R.id.album, s.getDefaultAlbum().getName());
 			setTextIfExists(convertView, R.id.artist, s.collapseArtists());
 			
 			if(s.isRequest()) {
 				setImageIfExists(convertView, R.id.accent, R.drawable.accent_song_hilight);
 				setVisibilityIfExists(convertView, R.id.requestor, View.VISIBLE);
 				setTextIfExists(convertView, R.id.requestor,
-						String.format(r.getString(R.string.label_requestor), s.song_requestor));
+						String.format(r.getString(R.string.label_requestor), s.getRequestor()));
 			}
 			
-			if(s.entry_id == mLastVote) {
+			if(s.getElectionEntryId() == mLastVote) {
 				setVoted(((CountdownView)convertView.findViewById(R.id.circle)));
 			}
 			else {
@@ -218,7 +218,7 @@ public class SongListAdapter extends BaseAdapter {
 	}
 	
 	private void reflectSong(CountdownView v, Song s) {
-		v.setBoth(s.rating_user, s.rating);
+		v.setBoth(s.getUserRating(), s.getCommunityRating());
 		v.setAlternateText(R.string.label_unrated);
 	}
 	
@@ -291,7 +291,7 @@ public class SongListAdapter extends BaseAdapter {
 			mSong = params[0];
 			
 			try {
-				GenericResult result = mSession.vote(mSong.entry_id);
+				GenericResult result = mSession.vote(mSong.getElectionEntryId());
 				return true;
 			} catch (IOException e) {
 				Rainwave.showError(SongListAdapter.this.mContext, e);

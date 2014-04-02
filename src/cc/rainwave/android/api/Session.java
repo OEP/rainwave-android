@@ -159,7 +159,7 @@ public class Session {
     		throws IOException, RainwaveException {
     	return post(
     			"delete_request", 
-    			"song_id", String.valueOf(request.requestq_id)
+    			"song_id", String.valueOf(request.getRequestQueueId())
     	);
     }
 
@@ -269,6 +269,7 @@ public class Session {
     private Gson getGson() {
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(Album.class, new Album.Deserializer());
+        builder.registerTypeAdapter(Song.class, new Song.Deserializer());
         return builder.create();
     }
 
