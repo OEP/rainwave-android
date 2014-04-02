@@ -141,7 +141,6 @@ public class Album implements Parcelable, Comparable<Album> {
 		public Album deserialize(
 			JsonElement element, Type type,	JsonDeserializationContext ctx
 		) throws JsonParseException {
-			final JsonObject obj = element.getAsJsonObject();
 			final Album a = new Album();
 			a.mArt = JsonHelper.getString(element, "art");
 			a.mRating = JsonHelper.getFloat(element, "rating");
@@ -149,7 +148,15 @@ public class Album implements Parcelable, Comparable<Album> {
 			a.mName = JsonHelper.getString(element, "name");
 			a.mArt = JsonHelper.getString(element, "art");
 			a.mId = JsonHelper.getInt(element, "id");
-			a.mSongs = ctx.deserialize(obj.get("songs"), Song[].class);
+			
+			// songs may not always be returned by API
+			if(JsonHelper.hasMember(element, "songs")) {
+				a.mSongs = ctx.deserialize(JsonHelper.getJsonArray(element, "songs"), Song[].class);
+			}
+			else {
+				a.mSongs = null;
+			}
+			
 			return a;
 		}
 	}

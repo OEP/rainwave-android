@@ -1,5 +1,6 @@
 package cc.rainwave.android.api;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -7,21 +8,45 @@ import com.google.gson.JsonPrimitive;
 
 public class JsonHelper {
 	
-	public static JsonElement getChild(final JsonElement element, final String name) {
-		if(!element.isJsonObject()) {
-			throw new JsonParseException(String.format("While fetching '%s': not a JSON object.", name));
+	private static void throwParseError(final String msg) {
+		throwParseError(msg, null);
+	}
+	
+	private static void throwParseError(final String msg, final String prefix) {
+		String composite = msg;
+		if(prefix != null) {
+			composite = String.format("%s: %s", prefix, msg);
 		}
-		final JsonObject obj = element.getAsJsonObject();
+		throw new JsonParseException(composite);
+	}
+	
+	public static JsonObject castAsJsonObject(final JsonElement element, final String prefix) {
+		if(!element.isJsonObject()) {
+			throwParseError("Could not cast as JSON object.", prefix);
+		}
+		return element.getAsJsonObject();
+	}
+	
+	public static JsonElement getChild(final JsonElement element, final String name) {
+		final JsonObject obj = castAsJsonObject(element, String.format("While fetching '%s'", name));
 		if(!obj.has(name)) {
-			throw new JsonParseException(String.format("No such member: '%s'", name));
+			throwParseError(String.format("No such member: '%s'", name));
 		}
 		return obj.get(name);
+	}
+	
+	public static JsonArray getJsonArray(final JsonElement element, final String name) {
+		final JsonElement child = getChild(element, name);
+		if(!child.isJsonArray()) {
+			throwParseError(String.format("Not a JSON array: '%s'", name));
+		}
+		return child.getAsJsonArray();
 	}
 	
 	public static JsonPrimitive getPrimitive(final JsonElement element, final String name) {
 		final JsonElement child = getChild(element, name);
 		if(!child.isJsonPrimitive()) {
-			throw new JsonParseException(String.format("Not a JSON primitive: '%s'", name));
+			throwParseError(String.format("Not a JSON primitive: '%s'", name));
 		}
 		return child.getAsJsonPrimitive();
 	}
@@ -29,7 +54,7 @@ public class JsonHelper {
 	public static Number getNumber(final JsonElement element, final String name) {
 		final JsonPrimitive primitive = getPrimitive(element, name);
 		if(!primitive.isNumber()) {
-			throw new JsonParseException(String.format("Not a JSON number: '%s'", name));
+			throwParseError(String.format("Not a JSON number: '%s'", name));
 		}
 		return primitive.getAsNumber();
 	}
@@ -41,11 +66,16 @@ public class JsonHelper {
 	public static int getInt(final JsonElement element, final String name) {
 		return getNumber(element, name).intValue();
 	}
+	
+	public static boolean hasMember(final JsonElement element, final String name) {
+		final JsonObject obj = castAsJsonObject(element, String.format("Checking for member '%s'", name));
+		return obj.has(name);
+	}
 
 	public static String getString(final JsonElement element, final String name) {
 		final JsonPrimitive primitive = getPrimitive(element, name);
 		if(!primitive.isString()) {
-			throw new JsonParseException(String.format("Not a string: '%s'", name));
+			throwParseError(String.format("Not a string: '%s'", name));
 		}
 		return primitive.getAsString();
 	}
