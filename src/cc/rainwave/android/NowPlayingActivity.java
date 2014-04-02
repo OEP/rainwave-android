@@ -903,12 +903,14 @@ public class NowPlayingActivity extends Activity {
         	
             Bundle b = new Bundle();
             try {
-                RainwaveResponse organizer =
-                        (mInit)
-                        	? (mSession.isAuthenticated())
-                        			? mSession.syncInit()
-                        			: mSession.asyncGet()
-                        	: mSession.syncGet(mOrganizer);
+                RainwaveResponse organizer;
+                
+                if(mInit) {
+                	organizer = mSession.info();
+                }
+                else {
+                	organizer = mSession.sync();
+                }
             	     			
                 // fetch stations if we don't have them
             	if(mOrganizer == null || mOrganizer.getStations() == null) {

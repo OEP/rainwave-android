@@ -494,7 +494,7 @@ public class PlaylistActivity extends ListActivity {
 			int song_id = args[0];
 			
 			try {
-				return mSession.request(song_id);
+				return mSession.submitRequest(song_id);
 			} catch (IOException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "IO Error: " + e);

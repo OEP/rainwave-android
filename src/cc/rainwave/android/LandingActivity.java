@@ -164,7 +164,7 @@ public class LandingActivity extends Activity {
             
             Bundle b = new Bundle();
             try {
-            	RainwaveResponse organizer = mSession.syncInit();
+            	RainwaveResponse organizer = mSession.info();
                 b.putParcelable(Rainwave.SCHEDULE, organizer);
                 return b;
             } catch (IOException e) {
