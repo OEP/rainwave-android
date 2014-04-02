@@ -81,7 +81,7 @@ public class Session {
     }
     
     public Album[] getAlbums() throws IOException, RainwaveException {
-    	return post("all_albums").playlist_all_albums;
+    	return post("all_albums").all_albums;
     }
     
     public Artist[] getArtists() throws IOException, RainwaveException {
@@ -98,7 +98,7 @@ public class Session {
     	return post(
     		"album",
     		"id", String.valueOf(album_id)
-    	).playlist_album;
+    	).album;
     }
     
     public RainwaveResponse submitRequest(int song_id) throws IOException, RainwaveException {
@@ -219,6 +219,7 @@ public class Session {
         Gson gson = getGson();
         JsonParser parser = new JsonParser();
         JsonElement json = parser.parse(getReader(conn));
+        
         RainwaveResponse response;
         
         try {

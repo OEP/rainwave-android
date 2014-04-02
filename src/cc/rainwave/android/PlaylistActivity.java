@@ -198,7 +198,7 @@ public class PlaylistActivity extends ListActivity {
 					setListAdapter(null);
 					mMode = MODE_DETAIL_ALBUM;
 					Album choice = adapter.getItem(position);
-					fetchAlbum(choice.album_id);
+					fetchAlbum(choice.id);
 				}
 				else if(mMode == MODE_TOP_LEVEL) {
 					ArrayAdapter<Artist> adapter = (ArrayAdapter<Artist>) getListAdapter();
@@ -456,6 +456,7 @@ public class PlaylistActivity extends ListActivity {
 		
 		protected void onPostExecute(Album result) {
 			if(result == null){
+				Log.d(TAG, "Album fetch failed!");
 				mFetchAlbum = null;
 				return;
 			}

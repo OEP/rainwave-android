@@ -13,7 +13,7 @@ public class Album implements Parcelable, Comparable<Album> {
 	public String name;
 	public String art;
 	
-	public int album_id;
+	public int id;
 	
 	public Song song_data[];
 	
@@ -23,7 +23,7 @@ public class Album implements Parcelable, Comparable<Album> {
 		this.rating_user = source.readFloat();
 		this.name = source.readString();
 		this.art = source.readString();
-		this.album_id = source.readInt();
+		this.id = source.readInt();
 		final Parcelable tmpSongs[] = source.readParcelableArray(Song[].class.getClassLoader());
 		
 		this.song_data = new Song[tmpSongs.length];
@@ -62,7 +62,7 @@ public class Album implements Parcelable, Comparable<Album> {
 		dest.writeFloat(rating_user);
 		dest.writeString(name);
 		dest.writeString(art);
-		dest.writeInt(album_id);
+		dest.writeInt(id);
 		dest.writeParcelableArray(song_data, flags);
 	}
 	
