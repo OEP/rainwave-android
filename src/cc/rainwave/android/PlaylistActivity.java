@@ -443,6 +443,7 @@ public class PlaylistActivity extends ListActivity {
 		protected Album doInBackground(Integer ... args) {
 			int album_id = args[0];
 			try {
+				Log.d(TAG, "Fetching album...");
 				return mSession.getDetailedAlbum(album_id);
 			} catch (IOException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
@@ -451,6 +452,7 @@ public class PlaylistActivity extends ListActivity {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "API Error: " + e);
 			}
+			Log.d(TAG, "Error fetching album!");
 			return null;
 		}
 		

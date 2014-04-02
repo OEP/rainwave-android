@@ -85,13 +85,13 @@ public class Session {
     }
     
     public Artist[] getArtists() throws IOException, RainwaveException {
-    	return post("all_artists").artist_list;
+    	return post("all_artists").all_artists;
     }
     
     public Artist getDetailedArtist(int artist_id) throws IOException, RainwaveException {
     	return post("artist",
     		"id", String.valueOf(artist_id)
-    	).artist_detail;
+    	).artist;
     }
     
     public Album getDetailedAlbum(int album_id) throws IOException, RainwaveException {

@@ -17,9 +17,9 @@ public class RainwaveResponse implements Parcelable {
     
     public Album[] all_albums;
     
-    public Artist[] artist_list;
+    public Artist[] all_artists;
     
-    public Artist artist_detail;
+    public Artist artist;
     
     public Album album;
     
