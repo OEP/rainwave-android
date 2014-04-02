@@ -756,7 +756,7 @@ public class NowPlayingActivity extends Activity {
      */
     private void updateSongInfo(Song current) {
     	((TextView) findViewById(R.id.np_songTitle)).setText(current.title);
-    	((TextView) findViewById(R.id.np_albumTitle)).setText(current.albums[0].name);
+    	((TextView) findViewById(R.id.np_albumTitle)).setText(current.albums[0].getName());
     	((TextView) findViewById(R.id.np_artist)).setText(current.collapseArtists());
     	
     	ImageView accent = (ImageView)findViewById(R.id.np_accent);
@@ -784,7 +784,7 @@ public class NowPlayingActivity extends Activity {
     	   .setBothValues(current.rating_user, current.rating);
     	
     	((HorizontalRatingBar) findViewById(R.id.np_albumRating))
- 	       .setBothValues(album.rating_user, album.rating);
+ 	       .setBothValues(album.getUserRating(), album.getRating());
     }
     
     /**
@@ -933,7 +933,7 @@ public class NowPlayingActivity extends Activity {
                 if(!organizer.hasError()) {
                     Song song = organizer.getCurrentSong();
                     try {
-                    	final String art = song.albums[0].art;
+                    	final String art = song.albums[0].getArt();
                     	if(art != null && art.length() > 0) {
                     		final int minWidth = (NowPlayingActivity.this.findViewById(R.id.np_albumArt)).getWidth();
 	                    	final Bitmap bmArt = mSession.fetchAlbumArt(art, minWidth);

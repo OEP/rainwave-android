@@ -77,8 +77,8 @@ public class PlaylistActivity extends ListActivity {
 	private Comparator<Song> mArtistSongComparator = new Comparator<Song>() {
 		@Override
 		public int compare(Song lhs, Song rhs) {
-			final String lhsAlbumName = lhs.albums[0].name;
-			final String rhsAlbumName = rhs.albums[0].name;
+			final String lhsAlbumName = lhs.albums[0].getName();
+			final String rhsAlbumName = rhs.albums[0].getName();
 			if(!lhsAlbumName.equals(rhsAlbumName)) {
 				return lhsAlbumName.compareTo(rhsAlbumName);
 			}
@@ -101,7 +101,7 @@ public class PlaylistActivity extends ListActivity {
 				return (lhs.isCooling()) ? 1 : -1;
 			}
 			
-			return lhs.name.toLowerCase().compareTo(rhs.name.toLowerCase());
+			return lhs.getName().toLowerCase().compareTo(rhs.getName().toLowerCase());
 		}
 	};
 	
@@ -198,7 +198,7 @@ public class PlaylistActivity extends ListActivity {
 					setListAdapter(null);
 					mMode = MODE_DETAIL_ALBUM;
 					Album choice = adapter.getItem(position);
-					fetchAlbum(choice.id);
+					fetchAlbum(choice.getId());
 				}
 				else if(mMode == MODE_TOP_LEVEL) {
 					ArrayAdapter<Artist> adapter = (ArrayAdapter<Artist>) getListAdapter();
@@ -462,7 +462,7 @@ public class PlaylistActivity extends ListActivity {
 				mFetchAlbum = null;
 				return;
 			}
-			mSongs = result.song_data;
+			mSongs = result.cloneSongs();
 			updateView();
 			mFetchAlbum = null;
 		}
@@ -580,7 +580,7 @@ public class PlaylistActivity extends ListActivity {
 			}
 			else {
 				holder.circle.setVisibility(View.GONE);
-				holder.text2.setText(s.albums[0].name);
+				holder.text2.setText(s.albums[0].getName());
 			}
 			
 			return convertView;

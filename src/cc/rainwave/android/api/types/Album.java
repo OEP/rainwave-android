@@ -1,39 +1,94 @@
 package cc.rainwave.android.api.types;
 
+import java.lang.reflect.Type;
+
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+
 import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Album implements Parcelable, Comparable<Album> {
-	public boolean album_favourite;
+	/** Flag indicating a user's favorite album. */
+	private boolean mFavourite;
 	
-	public long album_lowest_oa;
+	/** The next time the album may be requested (UTC timestamp). */
+	private long mLowestCooldown;
 	
-	public float rating, rating_user;
+	/** Community rating of album. */
+	private float mRating;
 	
-	public String name;
-	public String art;
+	/** User rating of album. */
+	private float mUserRating;
 	
-	public int id;
+	/** Partial path to album art. */
+	private String mArt;
 	
-	public Song song_data[];
+	/** Name of album. */
+	private String mName;
+	
+	/** Album ID. */
+	private int mId;
+	
+	/** Songs in album. */
+	private Song mSongs[];
+	
+	private Album() {
+		
+	}
 	
 	private Album(Parcel source) {
-		this.album_lowest_oa = source.readLong();
-		this.rating = source.readFloat();
-		this.rating_user = source.readFloat();
-		this.name = source.readString();
-		this.art = source.readString();
-		this.id = source.readInt();
+		mLowestCooldown = source.readLong();
+		mRating = source.readFloat();
+		mUserRating = source.readFloat();
+		mName = source.readString();
+		mArt = source.readString();
+		mId = source.readInt();
 		final Parcelable tmpSongs[] = source.readParcelableArray(Song[].class.getClassLoader());
 		
-		this.song_data = new Song[tmpSongs.length];
+		mSongs = new Song[tmpSongs.length];
 		for(int i = 0; i < tmpSongs.length; i++) {
-			this.song_data[i] = (Song) tmpSongs[i];
+			mSongs[i] = (Song) tmpSongs[i];
 		}
+	}
+	
+	public String getName() {
+		return mName;
+	}
+	
+	public String getArt() {
+		return mArt;
+	}
+	
+	public float getUserRating() {
+		return mUserRating;
+	}
+	
+	public int getId() {
+		return mId;
+	}
+	
+	public int getSongCount() {
+		return mSongs.length;
+	}
+	
+	public Song getSong(int i) {
+		return mSongs[i];
+	}
+	
+	public Song[] cloneSongs() {
+		return mSongs.clone();
+	}
+	
+	public float getRating() {
+		return mUserRating;
 	}
 
 	public String toString() {
-		return name;
+		return getName();
 	}
 	
 	public boolean isCooling() {
@@ -42,12 +97,12 @@ public class Album implements Parcelable, Comparable<Album> {
 	
 	public long getCooldown() {
 		long utc = System.currentTimeMillis() / 1000;
-		return album_lowest_oa - utc;
+		return mLowestCooldown - utc;
 	}
 
 	@Override
 	public int compareTo(Album a) {
-		return name.compareTo(a.name);
+		return getName().compareTo(a.getName());
 	}
 
 	@Override
@@ -57,13 +112,13 @@ public class Album implements Parcelable, Comparable<Album> {
 	
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeLong(album_lowest_oa);
-		dest.writeFloat(rating);
-		dest.writeFloat(rating_user);
-		dest.writeString(name);
-		dest.writeString(art);
-		dest.writeInt(id);
-		dest.writeParcelableArray(song_data, flags);
+		dest.writeLong(mLowestCooldown);
+		dest.writeFloat(getRating());
+		dest.writeFloat(getUserRating());
+		dest.writeString(getName());
+		dest.writeString(getArt());
+		dest.writeInt(getId());
+		dest.writeParcelableArray(mSongs, flags);
 	}
 	
     public static final Parcelable.Creator<Album> CREATOR
@@ -78,4 +133,22 @@ public class Album implements Parcelable, Comparable<Album> {
             return new Album[size];
         }
     };
+
+	public static class Deserializer implements JsonDeserializer<Album> {
+		@Override
+		public Album deserialize(
+			JsonElement element, Type type,	JsonDeserializationContext ctx
+		) throws JsonParseException {
+			final JsonObject obj = element.getAsJsonObject();
+			final Album a = new Album();
+			a.mArt = obj.get("art").getAsString();
+			a.mRating = obj.get("rating").getAsFloat();
+			a.mUserRating = obj.get("rating_user").getAsFloat();
+			a.mName = obj.get("name").getAsString();
+			a.mArt = obj.get("art").getAsString();
+			a.mId = obj.get("id").getAsInt();
+			a.mSongs = ctx.deserialize(obj.get("songs"), Song.class);
+			return a;
+		}
+	}
 }

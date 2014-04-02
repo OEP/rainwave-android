@@ -153,7 +153,7 @@ public class SongListAdapter extends BaseAdapter {
 			mViews.set(i, convertView);
 			
 			setTextIfExists(convertView, R.id.song, s.title);
-			setTextIfExists(convertView, R.id.album, s.albums[0].name);
+			setTextIfExists(convertView, R.id.album, s.albums[0].getName());
 			setTextIfExists(convertView, R.id.artist, s.collapseArtists());
 			
 			if(s.isRequest()) {

@@ -91,8 +91,8 @@ public class Song implements Parcelable, Comparable<Song> {
 	
 	@Override
 	public int compareTo(Song s) {
-		final String album_name = albums[0].name;
-		final String other_album_name = s.albums[0].name;
+		final String album_name = albums[0].getName();
+		final String other_album_name = s.albums[0].getName();
 		if(album_name != null && other_album_name != null && !album_name.equals(other_album_name)) {
 			return album_name.compareTo(other_album_name);
 		}
