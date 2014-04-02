@@ -72,7 +72,7 @@ public class Session {
     public GenericResult vote(int elecId)
     		throws IOException, RainwaveException {
     	return post("vote",
-    			"elec_entry_id", String.valueOf(elecId)
+    			"entry_id", String.valueOf(elecId)
     	).vote_result;
     }
     
@@ -248,8 +248,8 @@ public class Session {
     
     private void handleError(GenericResult result) throws RainwaveException {
     	if(result == null) return;
-        if(result.code != 1) {
-            throw new RainwaveException(result.code,result.text);
+        if(!result.success) {
+            throw new RainwaveException(0, result.text);
         }
     }
 

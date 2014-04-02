@@ -111,7 +111,7 @@ public class Rainwave {
     }
     
     public static void showError(Context ctx, RainwaveException e) {
-    	showError(ctx, e.getCode(), e.getMessage());
+    	showError(ctx, 1, e.getMessage());
     }
     
     public static void showError(Context ctx, IOException e) {

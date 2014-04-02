@@ -2,7 +2,7 @@ package cc.rainwave.android.api.types;
 
 public class GenericResult {
 	/** Result code returned with many actions */
-    public int code;
+    public boolean success;
     
     /** Message associated with result for many actions */
     public String text;
