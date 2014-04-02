@@ -212,7 +212,7 @@ public class Session {
             conn = HttpHelper.makePost(mBaseUrl, path, httpArgs.encode());
         }
         else {
-            conn = HttpHelper.makeGet(mBaseUrl, path, "");
+            conn = HttpHelper.makeGet(mBaseUrl, String.format("%s?%s", path, httpArgs.encode()), null);
         }
 
         // Convert the json into Java objects.
