@@ -84,6 +84,11 @@ public class JsonHelper {
 		final JsonObject obj = castAsJsonObject(element, String.format("Checking for member '%s'", name));
 		return obj.has(name);
 	}
+	
+	public static boolean isNull(final JsonElement element, final String name) {
+		final JsonElement child = getChild(element, name);
+		return child.isJsonNull();
+	}
 
 	public static String getString(final JsonElement element, final String name) {
 		final JsonElement child = getChild(element, name);
@@ -106,28 +111,28 @@ public class JsonHelper {
 	}
 	
 	public static boolean getBoolean(final JsonElement element, final String name, boolean defaultValue) {
-		if(hasMember(element, name)) {
+		if(hasMember(element, name) && !isNull(element, name)) {
 			return getBoolean(element, name);
 		}
 		return defaultValue;
 	}
 	
 	public static long getLong(final JsonElement element, final String name, long defaultValue) {
-		if(hasMember(element, name)) {
+		if(hasMember(element, name) && !isNull(element, name)) {
 			return getLong(element, name);
 		}
 		return defaultValue;
 	}
 	
 	public static int getInt(final JsonElement element, final String name, int defaultValue) {
-		if(hasMember(element, name)) {
+		if(hasMember(element, name) && !isNull(element, name)) {
 			return getInt(element, name);
 		}
 		return defaultValue;
 	}
 	
 	public static float getFloat(final JsonElement element, final String name, float defaultValue) {
-		if(hasMember(element, name)) {
+		if(hasMember(element, name) && !isNull(element, name)) {
 			return getFloat(element, name);
 		}
 		return defaultValue;
