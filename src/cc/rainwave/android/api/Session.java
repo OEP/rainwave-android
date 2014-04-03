@@ -161,7 +161,7 @@ public class Session {
     		throws IOException, RainwaveException {
     	return post(
     			"delete_request", 
-    			"song_id", String.valueOf(request.getRequestQueueId())
+    			"song_id", String.valueOf(request.getId())
     	);
     }
 

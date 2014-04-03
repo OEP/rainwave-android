@@ -261,14 +261,14 @@ public class Rainwave {
      */
     public static String makeRequestQueueString(Song requests[]) {
     	if(requests == null || requests.length == 0) return "";
-    	if(requests.length == 1) return String.valueOf(requests[0].getRequestQueueId());
+    	if(requests.length == 1) return String.valueOf(requests[0].getId());
     	
     	StringBuilder sb = new StringBuilder();
-    	sb.append(requests[0].getRequestQueueId());
+    	sb.append(requests[0].getId());
     	
     	for(int i = 1; i < requests.length; i++) {
     		sb.append(",");
-    		sb.append(requests[i].getRequestQueueId());
+    		sb.append(requests[i].getId());
     	}
     	
     	return sb.toString();

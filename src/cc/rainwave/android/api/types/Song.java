@@ -27,9 +27,6 @@ public class Song implements Parcelable, Comparable<Song> {
 	/** Request status enumeration code. */
 	private int mIsRequest;
 	
-	/** Request queue ID. */
-	private int mRequestQueueId;
-	
 	/** Song length in seconds */
 	private int mSecondsLong;
 	
@@ -121,10 +118,6 @@ public class Song implements Parcelable, Comparable<Song> {
 	 */
 	public String getRequestor() {
 		return mRequestor;
-	}
-	
-	public int getRequestQueueId() {
-		return mRequestQueueId;
 	}
 	
 	public boolean isRequest() {
