@@ -90,7 +90,7 @@ public class PlaylistActivity extends ListActivity {
 	private Comparator<Artist> mArtistComparator = new Comparator<Artist>() {
 		@Override
 		public int compare(Artist lhs, Artist rhs) {
-			return lhs.name.toLowerCase().compareTo(rhs.name.toLowerCase());
+			return lhs.getName().toLowerCase().compareTo(rhs.getName().toLowerCase());
 		}
 	};
 	
@@ -206,7 +206,7 @@ public class PlaylistActivity extends ListActivity {
 					setListAdapter(null);
 					mMode = MODE_DETAIL_ARTIST;
 					Artist choice = adapter.getItem(position);
-					fetchArtist(choice.id);
+					fetchArtist(choice.getId());
 				}
 			}
     	});
@@ -432,7 +432,7 @@ public class PlaylistActivity extends ListActivity {
 				mFetchArtist = null;
 				return;
 			}
-			mSongs = result.songs;
+			mSongs = result.cloneSongs();
 			updateView();
 			mFetchArtist = null;
 		}

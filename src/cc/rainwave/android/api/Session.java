@@ -272,6 +272,7 @@ public class Session {
         builder.registerTypeAdapter(Album.class, new Album.Deserializer());
         builder.registerTypeAdapter(Song.class, new Song.Deserializer());
         builder.registerTypeAdapter(Event.class, new Event.Deserializer());
+        builder.registerTypeAdapter(Artist.class, new Artist.Deserializer());
         return builder.create();
     }
 

@@ -140,12 +140,12 @@ public class Song implements Parcelable, Comparable<Song> {
 		if(mArtists == null) return "???";
 	    switch(mArtists.length) {
 	        case 0: return "???";
-	        case 1: return mArtists[0].name;
-	        case 2: return mArtists[0].name + " " + and + " " + mArtists[1].name;
+	        case 1: return mArtists[0].getName();
+	        case 2: return mArtists[0].getName() + " " + and + " " + mArtists[1].getName();
 	        default:
 	            StringBuilder sb = new StringBuilder();
 	            for(int i = 0; i < mArtists.length; i++) {
-	                sb.append(mArtists[i].name);
+	                sb.append(mArtists[i].getName());
 	                
 	                if(i < mArtists.length - 2) {
 	                    sb.append(comma);
@@ -225,8 +225,8 @@ public class Song implements Parcelable, Comparable<Song> {
 		) throws JsonParseException {
 			final Song s = new Song();
 			s.mEntryId = JsonHelper.getInt(element, "entry_id", -1);
-			s.mRating = JsonHelper.getFloat(element, "rating");
-			s.mUserRating = JsonHelper.getFloat(element, "rating_user");
+			s.mRating = JsonHelper.getFloat(element, "rating", 0.0f);
+			s.mUserRating = JsonHelper.getFloat(element, "rating_user", 0.0f);
 			s.mTitle = JsonHelper.getString(element, "title");
 			s.mId = JsonHelper.getInt(element, "id");
 			s.mAlbums = ctx.deserialize(JsonHelper.getJsonArray(element, "albums", null), Album[].class);

@@ -104,6 +104,13 @@ public class JsonHelper {
 		return defaultValue;
 	}
 	
+	public static float getFloat(final JsonElement element, final String name, float defaultValue) {
+		if(hasMember(element, name)) {
+			return getFloat(element, name);
+		}
+		return defaultValue;
+	}
+	
 	public static String getString(final JsonElement element, final String name, final String defaultValue) {
 		if(hasMember(element, name)) {
 			return getString(element, name);
