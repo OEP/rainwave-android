@@ -930,7 +930,8 @@ public class NowPlayingActivity extends Activity {
                 
                 b.putParcelable(Rainwave.SCHEDULE, organizer);
                 
-                if(!organizer.hasError()) {
+                // not all sync events mean that an event has passed, i.e. the user could have tuned in/out.
+                if(!organizer.hasError() && organizer.getCurrentEvent() != null) {
                     Song song = organizer.getCurrentEvent().getCurrentSong();
                     try {
                     	final String art = song.getDefaultAlbum().getArt();
