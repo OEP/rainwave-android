@@ -97,9 +97,23 @@ public class JsonHelper {
 		return primitive.getAsString();
 	}
 	
+	public static int getInt(final JsonElement element, final String name, int defaultValue) {
+		if(hasMember(element, name)) {
+			return getInt(element, name);
+		}
+		return defaultValue;
+	}
+	
 	public static String getString(final JsonElement element, final String name, final String defaultValue) {
 		if(hasMember(element, name)) {
 			return getString(element, name);
+		}
+		return defaultValue;
+	}
+	
+	public static JsonArray getJsonArray(final JsonElement element, final String name, final JsonArray defaultValue) {
+		if(hasMember(element, name)) {
+			return getJsonArray(element, name);
 		}
 		return defaultValue;
 	}

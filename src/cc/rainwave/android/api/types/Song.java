@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 
 import cc.rainwave.android.api.JsonHelper;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -223,13 +224,13 @@ public class Song implements Parcelable, Comparable<Song> {
 			JsonElement element, Type type,	JsonDeserializationContext ctx
 		) throws JsonParseException {
 			final Song s = new Song();
-			s.mEntryId = JsonHelper.getInt(element, "entry_id");
+			s.mEntryId = JsonHelper.getInt(element, "entry_id", -1);
 			s.mRating = JsonHelper.getFloat(element, "rating");
 			s.mUserRating = JsonHelper.getFloat(element, "rating_user");
 			s.mTitle = JsonHelper.getString(element, "title");
 			s.mId = JsonHelper.getInt(element, "id");
-			s.mAlbums = ctx.deserialize(JsonHelper.getJsonArray(element, "albums"), Album[].class);
-			s.mArtists = ctx.deserialize(JsonHelper.getJsonArray(element, "artists"), Artist[].class);
+			s.mAlbums = ctx.deserialize(JsonHelper.getJsonArray(element, "albums", null), Album[].class);
+			s.mArtists = ctx.deserialize(JsonHelper.getJsonArray(element, "artists", null), Artist[].class);
 			return s;
 		}
 	}
