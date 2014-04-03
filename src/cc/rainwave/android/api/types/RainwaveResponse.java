@@ -120,7 +120,7 @@ public class RainwaveResponse implements Parcelable {
     		return null;
     	}
     	for(int i = 0; i < stations.length; i++) {
-    		if(stationId == stations[i].id) return stations[i];
+    		if(stationId == stations[i].getId()) return stations[i];
     	}
     	return null;
     }
@@ -131,7 +131,7 @@ public class RainwaveResponse implements Parcelable {
     
     public String getStationName(int id) {
     	Station s = getStation(id);
-    	return (s == null) ? null : s.name;
+    	return (s == null) ? null : s.getName();
     }
     
     public void setStations(Station[] newStations) {

@@ -163,7 +163,7 @@ public class NowPlayingActivity extends Activity {
 				public void onItemClick(AdapterView<?> parent, View view,
 						int index, long id) {
 					Station s = (Station) listView.getItemAtPosition(index);
-					mSession.setStation(s.id);
+					mSession.setStation(s.getId());
 					NowPlayingActivity.this.dismissDialog(DIALOG_STATION_PICKER);
 					refresh();
 				}
@@ -562,7 +562,7 @@ public class NowPlayingActivity extends Activity {
 		Station s = mOrganizer.getStation(stationId);
 		if(s != null) {
 			Intent i = new Intent(Intent.ACTION_VIEW);
-			i.setDataAndType(Uri.parse(s.stream), "audio/*");
+			i.setDataAndType(Uri.parse(s.getMainStream()), "audio/*");
 			startActivity(i);	
 		}
 		else {

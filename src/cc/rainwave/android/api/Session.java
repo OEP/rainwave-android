@@ -275,6 +275,7 @@ public class Session {
         builder.registerTypeAdapter(Event.class, new Event.Deserializer());
         builder.registerTypeAdapter(Artist.class, new Artist.Deserializer());
         builder.registerTypeAdapter(User.class, new User.Deserializer());
+        builder.registerTypeAdapter(Station.class, new Station.Deserializer());
         return builder.create();
     }
 
