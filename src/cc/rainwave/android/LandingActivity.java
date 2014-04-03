@@ -164,8 +164,8 @@ public class LandingActivity extends Activity {
             
             Bundle b = new Bundle();
             try {
-            	RainwaveResponse organizer = mSession.info();
-                b.putParcelable(Rainwave.SCHEDULE, organizer);
+            	mSession.info();
+//                b.putParcelable(Rainwave.SCHEDULE, organizer);
                 return b;
             } catch (IOException e) {
                 Log.e(TAG, "IOException occured: " + e);
@@ -190,7 +190,7 @@ public class LandingActivity extends Activity {
             	return;
             }
             
-            RainwaveResponse tmp = result.getParcelable(Rainwave.SCHEDULE);
+//            RainwaveResponse tmp = result.getParcelable(Rainwave.SCHEDULE);
             
             if(tmp == null) {
             	return;

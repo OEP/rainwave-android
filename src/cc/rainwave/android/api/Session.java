@@ -8,14 +8,15 @@ import cc.rainwave.android.api.types.Artist;
 import cc.rainwave.android.api.types.Event;
 import cc.rainwave.android.api.types.GenericResult;
 import cc.rainwave.android.api.types.RainwaveException;
-import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.Song;
+import cc.rainwave.android.api.types.SongRating;
 import cc.rainwave.android.api.types.Station;
 import cc.rainwave.android.api.types.User;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
@@ -40,74 +41,118 @@ public class Session {
     
     private Context mContext;
 
-    public int mStation = 1;
+    private int mStation = 1;
 
-    public String mUserId;
+    private String mUserId;
 
-    public String mKey;
+    private String mKey;
 
     private URL mBaseUrl;
-
+    
+    private Event mCurrrentSchedule;
+    
     /** Can't instantiate directly */
-    private Session() {
-    }
+    private Session() { }
 
-    public RainwaveResponse info()
-            throws IOException, RainwaveException {
-        return get("info");
+    public void info() throws IOException, RainwaveException {
+    	final String path = "info";
+    	try {
+    		final JsonElement element = get(path);
+    		// TODO: update schedules
+    	}
+    	catch(final JsonParseException exc) {
+    		throw wrapException(exc, path);
+    	}
     }
     
-    public RainwaveResponse sync()
-            throws IOException, RainwaveException {
-        return post("sync");
+    public void sync() throws IOException, RainwaveException {
+    	final String path = "sync";
+    	try {
+    		final JsonElement element = post(path);
+    		// TODO: update schedules
+    	}
+    	catch(final JsonParseException exc) {
+    		throw wrapException(exc, path);
+    	}
     }
 
-    public GenericResult rateSong(int songId, float rating)
-    		throws IOException, RainwaveException {
+    public SongRating rateSong(int songId, float rating)
+    throws IOException, RainwaveException {
+    	final String path = "rate";
+    	final String returns = "rate_result";
+    	
     	rating = Math.max(1.0f, Math.min(rating, 5.0f));
-    	return post("rate",
-    			"song_id", String.valueOf(songId),
-    			"rating", String.valueOf(rating)
-    	).rate_result;
+    	
+    	return requestObject(Method.POST, path, returns, true, SongRating.class,
+			"song_id", String.valueOf(songId),
+			"rating", String.valueOf(rating)
+    	);
     }
     
-    public GenericResult vote(int elecId)
-    		throws IOException, RainwaveException {
-    	return post("vote",
+    public void vote(int elecId)
+	throws IOException, RainwaveException {
+    	final String path = "vote";
+    	final String returns = "vote_result";
+    	
+    	try {
+	    	final JsonElement element = post(path,
     			"entry_id", String.valueOf(elecId)
-    	).vote_result;
+	    	);
+	    	checkError(JsonHelper.getChild(element, returns));
+    	}
+    	catch(final JsonParseException exc) {
+    		throw wrapException(exc, path);
+    	}
     }
     
     public Station[] getStations() throws IOException, RainwaveException {
-    	return post("stations").getStations();
+    	final String path = "stations";
+    	final String returns = "stations";
+    	return requestObject(Method.POST, path, returns, false, Station[].class);
     }
     
     public Album[] getAlbums() throws IOException, RainwaveException {
-    	return post("all_albums").all_albums;
+    	final String path = "all_albums";
+    	final String returns = "all_albums";
+    	return requestObject(Method.POST, path, returns, false, Album[].class);
     }
     
     public Artist[] getArtists() throws IOException, RainwaveException {
-    	return post("all_artists").all_artists;
+    	final String path = "all_artists";
+    	final String returns = "all_artists";
+    	return requestObject(Method.POST, path, returns, false, Artist[].class);
     }
     
     public Artist getDetailedArtist(int artist_id) throws IOException, RainwaveException {
-    	return post("artist",
+    	final String path = "artist";
+    	final String returns = "artist";
+    	
+    	return requestObject(Method.POST, path, returns, false, Artist.class,
     		"id", String.valueOf(artist_id)
-    	).artist;
+    	);
     }
     
     public Album getDetailedAlbum(int album_id) throws IOException, RainwaveException {
-    	return post(
-    		"album",
+    	final String path = "album";
+    	final String returns = "album";
+    	
+    	return requestObject(Method.POST, path, returns, false, Album.class,
     		"id", String.valueOf(album_id)
-    	).album;
+    	);
     }
     
-    public RainwaveResponse submitRequest(int song_id) throws IOException, RainwaveException {
-    	return post(
-    		"request",
-    		"song_id", String.valueOf(song_id)
-    	);
+    public Song[] submitRequest(int song_id) throws IOException, RainwaveException {
+    	final String path = "request";
+    	
+    	final JsonElement root = post(path, "song_id", String.valueOf(song_id));
+    	try {
+    		final Gson gson = getGson();
+    		checkError(JsonHelper.getChild(root, "request_result"));
+    		return gson.fromJson(JsonHelper.getChild(root, "requests"), Song[].class);
+    	}
+    	catch(final JsonParseException exc) {
+    		throw wrapException(exc, path);
+    	}
     }
     
     /**
@@ -149,17 +194,27 @@ public class Session {
         return BitmapFactory.decodeStream(is);
     }
     
-    public RainwaveResponse reorderRequests(Song requests[])
+    public Song[] reorderRequests(Song requests[])
     		throws IOException, RainwaveException {
-    	return post(
-    			"order_requests", 
-    			"order", Rainwave.makeRequestQueueString(requests)
-    	);
+    	final String path = "request";
+    	
+    	final JsonElement root = post(path,
+			"order_requests", 
+			"order", Rainwave.makeRequestQueueString(requests)
+		);
+    	try {
+    		final Gson gson = getGson();
+    		checkError(JsonHelper.getChild(root, "order_requests_result"));
+    		return gson.fromJson(JsonHelper.getChild(root, "requests"), Song[].class);
+    	}
+    	catch(final JsonParseException exc) {
+    		throw wrapException(exc, path);
+    	}
     }
     
-    public RainwaveResponse deleteRequest(Song request)
+    public void deleteRequest(Song request)
     		throws IOException, RainwaveException {
-    	return post(
+    	post(
     			"delete_request", 
     			"song_id", String.valueOf(request.getId())
     	);
@@ -187,19 +242,18 @@ public class Session {
         return mUserId != null && mKey != null && mUserId.length() > 0 && mKey.length() > 0;
     }
     
-    private RainwaveResponse get(String path, String... params)
+    private JsonElement get(String path, String... params)
     throws IOException, RainwaveException {
-    	return request(false, path, params);
+    	return request(Method.GET, path, params);
     }
     
-    private RainwaveResponse post(String path, String... params)
+    private JsonElement post(String path, String... params)
     throws IOException, RainwaveException {
-    	return request(true, path, params);
+    	return request(Method.POST, path, params);
     }
     
-    private RainwaveResponse request(final boolean post, String path, String... params)
+    private JsonElement request(final Method method, String path, String... params)
             throws IOException, RainwaveException {
-    	
         // Construct arguments
         Arguments httpArgs = new Arguments(params);
         httpArgs.put(NAME_STATION, String.valueOf(mStation));
@@ -210,55 +264,83 @@ public class Session {
         }
 
         HttpURLConnection conn;
-        if (post) {
-            conn = HttpHelper.makePost(mBaseUrl, path, httpArgs.encode());
+        switch(method) {
+        case POST:
+        	conn = HttpHelper.makePost(mBaseUrl, path, httpArgs.encode());
+        	break;
+        case GET:
+        	conn = HttpHelper.makeGet(mBaseUrl, String.format("%s?%s", path, httpArgs.encode()), null);
+        	break;
+        default:
+        	throw new IllegalArgumentException("Unhandled HTTP method!");
         }
-        else {
-            conn = HttpHelper.makeGet(mBaseUrl, String.format("%s?%s", path, httpArgs.encode()), null);
-        }
-
+        
+        JsonParser parser = new JsonParser();
+        return parser.parse(getReader(conn));
+    }
+    
+    /**
+     * Fetches a single object from the API.
+     * 
+     * @param method either Method.GET or Method.POST
+     * @param path endpoint name
+     * @param name member name 
+     * @param checkError check for the success in a member named "success"
+     * @param classOfT
+     * @param params
+     * @return
+     * @throws RainwaveException
+     * @throws IOException
+     */
+    private <T> T requestObject(
+    	final Method method, final String path, final String name,
+    	final boolean checkError, Class<T> classOfT, final String... params
+    ) throws RainwaveException, IOException {
         // Convert the json into Java objects.
         Gson gson = getGson();
-        JsonParser parser = new JsonParser();
-        JsonElement json = parser.parse(getReader(conn));
-        
-        RainwaveResponse response;
+        final JsonElement json = request(method, path, params);
         
         try {
-        	response = gson.fromJson(json, RainwaveResponse.class);
+        	final JsonElement element = JsonHelper.getChild(json, name);
+        	if(checkError) {
+        		checkError(element);
+        	}
+        	return gson.fromJson(element, classOfT);
         }
         catch(JsonParseException e) {
-        	Resources r = mContext.getResources();
-        	String msg = String.format(r.getString(R.string.msgfmt_parseError), path, e.getMessage());
-        	throw new RainwaveException(0, msg);
-        }
-        
-        // Throw an exception if there was some sort of problem.
-        handleErrors(response);
-        
-        return response;
-    }
-    
-    private void handleErrors(RainwaveResponse r)
-    	throws RainwaveException {
-    	handleError(r.error);
-    	handleError(r.request_result);
-    	handleError(r.request_delete_return);
-    	handleError(r.request_reorder_return);
-    	handleError(r.vote_result);
-    	handleError(r.rate_result);
-    }
-    
-    private void handleError(GenericResult result) throws RainwaveException {
-    	if(result == null) return;
-        if(!result.success) {
-            throw new RainwaveException(0, result.text);
+        	throw wrapException(e, path);
         }
     }
-
+    
+    /**
+     * Check for errors in a JSON response. Checks the value of a member
+     * name called "success" and if it is false, throw an error containing
+     * the contents of a field called "text".
+     * 
+     * @param element JSON object to check
+     * @throws RainwaveException if an error is detected
+     */
+    private void checkError(final JsonElement element) throws RainwaveException {
+    	if(!JsonHelper.getBoolean(element, "success")) {
+    		throw new RainwaveException(0,
+    			JsonHelper.getString(element, "text",
+    				mContext.getString(R.string.msg_genericError)
+    			)
+    		);
+    	}
+    }
+    
     private Reader getReader(HttpURLConnection conn)
             throws IOException {
         return new BufferedReader(new InputStreamReader(conn.getInputStream()));
+    }
+    
+    private RainwaveException wrapException(final JsonParseException exc, final String path)
+    throws RainwaveException {
+    	Resources r = mContext.getResources();
+    	String msg = String.format(r.getString(R.string.msgfmt_parseError), path, exc.getMessage());
+    	throw new RainwaveException(0, msg);
+    	
     }
 
     private String getUrl(String path) throws MalformedURLException {
@@ -276,6 +358,8 @@ public class Session {
         builder.registerTypeAdapter(Artist.class, new Artist.Deserializer());
         builder.registerTypeAdapter(User.class, new User.Deserializer());
         builder.registerTypeAdapter(Station.class, new Station.Deserializer());
+        builder.registerTypeAdapter(SongRating.class, new SongRating.Deserializer());
+        builder.registerTypeAdapter(SongRating.AlbumRating.class, new SongRating.AlbumRating.Deserializer());
         return builder.create();
     }
 
@@ -297,6 +381,10 @@ public class Session {
         s.mStation = Rainwave.getLastStation(ctx, s.mStation);
         s.setUserInfo(user,key);
         return s;
+    }
+    
+    private static enum Method {
+    	GET, POST
     }
 
     public static final String
