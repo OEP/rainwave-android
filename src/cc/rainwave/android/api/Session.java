@@ -5,6 +5,7 @@ import cc.rainwave.android.R;
 import cc.rainwave.android.Rainwave;
 import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.Artist;
+import cc.rainwave.android.api.types.Event;
 import cc.rainwave.android.api.types.GenericResult;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.RainwaveResponse;
@@ -270,6 +271,7 @@ public class Session {
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(Album.class, new Album.Deserializer());
         builder.registerTypeAdapter(Song.class, new Song.Deserializer());
+        builder.registerTypeAdapter(Event.class, new Event.Deserializer());
         return builder.create();
     }
 

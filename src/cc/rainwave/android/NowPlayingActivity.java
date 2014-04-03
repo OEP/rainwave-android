@@ -260,7 +260,7 @@ public class NowPlayingActivity extends Activity {
 					if(e.getAction() == MotionEvent.ACTION_UP) {
 						w.unlockCurrentScreen();
 						ActionTask t = new ActionTask();
-						Song s = mOrganizer.getCurrentSong();
+						Song s = mOrganizer.getCurrentEvent().getCurrentSong();
 						t.execute(ActionTask.RATE, s.getId(), rating);
 						b.setLabel(R.string.label_song);
 					}
@@ -650,10 +650,10 @@ public class NowPlayingActivity extends Activity {
     	station.setEnabled(true);
     	
     	// Updates title, album, and artists.
-    	updateSongInfo(response.getCurrentSong());
+    	updateSongInfo(response.getCurrentEvent().getCurrentSong());
     	
     	// Updates song, album ratings.
-    	setRatings(response.getCurrentSong());
+    	setRatings(response.getCurrentEvent().getCurrentSong());
     	
     	// Updates election info.
     	updateElection(response);
@@ -666,7 +666,7 @@ public class NowPlayingActivity extends Activity {
     }
     
     private void updateTunedIn(RainwaveResponse response) {
-    	long end = response.getCurrentEvent().end;
+    	long end = response.getCurrentEvent().getEnd();
     	long utc = System.currentTimeMillis() / 1000;
     	updateTitle(response, (int) (end - utc));
     }
@@ -701,13 +701,13 @@ public class NowPlayingActivity extends Activity {
     	SongListAdapter adapter = new SongListAdapter(
     			this,
     			R.layout.item_song_election,mSession,
-    			new ArrayList<Song>(Arrays.asList(response.getElection()))
+    			new ArrayList<Song>(Arrays.asList(response.getNextEvent().cloneSongs()))
     	);
     	((ListView)findViewById(R.id.np_electionList))
     	   .setAdapter(adapter);
     	
     	// Set vote deadline for when the song ends.
-    	adapter.setDeadline(response.getCurrentEvent().end);
+    	adapter.setDeadline(response.getCurrentEvent().getEnd());
     	
     	// Open the drawer if the user can vote.
     	boolean canVote = !response.hasVoteResult() && response.isTunedIn();
@@ -793,7 +793,7 @@ public class NowPlayingActivity extends Activity {
      */
     private void onRateSong(GenericResult result) {
         mOrganizer.updateSongRatings(result);
-        setRatings(mOrganizer.getCurrentSong());
+        setRatings(mOrganizer.getCurrentEvent().getCurrentSong());
     }
     
     /**
@@ -931,7 +931,7 @@ public class NowPlayingActivity extends Activity {
                 b.putParcelable(Rainwave.SCHEDULE, organizer);
                 
                 if(!organizer.hasError()) {
-                    Song song = organizer.getCurrentSong();
+                    Song song = organizer.getCurrentEvent().getCurrentSong();
                     try {
                     	final String art = song.getDefaultAlbum().getArt();
                     	if(art != null && art.length() > 0) {
@@ -988,7 +988,7 @@ public class NowPlayingActivity extends Activity {
                 syncSchedules();
             }
             
-            startCountdown(mOrganizer.getCurrentEvent().end);
+            startCountdown(mOrganizer.getCurrentEvent().getEnd());
             
             Log.d(TAG, "Exiting successfully.");
         }

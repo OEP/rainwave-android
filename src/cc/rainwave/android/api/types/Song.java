@@ -223,6 +223,7 @@ public class Song implements Parcelable, Comparable<Song> {
 			JsonElement element, Type type,	JsonDeserializationContext ctx
 		) throws JsonParseException {
 			final Song s = new Song();
+			s.mEntryId = JsonHelper.getInt(element, "entry_id");
 			s.mRating = JsonHelper.getFloat(element, "rating");
 			s.mUserRating = JsonHelper.getFloat(element, "rating_user");
 			s.mTitle = JsonHelper.getString(element, "title");

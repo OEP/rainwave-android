@@ -54,16 +54,33 @@ public class RainwaveResponse implements Parcelable {
     
     public RainwaveResponse() { }
 
-    public Song getCurrentSong() {
-        return sched_current.songs[0];
-    }
-    
     public Event getCurrentEvent() {
     	return sched_current;
     }
     
-    public Song[] getElection() {
-    	return sched_next[0].songs;
+    /**
+     * Return the number of known future events.
+     * @return future event count
+     */
+    public int getNextEventCount() {
+    	return sched_next.length;
+    }
+    
+    /**
+     * Get event immediately following the current one.
+     * @return next event
+     */
+    public Event getNextEvent() {
+    	return getNextEvent(0);
+    }
+    
+    /**
+     * Get a future event, in order of occurrence.
+     * @param i index of event
+     * @return requested event
+     */
+    public Event getNextEvent(int i) {
+    	return sched_next[i];
     }
     
     public int getPastVote() {
@@ -141,7 +158,7 @@ public class RainwaveResponse implements Parcelable {
     }
     
     public void updateSongRatings(GenericResult result) {
-        Song s = getCurrentSong();
+        Song s = getCurrentEvent().getCurrentSong();
         final Album album = s.getDefaultAlbum();
         s.setUserRating(result.rating_user);
         // FIXME: album ratings come in as array "updated_album_ratings"

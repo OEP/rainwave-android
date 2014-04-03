@@ -1,5 +1,7 @@
 package cc.rainwave.android.api;
 
+import android.util.Log;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -25,6 +27,13 @@ public class JsonHelper {
 			throwParseError("Could not cast as JSON object.", prefix);
 		}
 		return element.getAsJsonObject();
+	}
+	
+	public static JsonPrimitive castAsJsonPrimitive(final JsonElement element, final String prefix) {
+		if(!element.isJsonPrimitive()) {
+			throwParseError("Could not cast as JSON primitive.", prefix);
+		}
+		return element.getAsJsonPrimitive();
 	}
 	
 	public static JsonElement getChild(final JsonElement element, final String name) {
@@ -67,13 +76,21 @@ public class JsonHelper {
 		return getNumber(element, name).intValue();
 	}
 	
+	public static long getLong(final JsonElement element, final String name) {
+		return getNumber(element, name).longValue();
+	}
+	
 	public static boolean hasMember(final JsonElement element, final String name) {
 		final JsonObject obj = castAsJsonObject(element, String.format("Checking for member '%s'", name));
 		return obj.has(name);
 	}
 
 	public static String getString(final JsonElement element, final String name) {
-		final JsonPrimitive primitive = getPrimitive(element, name);
+		final JsonElement child = getChild(element, name);
+		if(child.isJsonNull()) {
+			return null;
+		}
+		final JsonPrimitive primitive = castAsJsonPrimitive(child, String.format("Casting member '%s'", name));
 		if(!primitive.isString()) {
 			throwParseError(String.format("Not a string: '%s'", name));
 		}
