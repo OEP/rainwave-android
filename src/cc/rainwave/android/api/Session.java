@@ -6,7 +6,6 @@ import cc.rainwave.android.Rainwave;
 import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.Artist;
 import cc.rainwave.android.api.types.Event;
-import cc.rainwave.android.api.types.GenericResult;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.api.types.SongRating;
@@ -16,7 +15,6 @@ import cc.rainwave.android.api.types.User;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
@@ -24,8 +22,8 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
+import android.util.SparseArray;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,6 +33,8 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Session {
     private static final String TAG = "Session";
@@ -49,7 +49,19 @@ public class Session {
 
     private URL mBaseUrl;
     
-    private Event mCurrrentSchedule;
+    private Event mCurrentEvent;
+    
+    private Event[] mNextEvents;
+    
+    private Event[] mEventHistory;
+    
+    private Song[] mRequests;
+    
+    private User mUser;
+    
+    private Station[] mStations;
+    
+    private int mLastVoteId = -1;
     
     /** Can't instantiate directly */
     private Session() { }
@@ -58,7 +70,7 @@ public class Session {
     	final String path = "info";
     	try {
     		final JsonElement element = get(path);
-    		// TODO: update schedules
+    		updateSchedules(element);
     	}
     	catch(final JsonParseException exc) {
     		throw wrapException(exc, path);
@@ -69,11 +81,42 @@ public class Session {
     	final String path = "sync";
     	try {
     		final JsonElement element = post(path);
-    		// TODO: update schedules
+    		updateSchedules(element);
     	}
     	catch(final JsonParseException exc) {
     		throw wrapException(exc, path);
     	}
+    }
+    
+    private void updateSchedules(final JsonElement root) {
+    	final Gson gson = getGson();
+    	mCurrentEvent = getIfExists(root, "sched_current", Event.class, mCurrentEvent);
+    	mNextEvents = getIfExists(root, "sched_next", Event[].class, mNextEvents);
+    	mEventHistory = getIfExists(root, "sched_history", Event[].class, mEventHistory);
+    	mUser = getIfExists(root, "user", User.class, mUser);
+    	mRequests = getIfExists(root, "requests", Song[].class, mRequests);
+    	
+    	// This does some checking to see if the "last_vote" reported by the api actually belongs
+    	// to the current election. If it does, it accepts the ID, otherwise it is set to -1.
+    	if(JsonHelper.hasMember(root, "vote_result")) {
+    		final JsonElement child = JsonHelper.getChild(root, "vote_result");
+    		final int elecId = JsonHelper.getInt(child, "elec_id");
+    		
+    		if(elecId != mCurrentEvent.getId()) {
+    			mLastVoteId = JsonHelper.getInt(JsonHelper.getChild(root, "vote_result"), "entry_id");
+    		}
+    		else {
+    			mLastVoteId = -1;
+    		}
+    	}
+    }
+    
+    private static <T> T getIfExists(final JsonElement root, final String name, Class<T> classOfT, T defaultValue) {
+    	if(JsonHelper.hasMember(root, name)) {
+    		final Gson gson = getGson();
+    		return gson.fromJson(JsonHelper.getChild(root, name), classOfT);
+    	}
+    	return defaultValue;
     }
 
     public SongRating rateSong(int songId, float rating)
@@ -108,7 +151,14 @@ public class Session {
     public Station[] getStations() throws IOException, RainwaveException {
     	final String path = "stations";
     	final String returns = "stations";
-    	return requestObject(Method.POST, path, returns, false, Station[].class);
+    	
+    	if(hasStations()) {
+    		return cloneStations();
+    	}
+    	
+    	mStations = requestObject(Method.POST, path, returns, false, Station[].class);
+    	return cloneStations();
+    	
     }
     
     public Album[] getAlbums() throws IOException, RainwaveException {
@@ -225,9 +275,38 @@ public class Session {
         mKey = key;
     }
     
+    public Song[] cloneRequests() {
+    	return mRequests.clone();
+    }
+    
+    public boolean hasStations() {
+    	return mStations != null;
+    }
+    
+    public boolean hasLastVote() {
+    	return mLastVoteId >= 0;
+    }
+    
+    public int getLastVoteId() {
+    	return mLastVoteId;
+    }
+    
+    public Station[] cloneStations() {
+    	return mStations.clone();
+    }
+    
     public void setStation(int stationId) {
     	mStation = stationId;
     	Rainwave.putLastStation(mContext, stationId);
+    }
+    
+    public Station getStation(int stationId) {
+    	for(int i = 0; i < mStations.length; i++) {
+    		if(mStations[i].getId() == stationId) {
+    			return mStations[i];
+    		}
+    	}
+    	return null;
     }
     
     public String getUrl() {
@@ -238,8 +317,41 @@ public class Session {
     	return mStation;
     }
     
-    public boolean isAuthenticated() {
+    public Event getCurrentEvent() {
+    	return mCurrentEvent;
+    }
+    
+    public Event getNextEvent() {
+    	return mNextEvents[0];
+    }
+    
+    public boolean isTunedIn() {
+    	return mUser != null && mUser.getTunedIn();
+    }
+    
+    /**
+     * Returns true if the server sent a request list on the last sync() or info().
+     * @return
+     */
+    public boolean hasRequests() {
+    	return mRequests != null;
+    }
+    
+    /**
+     * Returns true if we have set credentials via setUserInfo().
+     * @return
+     */
+    public boolean hasCredentials() {
         return mUserId != null && mKey != null && mUserId.length() > 0 && mKey.length() > 0;
+    }
+    
+    /**
+     * Returns true if the server thinks we are authenticated.
+     * 
+     * @return true if authenticated, false otherwise
+     */
+    public boolean isAuthenticated() {
+    	return mUser != null;
     }
     
     private JsonElement get(String path, String... params)
@@ -258,7 +370,7 @@ public class Session {
         Arguments httpArgs = new Arguments(params);
         httpArgs.put(NAME_STATION, String.valueOf(mStation));
 
-        if(this.isAuthenticated()) {
+        if(this.hasCredentials()) {
           httpArgs.put(NAME_USERID, mUserId);
           httpArgs.put(NAME_KEY, mKey);
         }
@@ -350,7 +462,7 @@ public class Session {
         return url.toString();
     }
 
-    private Gson getGson() {
+    private static Gson getGson() {
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(Album.class, new Album.Deserializer());
         builder.registerTypeAdapter(Song.class, new Song.Deserializer());

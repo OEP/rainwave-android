@@ -35,7 +35,6 @@ import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.Artist;
 import cc.rainwave.android.api.types.RainwaveException;
-import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.views.CountdownView;
 
@@ -472,10 +471,6 @@ public class PlaylistActivity extends ListActivity {
 		mHandler.obtainMessage(SET_THE_DATA).sendToTarget();
 	}
 	
-	private void postSuccessfulRequestMessage() {
-		mHandler.obtainMessage(SUCCESSFUL_REQUEST).sendToTarget();
-	}
-	
     private Handler mHandler = new Handler() {
     	public void handleMessage(Message msg) {
     		Bundle data = msg.getData();
@@ -491,9 +486,9 @@ public class PlaylistActivity extends ListActivity {
     	}
     };
     
-    private class RequestTask extends AsyncTask<Integer,Integer,RainwaveResponse> {
+    private class RequestTask extends AsyncTask<Integer, Integer, Song[]> {
 		@Override
-		protected RainwaveResponse doInBackground(Integer... args) {
+		protected Song[] doInBackground(Integer... args) {
 			int song_id = args[0];
 			
 			try {
@@ -508,12 +503,12 @@ public class PlaylistActivity extends ListActivity {
 			return null;
 		}
 		
-		protected void onPostExecute(RainwaveResponse r) {
-			if(r == null){
+		protected void onPostExecute(Song[] songs) {
+			if(songs == null){
 				mRequest = null;
 				return;
 			}
-			postSuccessfulRequestMessage();
+			mHandler.obtainMessage(SUCCESSFUL_REQUEST).sendToTarget();
 			mRequest = null;
 		}
     	
