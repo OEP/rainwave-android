@@ -146,7 +146,6 @@ public class Album implements Parcelable, Comparable<Album> {
 			a.mRating = JsonHelper.getFloat(element, "rating");
 			a.mUserRating = JsonHelper.getFloat(element, "rating_user");
 			a.mName = JsonHelper.getString(element, "name");
-			a.mArt = JsonHelper.getString(element, "art");
 			a.mId = JsonHelper.getInt(element, "id");
 			
 			// songs may not always be returned by API
