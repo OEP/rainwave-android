@@ -13,6 +13,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Event implements Parcelable {
+	private int mId;
 	private Song mSongs[];
 	private long mEnd;
 	
@@ -27,6 +28,10 @@ public class Event implements Parcelable {
         for(int i = 0; i < tmp.length; i++) {
             mSongs[i] = (Song) tmp[i];
         }
+    }
+    
+    public int getId() {
+    	return mId;
     }
     
     public int getSongCount() {
@@ -83,6 +88,7 @@ public class Event implements Parcelable {
 			JsonElement element, Type type,	JsonDeserializationContext ctx
 		) throws JsonParseException {
 			final Event a = new Event();
+			a.mId = JsonHelper.getInt(element, "id");
 			a.mEnd = JsonHelper.getLong(element, "end");
 			a.mSongs = ctx.deserialize(JsonHelper.getJsonArray(element, "songs"), Song[].class);
 			return a;

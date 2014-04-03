@@ -6,7 +6,6 @@ import java.net.MalformedURLException;
 import cc.rainwave.android.adapters.SongListAdapter;
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.RainwaveException;
-import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.api.types.Station;
 
@@ -149,13 +148,13 @@ public class LandingActivity extends Activity {
      * @author pkilgo
      *
      */
-    protected class VerifyCredentials extends AsyncTask<String, Integer, Bundle> {
+    protected class VerifyCredentials extends AsyncTask<String, Integer, Boolean> {
         private String TAG = "VerifyCredentials";
 
         private String mUser, mKey;
         
         @Override
-        protected Bundle doInBackground(String ... args) {
+        protected Boolean doInBackground(String ... args) {
             mUser = args[0];
             mKey = args[1];
             
@@ -164,39 +163,28 @@ public class LandingActivity extends Activity {
             
             Bundle b = new Bundle();
             try {
-            	RainwaveResponse organizer = mSession.info();
-                b.putParcelable(Rainwave.SCHEDULE, organizer);
-                return b;
+            	mSession.info();
+                return true;
             } catch (IOException e) {
                 Log.e(TAG, "IOException occured: " + e);
                 Rainwave.showError(LandingActivity.this, e);
-                return null;
+                return false;
             } catch (RainwaveException e) {
             	Log.e(TAG, "API error: " + e.getMessage());
             	Rainwave.showError(LandingActivity.this, e);
-            	return null;
+            	return false;
             }
         }
         
-        protected void onPostExecute(Bundle result) {
+        protected void onPostExecute(Boolean result) {
             super.onPostExecute(result);
-            
             dispatchThrobberVisibility(false);
-            
             mVerifyCredentialsTask = null;
             
-            // Was there an IO failure?
-            if(result == null) {
+            if(!result || !mSession.isAuthenticated()) {
             	return;
             }
             
-            RainwaveResponse tmp = result.getParcelable(Rainwave.SCHEDULE);
-            
-            if(tmp == null) {
-            	return;
-            }
-            
-            // Set user credentials and start next activity.
             setInfoAndStart(mUser, mKey);
         }
     }
