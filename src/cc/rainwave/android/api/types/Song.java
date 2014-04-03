@@ -115,6 +115,10 @@ public class Song implements Parcelable, Comparable<Song> {
 		return mTitle;
 	}
 	
+	/**
+	 * Get who requested the song.
+	 * @return username of who requested song, or null if not in an election or not requested
+	 */
 	public String getRequestor() {
 		return mRequestor;
 	}
@@ -124,12 +128,7 @@ public class Song implements Parcelable, Comparable<Song> {
 	}
 	
 	public boolean isRequest() {
-		switch(mIsRequest) {
-		case ELEC_FULFILLED_REQUEST:
-		case ELEC_RANDOM_REQUEST:
-			return true;
-		}
-		return false;
+		return getRequestor() != null;
 	}
 	
 	public String collapseArtists() {
@@ -230,6 +229,7 @@ public class Song implements Parcelable, Comparable<Song> {
 			s.mTitle = JsonHelper.getString(element, "title");
 			s.mId = JsonHelper.getInt(element, "id");
 			s.mSecondsLong = JsonHelper.getInt(element, "length");
+			s.mRequestor = JsonHelper.getString(element, "elec_request_username", null);
 			s.mAlbums = ctx.deserialize(JsonHelper.getJsonArray(element, "albums", null), Album[].class);
 			s.mArtists = ctx.deserialize(JsonHelper.getJsonArray(element, "artists", null), Artist[].class);
 			return s;

@@ -13,7 +13,7 @@ public class RainwaveResponse implements Parcelable {
     
     private Event sched_history[], sched_next[];
     
-    private Song requests_all[], requests_user[];
+    private Song requests_all[], requests[];
     
     public Album[] all_albums;
     
@@ -112,7 +112,7 @@ public class RainwaveResponse implements Parcelable {
     }
     
     public Song[] getRequests() {
-    	return requests_user;
+    	return requests;
     }
     
     public Station getStation(int stationId) {
