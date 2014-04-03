@@ -97,6 +97,14 @@ public class JsonHelper {
 		return primitive.getAsString();
 	}
 	
+	public static boolean getBoolean(final JsonElement element, final String name) {
+		final JsonPrimitive primitive = getPrimitive(element, name);
+		if(!primitive.isBoolean()) {
+			throwParseError(String.format("Not a boolean: '%s'", name));
+		}
+		return primitive.getAsBoolean();
+	}
+	
 	public static int getInt(final JsonElement element, final String name, int defaultValue) {
 		if(hasMember(element, name)) {
 			return getInt(element, name);

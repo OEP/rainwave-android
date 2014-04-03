@@ -96,7 +96,7 @@ public class RainwaveResponse implements Parcelable {
     }
     
     public boolean isTunedIn() {
-    	return user != null && user.tuned_in;
+    	return user != null && user.getTunedIn();
     }
     
     public GenericResult getError() {

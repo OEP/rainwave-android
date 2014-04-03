@@ -11,6 +11,7 @@ import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.api.types.Station;
+import cc.rainwave.android.api.types.User;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -273,6 +274,7 @@ public class Session {
         builder.registerTypeAdapter(Song.class, new Song.Deserializer());
         builder.registerTypeAdapter(Event.class, new Event.Deserializer());
         builder.registerTypeAdapter(Artist.class, new Artist.Deserializer());
+        builder.registerTypeAdapter(User.class, new User.Deserializer());
         return builder.create();
     }
 
