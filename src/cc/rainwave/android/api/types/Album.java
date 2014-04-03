@@ -142,7 +142,7 @@ public class Album implements Parcelable, Comparable<Album> {
 			JsonElement element, Type type,	JsonDeserializationContext ctx
 		) throws JsonParseException {
 			final Album a = new Album();
-			a.mArt = JsonHelper.getString(element, "art");
+			a.mArt = JsonHelper.getString(element, "art", null);
 			a.mRating = JsonHelper.getFloat(element, "rating");
 			a.mUserRating = JsonHelper.getFloat(element, "rating_user");
 			a.mName = JsonHelper.getString(element, "name");

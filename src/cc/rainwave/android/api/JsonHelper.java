@@ -96,4 +96,11 @@ public class JsonHelper {
 		}
 		return primitive.getAsString();
 	}
+	
+	public static String getString(final JsonElement element, final String name, final String defaultValue) {
+		if(hasMember(element, name)) {
+			return getString(element, name);
+		}
+		return defaultValue;
+	}
 }
