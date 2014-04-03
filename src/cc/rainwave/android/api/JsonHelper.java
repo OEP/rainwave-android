@@ -105,6 +105,20 @@ public class JsonHelper {
 		return primitive.getAsBoolean();
 	}
 	
+	public static boolean getBoolean(final JsonElement element, final String name, boolean defaultValue) {
+		if(hasMember(element, name)) {
+			return getBoolean(element, name);
+		}
+		return defaultValue;
+	}
+	
+	public static long getLong(final JsonElement element, final String name, long defaultValue) {
+		if(hasMember(element, name)) {
+			return getLong(element, name);
+		}
+		return defaultValue;
+	}
+	
 	public static int getInt(final JsonElement element, final String name, int defaultValue) {
 		if(hasMember(element, name)) {
 			return getInt(element, name);

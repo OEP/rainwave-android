@@ -17,8 +17,11 @@ public class Album implements Parcelable, Comparable<Album> {
 	/** Flag indicating a user's favorite album. */
 	private boolean mFavourite;
 	
-	/** The next time the album may be requested (UTC timestamp). */
+	/** The soonest cooldown time of any songs. */
 	private long mLowestCooldown;
+	
+	/** Indicates album is on cooldown. */
+	private boolean mCooldown;
 	
 	/** Community rating of album. */
 	private float mRating;
@@ -147,6 +150,8 @@ public class Album implements Parcelable, Comparable<Album> {
 			a.mUserRating = JsonHelper.getFloat(element, "rating_user", 0.0f);
 			a.mName = JsonHelper.getString(element, "name");
 			a.mId = JsonHelper.getInt(element, "id");
+			a.mLowestCooldown = JsonHelper.getLong(element, "cool_lowest", 0);
+			a.mCooldown = JsonHelper.getBoolean(element, "cool", false);
 			
 			// songs may not always be returned by API
 			if(JsonHelper.hasMember(element, "songs")) {

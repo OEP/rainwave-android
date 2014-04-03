@@ -15,8 +15,11 @@ import android.os.Parcelable;
 
 public class Song implements Parcelable, Comparable<Song> {
 	
-	/** When song is available for request. */
-	private long mReleaseTime;
+	/** UTC timestamp when cooldown period is over. */
+	private long mCooldownEnd;
+	
+	/** Flag indicating song is on its cooldown period. */
+	private boolean mCooldown;
 	
 	/** Song ID */
 	private int mId;
@@ -160,14 +163,23 @@ public class Song implements Parcelable, Comparable<Song> {
 		return String.format("%d:%02d", m, s);
 	}
 	
+	/**
+	 * Check if song is on it's cooldown period.
+	 * 
+	 * @return true if cooldown period is active, false otherwise
+	 */
 	public boolean isCooling() {
-		long utc = System.currentTimeMillis() / 1000;
-		return mReleaseTime > utc;
+		return mCooldown;
 	}
 	
+	/**
+	 * Get the time when cooldown is over.
+	 * 
+	 * @return number of seconds remaining in cooldown period
+	 */
 	public long getCooldown() {
 		long utc = System.currentTimeMillis() / 1000;
-		return mReleaseTime - utc;
+		return mCooldownEnd - utc;
 	}
 	
 	@Override
@@ -223,6 +235,8 @@ public class Song implements Parcelable, Comparable<Song> {
 			s.mId = JsonHelper.getInt(element, "id");
 			s.mSecondsLong = JsonHelper.getInt(element, "length");
 			s.mRequestor = JsonHelper.getString(element, "elec_request_username", null);
+			s.mCooldown = JsonHelper.getBoolean(element, "cool", false);
+			s.mCooldownEnd = JsonHelper.getLong(element, "cool_end", 0);
 			s.mAlbums = ctx.deserialize(JsonHelper.getJsonArray(element, "albums", null), Album[].class);
 			s.mArtists = ctx.deserialize(JsonHelper.getJsonArray(element, "artists", null), Artist[].class);
 			return s;
