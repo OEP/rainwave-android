@@ -165,7 +165,7 @@ public class Song implements Parcelable, Comparable<Song> {
 	public String getLengthString() {
 		int m = mSecondsLong / 60;
 		int s = mSecondsLong % 60;
-		return String.format("%d:%02d",m,s);
+		return String.format("%d:%02d", m, s);
 	}
 	
 	public boolean isCooling() {
@@ -229,6 +229,7 @@ public class Song implements Parcelable, Comparable<Song> {
 			s.mUserRating = JsonHelper.getFloat(element, "rating_user", 0.0f);
 			s.mTitle = JsonHelper.getString(element, "title");
 			s.mId = JsonHelper.getInt(element, "id");
+			s.mSecondsLong = JsonHelper.getInt(element, "length");
 			s.mAlbums = ctx.deserialize(JsonHelper.getJsonArray(element, "albums", null), Album[].class);
 			s.mArtists = ctx.deserialize(JsonHelper.getJsonArray(element, "artists", null), Artist[].class);
 			return s;
