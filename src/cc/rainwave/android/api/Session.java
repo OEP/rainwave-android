@@ -246,10 +246,9 @@ public class Session {
     
     public Song[] reorderRequests(Song requests[])
     		throws IOException, RainwaveException {
-    	final String path = "request";
+    	final String path = "order_requests";
     	
     	final JsonElement root = post(path,
-			"order_requests", 
 			"order", Rainwave.makeRequestQueueString(requests)
 		);
     	try {

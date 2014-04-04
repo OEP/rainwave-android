@@ -716,20 +716,22 @@ public class NowPlayingActivity extends Activity {
     }
     
     private void updateRequests() {
+    	Song songs[];
+    	
     	if(mSession.hasRequests()){
-    		resyncRequests();
-    		return;
+    		songs = mSession.cloneRequests();
+    	}
+    	else {
+    		songs = new Song[0];
     	}
     	
     	TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
-    	Song songs[] = mSession.cloneRequests();
-    	
     	requestList.setAdapter(
     		new SongListAdapter(
     			this,
     			R.layout.item_song_request,
     			mSession,
-    			(songs != null) ? new ArrayList<Song>(Arrays.asList(songs)) : new ArrayList<Song>()
+    			new ArrayList<Song>(Arrays.asList(songs))
     		)
     	);
     	
