@@ -831,6 +831,7 @@ public class NowPlayingActivity extends Activity {
 				case REMOVE:
 					Song s = (Song) params[1];
 					mSession.deleteRequest(s);
+					break;
 					
 				case REORDER:
 					Song songs[] = (Song[]) params[1];
