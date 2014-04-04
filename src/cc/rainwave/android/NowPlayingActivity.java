@@ -588,13 +588,9 @@ public class NowPlayingActivity extends Activity {
 	 * Preference store.
 	 */
     private void initializeSession() {
-        try {
-        	// TODO: Maybe ASK the user before we override?
-        	handleIntent(getIntent());
-            mSession = Session.makeSession(this);
-        } catch (IOException e) {
-            Rainwave.showError(this, e);
-        }
+		// TODO: Maybe ASK the user before we override?
+		handleIntent(getIntent());
+	    mSession = Session.getInstance();
         
         View playlistButton = findViewById(R.id.np_makeRequest);
         if(playlistButton != null) {

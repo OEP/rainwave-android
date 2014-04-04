@@ -1,6 +1,8 @@
 package cc.rainwave.android;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
@@ -13,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.Toast;
 
 public class Rainwave {
@@ -67,7 +70,7 @@ public class Rainwave {
 	}
 	
     public static String getUrl(Context ctx) {
-    	return getStringPref(ctx,PREFS_URL,API_URL);
+    	return getStringPref(ctx,PREFS_URL, RAINWAVE_URL);
     }
     
     public static String getUserId(Context ctx) {
@@ -342,9 +345,10 @@ public class Rainwave {
         SCHEDULE = "schedule",
         ART = "art";
     
+    
     public static final String
+    	RAINWAVE_URL = "http://rainwave.cc/api4",
     	SCHEME = "rw",
-    	API_URL = "http://rainwave.cc/api4",
         PREFS_URL = "pref_url",
         PREFS_SKIPLANDING = "pref_skipLanding",
         PREFS_USERID = "pref_userId",
@@ -353,4 +357,17 @@ public class Rainwave {
         PREF_CLEAR_PREFERENCES = "clear_preferences",
         PREF_AUTOSHOW_ELECTION = "pref_autoshow_elections",
         PREFS_KEY = "pref_key";
+    
+    public static final URL	DEFAULT_URL;
+    
+    static {
+    	URL tmp;
+    	try {
+			tmp = new URL(RAINWAVE_URL);
+		} catch (MalformedURLException e) {
+			Log.e("Rainwave", "Rainwave URL is malformed!");
+			tmp = null;
+		}
+    	DEFAULT_URL = tmp;
+    }
 }

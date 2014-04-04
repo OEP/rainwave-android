@@ -61,6 +61,10 @@ public class Session {
     
     private Station[] mStations;
     
+    private Artist[] mArtists;
+    
+    private Album[] mAlbums;
+    
     private int mLastVoteId = -1;
     
     /** Can't instantiate directly */
@@ -164,13 +168,21 @@ public class Session {
     public Album[] getAlbums() throws IOException, RainwaveException {
     	final String path = "all_albums";
     	final String returns = "all_albums";
-    	return requestObject(Method.POST, path, returns, false, Album[].class);
+    	if(mAlbums != null) {
+    		return mAlbums;
+    	}
+    	mAlbums = requestObject(Method.POST, path, returns, false, Album[].class);
+    	return mAlbums;
     }
     
     public Artist[] getArtists() throws IOException, RainwaveException {
     	final String path = "all_artists";
     	final String returns = "all_artists";
-    	return requestObject(Method.POST, path, returns, false, Artist[].class);
+    	if(mArtists != null) {
+    		return mArtists;
+    	}
+    	mArtists = requestObject(Method.POST, path, returns, false, Artist[].class);
+    	return mArtists;
     }
     
     public Artist getDetailedArtist(int artist_id) throws IOException, RainwaveException {
@@ -460,6 +472,34 @@ public class Session {
         final URL url = new URL(mBaseUrl, path);
         return url.toString();
     }
+    
+    
+    /**
+     * Restore a session from a previously saved one.
+     * 
+     * @param ctx the new context for the session
+     */
+    public void unpickle(Context ctx) {
+    	mContext = ctx;
+    	mStation = Rainwave.getLastStation(ctx, mStation);
+    	setUserInfo(Rainwave.getUserId(ctx), Rainwave.getKey(ctx));
+    	
+    	try {
+			mBaseUrl = new URL(Rainwave.getUrl(ctx));
+		} catch (MalformedURLException e) {
+			mBaseUrl = Rainwave.DEFAULT_URL;
+		}
+    }
+    
+    /** The singleton */
+    private static Session sInstance;
+    
+    public static Session getInstance() {
+    	if(sInstance == null) {
+    		sInstance = new Session();
+    	}
+    	return sInstance;
+    }
 
     private static Gson getGson() {
         GsonBuilder builder = new GsonBuilder();
@@ -472,26 +512,6 @@ public class Session {
         builder.registerTypeAdapter(SongRating.class, new SongRating.Deserializer());
         builder.registerTypeAdapter(SongRating.AlbumRating.class, new SongRating.AlbumRating.Deserializer());
         return builder.create();
-    }
-
-    public static Session makeSession(Context ctx) throws MalformedURLException {
-        Session s = new Session();
-        String url = Rainwave.getUrl(ctx);
-        s.mContext = ctx;
-        s.mBaseUrl = new URL(url);
-        s.mStation = Rainwave.getLastStation(ctx, s.mStation);
-        s.setUserInfo(Rainwave.getUserId(ctx), Rainwave.getKey(ctx));
-        return s;
-    }
-    
-    public static Session makeSession(Context ctx, String user, String key) throws MalformedURLException {
-        Session s = new Session();
-        String url = Rainwave.getUrl(ctx);
-        s.mContext = ctx;
-        s.mBaseUrl = new URL(url);
-        s.mStation = Rainwave.getLastStation(ctx, s.mStation);
-        s.setUserInfo(user,key);
-        return s;
     }
     
     private static enum Method {

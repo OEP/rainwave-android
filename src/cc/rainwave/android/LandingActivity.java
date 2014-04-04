@@ -107,11 +107,8 @@ public class LandingActivity extends Activity {
 		}
 		
 		getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-		try {
-			mSession = Session.makeSession(LandingActivity.this);
-		} catch (MalformedURLException e) {
-			Rainwave.showError(this, e);
-		}
+		mSession = Session.getInstance();
+		mSession.unpickle(this);
 	}
 	
 	private void verifyUserInfo(String user, String key) {

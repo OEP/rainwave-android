@@ -113,7 +113,7 @@ public class PlaylistActivity extends ListActivity {
 	
 	public void onResume() {
 		super.onResume();
-		initializeSession();
+		mSession = Session.getInstance();
 		fetchDataIfNeeded();
 	}
 	
@@ -161,20 +161,6 @@ public class PlaylistActivity extends ListActivity {
 		}
 	}
 	
-	/**
-	 * Destroys any existing Session and creates
-	 * a new Session object for us to use, pulling
-	 * the user_id and key attributes from the default
-	 * Preference store.
-	 */
-    private void initializeSession() {
-        try {
-            mSession = Session.makeSession(this);
-        } catch (IOException e) {
-            Rainwave.showError(this, e);
-        }
-    }
-    
     private void setListeners() {
     	RadioButton a = (RadioButton) findViewById(R.id.by_album);
     	RadioButton b = (RadioButton) findViewById(R.id.by_artist);
