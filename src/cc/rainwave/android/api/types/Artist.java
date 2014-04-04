@@ -25,6 +25,12 @@ public class Artist implements Parcelable, Comparable<Artist> {
 	/** Can't instantiate directly. */
 	private Artist() {}
 	
+	/** Utility constructor for placeholder objects. */
+	public Artist(int id, String name) {
+		mId = id;
+		mName = name;
+	}
+	
 	private Artist(Parcel in) {
 	    mId = in.readInt();
 	    mName = in.readString();

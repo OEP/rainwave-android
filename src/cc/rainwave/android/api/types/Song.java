@@ -239,6 +239,30 @@ public class Song implements Parcelable, Comparable<Song> {
 			s.mCooldownEnd = JsonHelper.getLong(element, "cool_end", 0);
 			s.mAlbums = ctx.deserialize(JsonHelper.getJsonArray(element, "albums", null), Album[].class);
 			s.mArtists = ctx.deserialize(JsonHelper.getJsonArray(element, "artists", null), Artist[].class);
+			
+			// some end points may return artist_parseable but not artist
+			if(s.mArtists == null) {
+				String artistParseable = JsonHelper.getString(element, "artist_parseable", null);
+				if(artistParseable != null) {
+					String parts[] = artistParseable.split(",");
+					s.mArtists = new Artist[parts.length];
+					for(int i = 0; i < parts.length; i++) {
+						final String part = parts[i];
+								
+						String idname[] = part.split("[|]");
+						if(idname.length != 2) {
+							throw new JsonParseException(
+								String.format("%s split on pipe has %d part(s).", artistParseable, idname.length)
+							);
+						}
+						
+						final int id = Integer.valueOf(idname[0]);
+						final String name = idname[1];
+						
+						s.mArtists[i] = new Artist(id, name);
+					}
+				}
+			}
 			return s;
 		}
 	}
