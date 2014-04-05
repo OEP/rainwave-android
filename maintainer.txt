@@ -1,0 +1,15 @@
+RELEASE INSTRUCTIONS
+
+ensure app runs for lowest target API
+git flow release start X.Y.Z
+bump versionName and versionCode in AndroidManifest.xml
+git commit AndroidManifest.xml -m 'version bump'
+git flow release finish
+git push origin master develop v1.1.1
+
+APK GENERATION AND PUBLICATION
+
+ant clean release
+jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore path/to/keystore bin/rainwave-android-release-unsigned.apk <aliasname>
+zipalign -v 4 bin/rainwave-android-release-unsigned.apk bin/rainwave-android-X.Y.Z.apk
+publish bin/rainwave-android-X.Y.Z.apk
