@@ -5,6 +5,7 @@ import java.util.Comparator;
 
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -142,7 +144,7 @@ public class PlaylistActivity extends ListActivity {
 		}
 		
 		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.playlist_menu, menu);
+		inflater.inflate(R.menu.playlist_context_menu, menu);
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		Song s = (Song) getListView().getItemAtPosition(info.position);
 		menu.setHeaderTitle(s.getTitle());
@@ -159,6 +161,39 @@ public class PlaylistActivity extends ListActivity {
 		default:
 			return super.onContextItemSelected(item);
 		}
+	}
+	
+    /** Shows the menu */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.playlist_menu, menu);
+		return true;
+	}
+
+	/** Responds to menu selection */
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+		case R.id.menu_refresh:
+			// clear result list and hide the filter
+			setListAdapter(null);
+			hideFilter();
+			
+			// check if we're looking at albums or artists and refresh
+			if(isByAlbum()) {
+				mAlbums = null;
+				mFetchAlbums = null;
+				fetchAlbums(true);
+			}
+			else {
+				mArtists = null;
+				mFetchArtists = null;
+				fetchArtists(true);
+			}
+			break;
+		}
+		
+		return false;
 	}
 	
     private void setListeners() {
@@ -266,7 +301,7 @@ public class PlaylistActivity extends ListActivity {
     		}
     		else {
     			setListAdapter(null);
-    			fetchAlbums();
+    			fetchAlbums(false);
     		}
     	}
     	else if(mMode == MODE_TOP_LEVEL){
@@ -280,7 +315,7 @@ public class PlaylistActivity extends ListActivity {
     		}
     		else {
     			setListAdapter(null);
-    			fetchArtists();
+    			fetchArtists(false);
     		}
     	}
     	else if(mMode == MODE_DETAIL_ALBUM || mMode == MODE_DETAIL_ARTIST) {
@@ -294,10 +329,10 @@ public class PlaylistActivity extends ListActivity {
 
 	private void fetchDataIfNeeded() {
 		if(isByAlbum() && mAlbums == null) {
-			fetchAlbums();
+			fetchAlbums(false);
 		}
 		else if(mArtists == null) {
-			fetchArtists();
+			fetchArtists(false);
 		}
 	}
 	
@@ -321,15 +356,15 @@ public class PlaylistActivity extends ListActivity {
 		mRequest.execute(song_id);
 	}
 	
-	private void fetchAlbums() {
-		if(mFetchAlbums != null || mAlbums != null) return;
-		mFetchAlbums = new FetchAlbumsTask();
+	private void fetchAlbums(final boolean forceRefresh) {
+		if(mFetchAlbums != null) return;
+		mFetchAlbums = new FetchAlbumsTask(forceRefresh);
 		mFetchAlbums.execute();
 	}
 	
-	private void fetchArtists() {
-		if(mFetchArtists != null || mArtists != null) return;
-		mFetchArtists = new FetchArtistsTask();
+	private void fetchArtists(final boolean forceRefresh) {
+		if(mFetchArtists != null) return;
+		mFetchArtists = new FetchArtistsTask(forceRefresh);
 		mFetchArtists.execute();
 	}
 	
@@ -353,10 +388,19 @@ public class PlaylistActivity extends ListActivity {
 	}
 	
 	private class FetchAlbumsTask extends AsyncTask<String,String,Album[]> {
+		
+		private boolean mForceRefresh;
+		
+		public FetchAlbumsTask(final boolean forceRefresh) {
+			super();
+			mForceRefresh = forceRefresh;
+		}
+		
 		@Override
 		protected Album[] doInBackground(String... args) {
+			Log.d(TAG, "Fetching albumsin background...");
 			try {
-				return mSession.getAlbums();
+				return mSession.getAlbums(mForceRefresh);
 			} catch (IOException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "IO Error: " + e);
@@ -375,10 +419,17 @@ public class PlaylistActivity extends ListActivity {
 	}
 	
 	private class FetchArtistsTask extends AsyncTask<String,String,Artist[]> {
+		private boolean mForceRefresh;
+		
+		public FetchArtistsTask(final boolean forceRefresh) {
+			super();
+			mForceRefresh = forceRefresh;
+		}
+		
 		@Override
 		protected Artist[] doInBackground(String... args) {
 			try {
-				return mSession.getArtists();
+				return mSession.getArtists(mForceRefresh);
 			} catch (IOException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "IO Error: " + e);
