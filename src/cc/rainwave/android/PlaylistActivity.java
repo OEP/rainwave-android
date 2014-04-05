@@ -163,7 +163,6 @@ public class PlaylistActivity extends ListActivity {
 		}
 	}
 	
-    /** Shows the menu */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
@@ -171,7 +170,6 @@ public class PlaylistActivity extends ListActivity {
 		return true;
 	}
 
-	/** Responds to menu selection */
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
 		case R.id.menu_refresh:
@@ -190,7 +188,7 @@ public class PlaylistActivity extends ListActivity {
 				mFetchArtists = null;
 				fetchArtists(true);
 			}
-			break;
+			return true;
 		}
 		
 		return false;
