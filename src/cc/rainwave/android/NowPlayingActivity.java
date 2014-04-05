@@ -3,6 +3,7 @@ package cc.rainwave.android;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Locale;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -19,31 +20,31 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.widget.AdapterView;
-import android.widget.Button;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.Toast;
 import cc.rainwave.android.adapters.SongListAdapter;
 import cc.rainwave.android.adapters.StationListAdapter;
 import cc.rainwave.android.api.Session;
-import cc.rainwave.android.api.types.GenericResult;
+import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.RainwaveException;
-import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.Song;
+import cc.rainwave.android.api.types.SongRating;
 import cc.rainwave.android.api.types.Station;
 import cc.rainwave.android.views.HorizontalRatingBar;
 import cc.rainwave.android.views.PagerWidget;
@@ -61,9 +62,6 @@ import com.google.android.apps.iosched.ui.widget.Workspace.OnScreenChangeListene
 public class NowPlayingActivity extends Activity {
     /** Debug tag */
 	private static final String TAG = "NowPlaying";
-	
-	/** This is the last response from the last schedule sync */
-	private RainwaveResponse mOrganizer;
 	
 	/** This manages our connection with the Rainwave server */
 	private Session mSession;
@@ -153,7 +151,14 @@ public class NowPlayingActivity extends Activity {
     	switch(id) {
     	    
     	case DIALOG_STATION_PICKER:
-    		Station stations[] = mOrganizer.getStations();
+    		builder.setTitle(R.string.label_pickStation)
+    		       .setNegativeButton(R.string.label_cancel, null);
+    		
+    		if(!mSession.hasStations()) {
+    			return builder.setMessage(R.string.msg_noStations).create();
+    		}
+    		
+    		Station stations[] = mSession.cloneStations();
     		
     		final ListView listView = new ListView(this);
     		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -161,7 +166,7 @@ public class NowPlayingActivity extends Activity {
 				public void onItemClick(AdapterView<?> parent, View view,
 						int index, long id) {
 					Station s = (Station) listView.getItemAtPosition(index);
-					mSession.setStation(s.id);
+					mSession.setStation(s.getId());
 					NowPlayingActivity.this.dismissDialog(DIALOG_STATION_PICKER);
 					refresh();
 				}
@@ -169,9 +174,7 @@ public class NowPlayingActivity extends Activity {
     		
     		listView.setAdapter(new StationListAdapter(this, stations));
     		
-    		return builder.setTitle(R.string.label_pickStation)
-    			.setNegativeButton(R.string.label_cancel, null)
-    			.setView(listView)
+    		return builder.setView(listView)
     			.create();
     		
     	default:
@@ -191,7 +194,7 @@ public class NowPlayingActivity extends Activity {
 		inflater.inflate(R.menu.queue_menu, menu);
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		Song s = (Song) list.getItemAtPosition(info.position);
-		menu.setHeaderTitle(s.song_title);
+		menu.setHeaderTitle(s.getTitle());
 	}
 	
 	@Override
@@ -227,7 +230,7 @@ public class NowPlayingActivity extends Activity {
 				Workspace w = (Workspace) findViewById(R.id.np_workspace);
 				HorizontalRatingBar b = (HorizontalRatingBar) findViewById(R.id.np_songRating);
 				
-				if(mOrganizer == null || !mOrganizer.isTunedIn() || !mSession.isAuthenticated()) {
+				if(mSession == null || !mSession.isTunedIn() || !mSession.hasCredentials()) {
 					if(e.getAction() == MotionEvent.ACTION_DOWN) {
 						w.lockCurrentScreen();
 						b.setLabel(R.string.msg_tuneInFirst);
@@ -252,14 +255,14 @@ public class NowPlayingActivity extends Activity {
 					rating = Math.max(1.0f, Math.min(rating, 5.0f));
 					max = hrb.getMax();
 					hrb.setPrimaryValue(rating);
-					String label = String.format("%.1f/%.1f",rating,max);
+					String label = String.format(Locale.US, "%.1f/%.1f",rating,max);
 					hrb.setLabel(label);
 					
 					if(e.getAction() == MotionEvent.ACTION_UP) {
 						w.unlockCurrentScreen();
 						ActionTask t = new ActionTask();
-						Song s = mOrganizer.getCurrentSong();
-						t.execute(ActionTask.RATE, s.song_id, rating);
+						Song s = mSession.getCurrentEvent().getCurrentSong();
+						t.execute(ActionTask.RATE, s.getId(), rating);
 						b.setLabel(R.string.label_song);
 					}
 				}
@@ -274,7 +277,7 @@ public class NowPlayingActivity extends Activity {
 				Workspace w = (Workspace) findViewById(R.id.np_workspace);
 				HorizontalRatingBar b = (HorizontalRatingBar) findViewById(R.id.np_albumRating);
 				
-				if(mOrganizer == null || !mOrganizer.isTunedIn() || !mSession.isAuthenticated()) {
+				if(mSession == null || !mSession.isTunedIn() || !mSession.hasCredentials()) {
 					if(e.getAction() == MotionEvent.ACTION_DOWN) {
 						w.lockCurrentScreen();
 						b.setLabel(R.string.msg_tuneInFirst);
@@ -297,7 +300,7 @@ public class NowPlayingActivity extends Activity {
 				case MotionEvent.ACTION_UP:
 					rating = hrb.getPrimary();
 					max = hrb.getMax();
-					String label = String.format("%.1f/%.1f",rating,max);
+					String label = String.format(Locale.US, "%.1f/%.1f",rating,max);
 					hrb.setLabel(label);
 					
 					if(e.getAction() == MotionEvent.ACTION_UP) {
@@ -312,8 +315,8 @@ public class NowPlayingActivity extends Activity {
 
     	final ListView election = (ListView) findViewById(R.id.np_electionList);
     	election.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-    		public void onItemClick(AdapterView parent, View v, int i, long id) {
-    			if(mOrganizer.isTunedIn() && mSession.isAuthenticated()) {
+    		public void onItemClick(AdapterView<?> parent, View v, int i, long id) {
+    			if(mSession.isTunedIn() && mSession.hasCredentials()) {
     				((SongListAdapter) election.getAdapter()).startCountdown(i);
     			}
     			else {
@@ -539,7 +542,6 @@ public class NowPlayingActivity extends Activity {
 
 	/** Responds to menu selection */
 	public boolean onOptionsItemSelected(MenuItem item) {
-		Intent i;
 		switch(item.getItemId()) {
 		    
 		// Start RainwavePreferenceActivity.
@@ -557,10 +559,15 @@ public class NowPlayingActivity extends Activity {
     
 	private void startPlayer() {
 		int stationId = mSession.getStationId();
-		Station s = mOrganizer.getStation(stationId);
-		Intent i = new Intent(Intent.ACTION_VIEW);
-		i.setDataAndType(Uri.parse(s.stream), "audio/*");
-		startActivity(i);
+		Station s = mSession.getStation(stationId);
+		if(s != null) {
+			Intent i = new Intent(Intent.ACTION_VIEW);
+			i.setDataAndType(Uri.parse(s.getMainStream()), "audio/*");
+			startActivity(i);	
+		}
+		else {
+			Toast.makeText(this, R.string.msg_streamNotKnown, Toast.LENGTH_SHORT).show();
+		}
 	}
 	
 	private void startPlaylist() {
@@ -580,18 +587,14 @@ public class NowPlayingActivity extends Activity {
 	 * Preference store.
 	 */
     private void initializeSession() {
-        try {
-        	// TODO: Maybe ASK the user before we override?
-        	handleIntent(getIntent());
-            mSession = Session.makeSession(this);
-        } catch (IOException e) {
-            Rainwave.showError(this, e);
-        }
+		// TODO: Maybe ASK the user before we override?
+		handleIntent(getIntent());
+	    mSession = Session.getInstance();
         
         View playlistButton = findViewById(R.id.np_makeRequest);
         if(playlistButton != null) {
 	        playlistButton.setVisibility(
-	        	(mSession != null && mSession.isAuthenticated()) ? View.VISIBLE : View.GONE
+	        	(mSession != null && mSession.hasCredentials()) ? View.VISIBLE : View.GONE
 	        );
         }
     }
@@ -634,7 +637,7 @@ public class NowPlayingActivity extends Activity {
      * Executes when a schedule sync finished.
      * @param response the response the server issued
      */
-    private void onScheduleSync(RainwaveResponse response) {
+    private void onScheduleSync() {
     	// We should enable the buttons now.
     	ImageButton play = (ImageButton) findViewById(R.id.np_play);
     	ImageButton station = (ImageButton) findViewById(R.id.np_stationPick);
@@ -643,92 +646,87 @@ public class NowPlayingActivity extends Activity {
     	station.setEnabled(true);
     	
     	// Updates title, album, and artists.
-    	updateSongInfo(response.getCurrentSong());
+    	updateSongInfo(mSession.getCurrentEvent().getCurrentSong());
     	
     	// Updates song, album ratings.
-    	setRatings(response.getCurrentSong());
+    	setRatings(mSession.getCurrentEvent().getCurrentSong());
     	
     	// Updates election info.
-    	updateElection(response);
+    	updateElection();
     	
-    	// Updates tuned in state.
-    	updateTunedIn(response);
+    	// Refresh clock and title bar state.
+    	refreshTitle();
     	
     	// Updates request lsit.
-    	updateRequests(response);
+    	updateRequests();
     }
     
-    private void updateTunedIn(RainwaveResponse response) {
-    	long end = response.getEndTime();
+    private void refreshTitle() {
+    	long end = mSession.getCurrentEvent().getEnd();
     	long utc = System.currentTimeMillis() / 1000;
-    	updateTitle(response, (int) (end - utc));
-    }
-    
-    private void updateTimer(int seconds) {
-    	updateTitle(mOrganizer, seconds);
-    }
-    
-    private void updateTitle(RainwaveResponse response, int seconds) {
+    	long seconds = (end - utc);
+    	
     	seconds = Math.max(0, seconds);
-    	int minutes = seconds / 60;
+    	long minutes = seconds / 60;
     	seconds %= 60;
     	
     	Resources r = getResources();
     	int id = mSession.getStationId();
-    	String stationName = mOrganizer.getStationName(id);
+    	String stationName = mSession.getStation(id).getName();
     	String title = (stationName != null) ? stationName : r.getString(R.string.app_name);
     	String state = r.getString(R.string.label_nottunedin);
     	
-    	if(!mSession.isAuthenticated()) {
+    	if(!mSession.hasCredentials()) {
     		state = r.getString(R.string.label_anonymous);
     	}
-    	else if(response.isTunedIn()) {
+    	else if(mSession.isTunedIn()) {
     		state = r.getString(R.string.label_tunedin);
     	}
     	
-    	// Update thread-safe since this method may be called by AsyncTask.
-    	dispatchTitleUpdate(String.format("[%d:%02d] %s (%s)", minutes, seconds, title, state));
+    	setTitle(String.format("[%2d:%02d] %s (%s)", minutes, seconds, title, state));
     }
     
-    private void updateElection(RainwaveResponse response) {
+    private void updateElection() {
     	SongListAdapter adapter = new SongListAdapter(
     			this,
     			R.layout.item_song_election,mSession,
-    			new ArrayList<Song>(Arrays.asList(response.getElection()))
+    			new ArrayList<Song>(Arrays.asList(mSession.getNextEvent().cloneSongs()))
     	);
     	((ListView)findViewById(R.id.np_electionList))
     	   .setAdapter(adapter);
     	
     	// Set vote deadline for when the song ends.
-    	adapter.setDeadline(response.getEndTime());
+    	adapter.setDeadline(mSession.getCurrentEvent().getEnd());
     	
     	// Open the drawer if the user can vote.
-    	boolean canVote = !response.hasVoteResult() && response.isTunedIn();
+    	boolean canVote = !mSession.hasLastVote() && mSession.isTunedIn();
     	setDrawerState(canVote);
     	
     	// Set the vote listener for th list adapter.
     	adapter.setOnVoteHandler(mHandler);
     	
-    	if(response.hasVoteResult()) {
-    		adapter.markVoted(response.getPastVote());
+    	if(mSession.hasLastVote()) {
+    		adapter.markVoted(mSession.getLastVoteId());
     	}
     }
     
-    private void updateRequests(RainwaveResponse response) {
-    	if(response == null){
-    		resyncRequests();
-    		return;
+    private void updateRequests() {
+    	Song songs[];
+    	
+    	if(mSession.hasRequests()){
+    		songs = mSession.cloneRequests();
+    	}
+    	else {
+    		songs = new Song[0];
     	}
     	
     	TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
-    	Song songs[] = response.getRequests();
-    	
     	requestList.setAdapter(
     		new SongListAdapter(
     			this,
     			R.layout.item_song_request,
     			mSession,
-    			(songs != null) ? new ArrayList<Song>(Arrays.asList(songs)) : new ArrayList<Song>()
+    			new ArrayList<Song>(Arrays.asList(songs))
     		)
     	);
     	
@@ -738,8 +736,10 @@ public class NowPlayingActivity extends Activity {
     private void resyncRequests() {
     	TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
     	SongListAdapter adapter = (SongListAdapter) requestList.getAdapter();
-    	int visibility = (adapter.getCount()) > 0 ? View.GONE : View.VISIBLE;
-   		findViewById(R.id.np_request_overlay).setVisibility(visibility);
+    	if(adapter != null) {
+	    	int visibility = (adapter.getCount()) > 0 ? View.GONE : View.VISIBLE;
+	   		findViewById(R.id.np_request_overlay).setVisibility(visibility);
+    	}
     }
     
     /**
@@ -748,8 +748,8 @@ public class NowPlayingActivity extends Activity {
      * @param current the current song that's playing.
      */
     private void updateSongInfo(Song current) {
-    	((TextView) findViewById(R.id.np_songTitle)).setText(current.song_title);
-    	((TextView) findViewById(R.id.np_albumTitle)).setText(current.album_name);
+    	((TextView) findViewById(R.id.np_songTitle)).setText(current.getTitle());
+    	((TextView) findViewById(R.id.np_albumTitle)).setText(current.getDefaultAlbum().getName());
     	((TextView) findViewById(R.id.np_artist)).setText(current.collapseArtists());
     	
     	ImageView accent = (ImageView)findViewById(R.id.np_accent);
@@ -759,7 +759,7 @@ public class NowPlayingActivity extends Activity {
     	if(current.isRequest()) {
     		accent.setImageResource(R.drawable.accent_song_hilight);
     		requestor.setVisibility(View.VISIBLE);
-    		requestor.setText(String.format(r.getString(R.string.label_requestor), current.song_requestor));
+    		requestor.setText(String.format(r.getString(R.string.label_requestor), current.getRequestor()));
     	}
     	else {
     		accent.setImageResource(R.drawable.accent_song);
@@ -772,20 +772,24 @@ public class NowPlayingActivity extends Activity {
      * @param current the current song playing
      */
     private void setRatings(Song current) {
+    	final Album album = current.getDefaultAlbum();
     	((HorizontalRatingBar) findViewById(R.id.np_songRating))
-    	   .setBothValues(current.song_rating_user, current.song_rating_avg);
+    	   .setBothValues(current.getUserRating(), current.getCommunityRating());
     	
     	((HorizontalRatingBar) findViewById(R.id.np_albumRating))
- 	       .setBothValues(current.album_rating_user, current.album_rating_avg);
+ 	       .setBothValues(album.getUserRating(), album.getCommunityRating());
     }
     
     /**
      * Executes when a "rate song" request has finished.
      * @param result the result the server issued
      */
-    private void onRateSong(GenericResult result) {
-        mOrganizer.updateSongRatings(result);
-        setRatings(mOrganizer.getCurrentSong());
+    private void onRateSong(SongRating rating) {
+    	((HorizontalRatingBar) findViewById(R.id.np_songRating))
+ 	   		.setPrimaryValue(rating.getUserRating());
+ 	
+    	((HorizontalRatingBar) findViewById(R.id.np_albumRating))
+	    	.setPrimaryValue(rating.getDefaultAlbumRating().getUserRating());
     }
     
     /**
@@ -795,8 +799,6 @@ public class NowPlayingActivity extends Activity {
      */
     private void updateAlbumArt(Bitmap art) {
         if(art == null) {
-            Log.e(TAG, "Error fetching album art.");
-            Rainwave.showError(this, R.string.msg_albumArtError);
             art = BitmapFactory.decodeResource(getResources(), R.drawable.noart);
         }
         
@@ -810,11 +812,11 @@ public class NowPlayingActivity extends Activity {
      * @author pkilgo
      *
      */
-    protected class ActionTask extends AsyncTask<Object, Integer, GenericResult> {
+    protected class ActionTask extends AsyncTask<Object, Integer, Object> {
     	private int mAction;
     	
 		@Override
-		protected GenericResult doInBackground(Object ... params) {
+		protected Object doInBackground(Object ... params) {
 			Log.d(TAG, "Beginning ActionTask.");
 			mAction = (Integer) params[0];
 			
@@ -827,11 +829,12 @@ public class NowPlayingActivity extends Activity {
 					
 				case REMOVE:
 					Song s = (Song) params[1];
-					return mSession.deleteRequest(s).request_delete_return;
+					mSession.deleteRequest(s);
+					break;
 					
 				case REORDER:
 					Song songs[] = (Song[]) params[1];
-					return mSession.reorderRequests(songs).request_reorder_return;
+					return mSession.reorderRequests(songs);
 				
 				}
 				
@@ -845,14 +848,14 @@ public class NowPlayingActivity extends Activity {
 			return null;
 		}
 		
-		protected void onPostExecute(GenericResult result) {
+		protected void onPostExecute(Object result) {
 			Log.d(TAG, "ActionTask ended.");
 			
 			switch(mAction) {
 			case RATE:
 				mRateTask = null;
 				if(result == null) return;
-				onRateSong(result);
+				onRateSong((SongRating) result);
 				break;
 				
 			case REORDER:
@@ -897,24 +900,43 @@ public class NowPlayingActivity extends Activity {
         	
             Bundle b = new Bundle();
             try {
-                RainwaveResponse organizer =
-                        (mInit)
-                        	? (mSession.isAuthenticated())
-                        			? mSession.syncInit()
-                        			: mSession.asyncGet()
-                        	: mSession.syncGet(mOrganizer);
-            	
-            	if(mInit) {
-            		Station stations[] = mSession.getStations();
-            		organizer.setStations(stations);
+                if(mInit) {
+                	mSession.info();
+                }
+                else {
+                	mSession.sync();
+                }
+            	     			
+                // fetch stations if we don't have them
+            	if(mSession == null || mSession.getStations() == null) {
+            		// it should be safe to keep going even if the station endpoint fails for some reason
+            		try {
+	            		mSession.getStations();
+            		}
+            		catch(IOException e) {
+            			Log.e(TAG, "IOException occured: " + e);
+                        Rainwave.showError(NowPlayingActivity.this, e);
+            		} catch (RainwaveException e) {
+                    	Log.e(TAG, "API error: " + e.getMessage());
+                    	Rainwave.showError(NowPlayingActivity.this, e);
+            		}
             	}
                 
-                b.putParcelable(Rainwave.SCHEDULE, organizer);
-                
-                if(!organizer.hasError()) {
-                    Song song = organizer.getCurrentSong();
-                    Bitmap art = mSession.fetchAlbumArt(song.album_art);
-                    b.putParcelable(Rainwave.ART, art);
+                // not all sync events mean that an event has passed, i.e. the user could have tuned in/out.
+                if(mSession.getCurrentEvent() != null) {
+                    Song song = mSession.getCurrentEvent().getCurrentSong();
+                    try {
+                    	final String art = song.getDefaultAlbum().getArt();
+                    	if(art != null && art.length() > 0) {
+                    		final int minWidth = (NowPlayingActivity.this.findViewById(R.id.np_albumArt)).getWidth();
+	                    	final Bitmap bmArt = mSession.fetchAlbumArt(art, minWidth);
+	                    	b.putParcelable(Rainwave.ART, bmArt);
+                    	}
+                    }
+                    catch(final IOException exc) {
+                    	Log.e(TAG, String.valueOf(exc));
+                    	Rainwave.showError(NowPlayingActivity.this, R.string.msg_albumArtError);
+                    }
                 }
                 
                 return b;
@@ -943,35 +965,27 @@ public class NowPlayingActivity extends Activity {
             	return;
             }
             
-            if(mOrganizer == null) {
-            	mOrganizer = result.getParcelable(Rainwave.SCHEDULE);
-            }
-            else {
-            	RainwaveResponse tmp = result.getParcelable(Rainwave.SCHEDULE);
-            	mOrganizer.receiveUpdates(tmp);
-            }
-            
             // Callback for schedule sync.
-            onScheduleSync(mOrganizer);
+            onScheduleSync();
             updateAlbumArt( (Bitmap) result.getParcelable(Rainwave.ART) );
             
-            if(mSession.isAuthenticated()) {
+            if(mSession.hasCredentials()) {
                 syncSchedules();
             }
             
-            startCountdown(mOrganizer.getEndTime());
+            startCountdown(mSession.getCurrentEvent().getEnd());
             
             Log.d(TAG, "Exiting successfully.");
         }
     }
     
+    /**
+     * Refreshes the title bar every second until the end of an event is reached.
+     */
     protected class SongCountdownTask extends AsyncTask<Long, Integer, Boolean> {
-        private String TAG = "Unnamed";
-
         @Override
         protected Boolean doInBackground(Long ... params) {
         	long stopTime = params[0];
-
         	long utc = System.currentTimeMillis() / 1000;
         	
         	while(utc < stopTime) {
@@ -980,14 +994,11 @@ public class NowPlayingActivity extends Activity {
 				} catch (InterruptedException e) {
 					return false;
 				}
-        		utc = System.currentTimeMillis() / 1000;
-        		updateTimer((int) (stopTime - utc));
+        		
+        		Message msg = mHandler.obtainMessage(UPDATE_TITLE);
+            	msg.sendToTarget();
         	}
         	return true;
-        }
-        
-        protected void onPostExecute(Boolean result) {
-            super.onPostExecute(result);
         }
     }
     
@@ -1000,7 +1011,7 @@ public class NowPlayingActivity extends Activity {
     			break;
     			
     		case UPDATE_TITLE:
-    			setTitle( data.getString(STRING_TITLE) );
+    			refreshTitle();
     			break;
     			
     		case SongListAdapter.CODE_VOTED:
@@ -1019,13 +1030,6 @@ public class NowPlayingActivity extends Activity {
     	msg.sendToTarget();
     }
     
-    private void dispatchTitleUpdate(String title) {
-    	Message msg = mHandler.obtainMessage(UPDATE_TITLE);
-    	Bundle data = msg.getData();
-    	data.putString(STRING_TITLE, title);
-    	msg.sendToTarget();
-    }
-    
     /** Handler codes */
     private static final int
     	UPDATE_TITLE = 0x71713,
@@ -1034,10 +1038,6 @@ public class NowPlayingActivity extends Activity {
     /** Handler keys */
     private static final String
     	BOOL_STATUS = "bool_status";
-    
-    /** Handler keys*/
-    private static final String
-    	STRING_TITLE = "string_title";
     
     /** Dialog identifiers */
     public static final int

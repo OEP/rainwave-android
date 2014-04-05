@@ -1,13 +1,11 @@
 package cc.rainwave.android.api;
 
-import android.util.Log;
-
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
+
+import android.util.Log;
 
 public class HttpHelper {
     private static final String TAG = "HttpHelper";
@@ -94,31 +92,5 @@ public class HttpHelper {
 		connection.setDoOutput(false);
 		
 		return connection;
-	}
-	
-	/**
-	 * Take an arbitrary list of arguments and return a URL-encoded
-	 * String representation of the arguments.
-	 * 		Note: This takes even-numbered lists of arguments
-	 * @param args An alternating list of key/value payloads to URL-encode
-	 * @return String representation of the key/value pairs, URL-encoded
-	 * @throws UnsupportedEncodingException if "UTF-8" is not permissible
-	 */
-	public static String encodeParams(String ... args)
-	throws UnsupportedEncodingException {
-		if(args.length % 2 != 0) {
-			throw new IllegalArgumentException("Must have a multiple of two arguments");
-		}
-		
-		StringBuffer buffer = new StringBuffer();
-		for(int i = 0; i < args.length; i+=2) {
-			buffer.append(URLEncoder.encode(args[i], "UTF-8"));
-			buffer.append('=');
-			buffer.append(URLEncoder.encode(args[i+1], "UTF-8"));
-			buffer.append('&');
-		}
-		// Get rid of trailing '&'
-		buffer.deleteCharAt(buffer.length() - 1);
-		return buffer.toString();
 	}
 }

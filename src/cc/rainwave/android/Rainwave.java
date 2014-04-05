@@ -1,9 +1,9 @@
 package cc.rainwave.android;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.net.MalformedURLException;
+import java.net.URL;
 
-import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
 import android.content.Context;
@@ -15,12 +15,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.Toast;
 
 public class Rainwave {
-	public static final boolean DEBUG = false;
-	public static final boolean DEMO = false;
-	
 	
 	public static boolean putIntPreference(Context ctx, String name, int value) {
 		SharedPreferences prefs = getPreferences(ctx);
@@ -72,7 +70,7 @@ public class Rainwave {
 	}
 	
     public static String getUrl(Context ctx) {
-    	return getStringPref(ctx,PREFS_URL,API_URL);
+    	return getStringPref(ctx,PREFS_URL, RAINWAVE_URL);
     }
     
     public static String getUserId(Context ctx) {
@@ -116,7 +114,7 @@ public class Rainwave {
     }
     
     public static void showError(Context ctx, RainwaveException e) {
-    	showError(ctx, e.getCode(), e.getMessage());
+    	showError(ctx, 1, e.getMessage());
     }
     
     public static void showError(Context ctx, IOException e) {
@@ -258,13 +256,6 @@ public class Rainwave {
     	return key.substring(0, Math.min(key.length(), KEY_MAX));
     }
     
-    public static void onApplicationInit(Context ctx) {
-    	if(DEMO) {
-    		Rainwave.putUserId(ctx, DEMO_USER);
-    		Rainwave.putKey(ctx, DEMO_KEY);
-    	}
-    }
-    
     /**
      * Makes a comma-delimited string out of an array of songs
      * delineating the value of Song.requestq_id.
@@ -273,14 +264,14 @@ public class Rainwave {
      */
     public static String makeRequestQueueString(Song requests[]) {
     	if(requests == null || requests.length == 0) return "";
-    	if(requests.length == 1) return String.valueOf(requests[0].requestq_id);
+    	if(requests.length == 1) return String.valueOf(requests[0].getId());
     	
     	StringBuilder sb = new StringBuilder();
-    	sb.append(requests[0].requestq_id);
+    	sb.append(requests[0].getId());
     	
     	for(int i = 1; i < requests.length; i++) {
     		sb.append(",");
-    		sb.append(requests[i].requestq_id);
+    		sb.append(requests[i].getId());
     	}
     	
     	return sb.toString();
@@ -354,9 +345,10 @@ public class Rainwave {
         SCHEDULE = "schedule",
         ART = "art";
     
+    
     public static final String
+    	RAINWAVE_URL = "http://rainwave.cc/api4",
     	SCHEME = "rw",
-    	API_URL = "http://rainwave.cc",
         PREFS_URL = "pref_url",
         PREFS_SKIPLANDING = "pref_skipLanding",
         PREFS_USERID = "pref_userId",
@@ -366,7 +358,16 @@ public class Rainwave {
         PREF_AUTOSHOW_ELECTION = "pref_autoshow_elections",
         PREFS_KEY = "pref_key";
     
-    public static final String
-    	DEMO_USER = "18793",
-    	DEMO_KEY = "8690164126";
+    public static final URL	DEFAULT_URL;
+    
+    static {
+    	URL tmp;
+    	try {
+			tmp = new URL(RAINWAVE_URL);
+		} catch (MalformedURLException e) {
+			Log.e("Rainwave", "Rainwave URL is malformed!");
+			tmp = null;
+		}
+    	DEFAULT_URL = tmp;
+    }
 }

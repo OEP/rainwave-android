@@ -2,6 +2,7 @@ package cc.rainwave.android;
 
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.Locale;
 
 import android.app.ListActivity;
 import android.content.Context;
@@ -17,6 +18,7 @@ import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,6 +30,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListAdapter;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,7 +38,6 @@ import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.Artist;
 import cc.rainwave.android.api.types.RainwaveException;
-import cc.rainwave.android.api.types.RainwaveResponse;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.views.CountdownView;
 
@@ -70,25 +72,27 @@ public class PlaylistActivity extends ListActivity {
 				return (lhs.isCooling()) ? 1 : -1;
 			}
 			
-			return lhs.song_title.toLowerCase().compareTo(rhs.song_title.toLowerCase());
+			return lhs.getTitle().toLowerCase(Locale.US).compareTo(rhs.getTitle().toLowerCase(Locale.US));
 		}
 	};
 	
 	private Comparator<Song> mArtistSongComparator = new Comparator<Song>() {
 		@Override
 		public int compare(Song lhs, Song rhs) {
-			if(!lhs.album_name.equals(rhs.album_name)) {
-				return lhs.album_name.compareTo(rhs.album_name);
+			final String lhsAlbumName = lhs.getDefaultAlbum().getName();
+			final String rhsAlbumName = rhs.getDefaultAlbum().getName();
+			if(!lhsAlbumName.equals(rhsAlbumName)) {
+				return lhsAlbumName.compareTo(rhsAlbumName);
 			}
 			
-			return lhs.song_title.toLowerCase().compareTo(rhs.song_title.toLowerCase());
+			return lhs.getTitle().toLowerCase(Locale.US).compareTo(rhs.getTitle().toLowerCase(Locale.US));
 		}
 	};
 	
 	private Comparator<Artist> mArtistComparator = new Comparator<Artist>() {
 		@Override
 		public int compare(Artist lhs, Artist rhs) {
-			return lhs.artist_name.toLowerCase().compareTo(rhs.artist_name.toLowerCase());
+			return lhs.getName().toLowerCase(Locale.US).compareTo(rhs.getName().toLowerCase(Locale.US));
 		}
 	};
 	
@@ -99,7 +103,7 @@ public class PlaylistActivity extends ListActivity {
 				return (lhs.isCooling()) ? 1 : -1;
 			}
 			
-			return lhs.album_name.toLowerCase().compareTo(rhs.album_name.toLowerCase());
+			return lhs.getName().toLowerCase(Locale.US).compareTo(rhs.getName().toLowerCase(Locale.US));
 		}
 	};
 	
@@ -112,7 +116,7 @@ public class PlaylistActivity extends ListActivity {
 	
 	public void onResume() {
 		super.onResume();
-		initializeSession();
+		mSession = Session.getInstance();
 		fetchDataIfNeeded();
 	}
 	
@@ -141,10 +145,10 @@ public class PlaylistActivity extends ListActivity {
 		}
 		
 		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.playlist_menu, menu);
+		inflater.inflate(R.menu.playlist_context_menu, menu);
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 		Song s = (Song) getListView().getItemAtPosition(info.position);
-		menu.setHeaderTitle(s.song_title);
+		menu.setHeaderTitle(s.getTitle());
 	}
 	
 	@Override
@@ -153,27 +157,44 @@ public class PlaylistActivity extends ListActivity {
 		switch (item.getItemId()) {
 		case R.id.request:
 			Song s = (Song) getListView().getItemAtPosition(info.position);
-			request(s.song_id);
+			request(s.getId());
 			return true;
 		default:
 			return super.onContextItemSelected(item);
 		}
 	}
 	
-	/**
-	 * Destroys any existing Session and creates
-	 * a new Session object for us to use, pulling
-	 * the user_id and key attributes from the default
-	 * Preference store.
-	 */
-    private void initializeSession() {
-        try {
-            mSession = Session.makeSession(this);
-        } catch (IOException e) {
-            Rainwave.showError(this, e);
-        }
-    }
-    
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.playlist_menu, menu);
+		return true;
+	}
+
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+		case R.id.menu_refresh:
+			// clear result list and hide the filter
+			setListAdapter(null);
+			hideFilter();
+			
+			// check if we're looking at albums or artists and refresh
+			if(isByAlbum()) {
+				mAlbums = null;
+				mFetchAlbums = null;
+				fetchAlbums(true);
+			}
+			else {
+				mArtists = null;
+				mFetchArtists = null;
+				fetchArtists(true);
+			}
+			return true;
+		}
+		
+		return false;
+	}
+	
     private void setListeners() {
     	RadioButton a = (RadioButton) findViewById(R.id.by_album);
     	RadioButton b = (RadioButton) findViewById(R.id.by_artist);
@@ -191,20 +212,20 @@ public class PlaylistActivity extends ListActivity {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 				if(mMode == MODE_TOP_LEVEL && isByAlbum()) {
-					ArrayAdapter<Album> adapter = (ArrayAdapter<Album>) getListAdapter();
+					ListAdapter adapter = getListAdapter();
 					hideFilter();
 					setListAdapter(null);
 					mMode = MODE_DETAIL_ALBUM;
-					Album choice = adapter.getItem(position);
-					fetchAlbum(choice.album_id);
+					Album choice = (Album) adapter.getItem(position);
+					fetchAlbum(choice.getId());
 				}
 				else if(mMode == MODE_TOP_LEVEL) {
-					ArrayAdapter<Artist> adapter = (ArrayAdapter<Artist>) getListAdapter();
+					ListAdapter adapter = getListAdapter();
 					hideFilter();
 					setListAdapter(null);
 					mMode = MODE_DETAIL_ARTIST;
-					Artist choice = adapter.getItem(position);
-					fetchArtist(choice.artist_id);
+					Artist choice = (Artist) adapter.getItem(position);
+					fetchArtist(choice.getId());
 				}
 			}
     	});
@@ -279,7 +300,7 @@ public class PlaylistActivity extends ListActivity {
     		}
     		else {
     			setListAdapter(null);
-    			fetchAlbums();
+    			fetchAlbums(false);
     		}
     	}
     	else if(mMode == MODE_TOP_LEVEL){
@@ -293,7 +314,7 @@ public class PlaylistActivity extends ListActivity {
     		}
     		else {
     			setListAdapter(null);
-    			fetchArtists();
+    			fetchArtists(false);
     		}
     	}
     	else if(mMode == MODE_DETAIL_ALBUM || mMode == MODE_DETAIL_ARTIST) {
@@ -307,10 +328,10 @@ public class PlaylistActivity extends ListActivity {
 
 	private void fetchDataIfNeeded() {
 		if(isByAlbum() && mAlbums == null) {
-			fetchAlbums();
+			fetchAlbums(false);
 		}
 		else if(mArtists == null) {
-			fetchArtists();
+			fetchArtists(false);
 		}
 	}
 	
@@ -334,15 +355,15 @@ public class PlaylistActivity extends ListActivity {
 		mRequest.execute(song_id);
 	}
 	
-	private void fetchAlbums() {
-		if(mFetchAlbums != null || mAlbums != null) return;
-		mFetchAlbums = new FetchAlbumsTask();
+	private void fetchAlbums(final boolean forceRefresh) {
+		if(mFetchAlbums != null) return;
+		mFetchAlbums = new FetchAlbumsTask(forceRefresh);
 		mFetchAlbums.execute();
 	}
 	
-	private void fetchArtists() {
-		if(mFetchArtists != null || mArtists != null) return;
-		mFetchArtists = new FetchArtistsTask();
+	private void fetchArtists(final boolean forceRefresh) {
+		if(mFetchArtists != null) return;
+		mFetchArtists = new FetchArtistsTask(forceRefresh);
 		mFetchArtists.execute();
 	}
 	
@@ -366,10 +387,19 @@ public class PlaylistActivity extends ListActivity {
 	}
 	
 	private class FetchAlbumsTask extends AsyncTask<String,String,Album[]> {
+		
+		private boolean mForceRefresh;
+		
+		public FetchAlbumsTask(final boolean forceRefresh) {
+			super();
+			mForceRefresh = forceRefresh;
+		}
+		
 		@Override
 		protected Album[] doInBackground(String... args) {
+			Log.d(TAG, "Fetching albumsin background...");
 			try {
-				return mSession.getAlbums();
+				return mSession.getAlbums(mForceRefresh);
 			} catch (IOException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "IO Error: " + e);
@@ -388,10 +418,17 @@ public class PlaylistActivity extends ListActivity {
 	}
 	
 	private class FetchArtistsTask extends AsyncTask<String,String,Artist[]> {
+		private boolean mForceRefresh;
+		
+		public FetchArtistsTask(final boolean forceRefresh) {
+			super();
+			mForceRefresh = forceRefresh;
+		}
+		
 		@Override
 		protected Artist[] doInBackground(String... args) {
 			try {
-				return mSession.getArtists();
+				return mSession.getArtists(mForceRefresh);
 			} catch (IOException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "IO Error: " + e);
@@ -430,7 +467,7 @@ public class PlaylistActivity extends ListActivity {
 				mFetchArtist = null;
 				return;
 			}
-			mSongs = result.songs;
+			mSongs = result.cloneSongs();
 			updateView();
 			mFetchArtist = null;
 		}
@@ -441,6 +478,7 @@ public class PlaylistActivity extends ListActivity {
 		protected Album doInBackground(Integer ... args) {
 			int album_id = args[0];
 			try {
+				Log.d(TAG, "Fetching album...");
 				return mSession.getDetailedAlbum(album_id);
 			} catch (IOException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
@@ -449,15 +487,17 @@ public class PlaylistActivity extends ListActivity {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "API Error: " + e);
 			}
+			Log.d(TAG, "Error fetching album!");
 			return null;
 		}
 		
 		protected void onPostExecute(Album result) {
 			if(result == null){
+				Log.d(TAG, "Album fetch failed!");
 				mFetchAlbum = null;
 				return;
 			}
-			mSongs = result.song_data;
+			mSongs = result.cloneSongs();
 			updateView();
 			mFetchAlbum = null;
 		}
@@ -467,13 +507,8 @@ public class PlaylistActivity extends ListActivity {
 		mHandler.obtainMessage(SET_THE_DATA).sendToTarget();
 	}
 	
-	private void postSuccessfulRequestMessage() {
-		mHandler.obtainMessage(SUCCESSFUL_REQUEST).sendToTarget();
-	}
-	
     private Handler mHandler = new Handler() {
     	public void handleMessage(Message msg) {
-    		Bundle data = msg.getData();
     		switch(msg.what) {
     		case SET_THE_DATA:
     			setTheData();
@@ -486,13 +521,13 @@ public class PlaylistActivity extends ListActivity {
     	}
     };
     
-    private class RequestTask extends AsyncTask<Integer,Integer,RainwaveResponse> {
+    private class RequestTask extends AsyncTask<Integer, Integer, Song[]> {
 		@Override
-		protected RainwaveResponse doInBackground(Integer... args) {
+		protected Song[] doInBackground(Integer... args) {
 			int song_id = args[0];
 			
 			try {
-				return mSession.request(song_id);
+				return mSession.submitRequest(song_id);
 			} catch (IOException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "IO Error: " + e);
@@ -503,12 +538,12 @@ public class PlaylistActivity extends ListActivity {
 			return null;
 		}
 		
-		protected void onPostExecute(RainwaveResponse r) {
-			if(r == null){
+		protected void onPostExecute(Song[] songs) {
+			if(songs == null){
 				mRequest = null;
 				return;
 			}
-			postSuccessfulRequestMessage();
+			mHandler.obtainMessage(SUCCESSFUL_REQUEST).sendToTarget();
 			mRequest = null;
 		}
     	
@@ -520,12 +555,10 @@ public class PlaylistActivity extends ListActivity {
 			CountdownView circle;
 		}
 		
-		private int mLayout;
 		private int mMode;
 		
 		public SongArrayAdapter(Context context, int layout, Song songs[], int mode) {
 			super(context,layout,songs);
-			mLayout = layout;
 			mMode = mode;
 		}
 		
@@ -552,7 +585,7 @@ public class PlaylistActivity extends ListActivity {
 			
 			
 			// We should have at least this much for both views.
-			holder.text1.setText(s.song_title);
+			holder.text1.setText(s.getTitle());
 			holder.time.setText(s.getLengthString());
 			
 			if(s.isCooling()) {
@@ -570,12 +603,12 @@ public class PlaylistActivity extends ListActivity {
 			
 			if(mMode == MODE_DETAIL_ALBUM) {
 				holder.circle.setVisibility(View.VISIBLE);
-				holder.circle.setBoth(s.song_rating_user,s.song_rating_avg);
+				holder.circle.setBoth(s.getUserRating(), s.getCommunityRating());
 				holder.text2.setText(s.collapseArtists());
 			}
 			else {
 				holder.circle.setVisibility(View.GONE);
-				holder.text2.setText(s.album_name);
+				holder.text2.setText(s.getDefaultAlbum().getName());
 			}
 			
 			return convertView;
