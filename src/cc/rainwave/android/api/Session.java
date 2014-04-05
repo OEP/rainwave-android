@@ -165,20 +165,55 @@ public class Session {
     	
     }
     
+    
+    /**
+     * Fetch a list of all  the albums. Returns a cached version if available.
+     * @return array of Albums
+     * @throws IOException in case of a connectivity error
+     * @throws RainwaveException in case of a problem understanding the response
+     */
     public Album[] getAlbums() throws IOException, RainwaveException {
+    	return getAlbums(false);
+    }
+    
+    /**
+     * Fetch a list of all albums. Optionally can update the cached version.
+     * @param forceRefresh true to force a refresh of the cache
+     * @return list of all albums
+     * @throws IOException in case of connectivity error 
+     * @throws RainwaveException in case of problem understanding the response
+     */
+    public Album[] getAlbums(final boolean forceRefresh) throws IOException, RainwaveException {
     	final String path = "all_albums";
     	final String returns = "all_albums";
-    	if(mAlbums != null) {
+    	if(!forceRefresh && mAlbums != null) {
     		return mAlbums;
     	}
     	mAlbums = requestObject(Method.POST, path, returns, false, Album[].class);
     	return mAlbums;
     }
     
+    /**
+     * Fetch a list of all artists. Returns a cached version if available.
+     * @return list of all artists
+     * @throws IOException in case of connectivity error
+     * @throws RainwaveException in case of problem understanding the response
+     */
     public Artist[] getArtists() throws IOException, RainwaveException {
+    	return getArtists(false);
+    }
+    
+    /**
+     * Fetch a list of all artists. Optionally can refresh the cache.
+     * @param forceRefresh true to force a refresh of the cache
+     * @return a list of all artists
+     * @throws IOException in case of connectivity error
+     * @throws RainwaveException in case of problem understanding the response
+     */
+    public Artist[] getArtists(final boolean forceRefresh) throws IOException, RainwaveException {
     	final String path = "all_artists";
     	final String returns = "all_artists";
-    	if(mArtists != null) {
+    	if(!forceRefresh && mArtists != null) {
     		return mArtists;
     	}
     	mArtists = requestObject(Method.POST, path, returns, false, Artist[].class);
