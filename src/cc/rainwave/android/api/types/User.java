@@ -26,6 +26,14 @@ public class User {
 		return mTunedIn;
 	}
 	
+	public int getId() {
+		return mUserId;
+	}
+	
+	public String getUsername() {
+		return mUsername;
+	}
+	
 	public static class Deserializer implements JsonDeserializer<User> {
 		@Override
 		public User deserialize(

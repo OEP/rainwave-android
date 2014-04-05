@@ -1,20 +1,17 @@
 package cc.rainwave.android;
 
-import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
-
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ListView;
+
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 public class RainwavePreferenceActivity extends PreferenceActivity {
 
@@ -25,8 +22,6 @@ public class RainwavePreferenceActivity extends PreferenceActivity {
 		}
 		
 		private void setupUI() {
-		    EditTextPreference key = (EditTextPreference) findPreference(Rainwave.PREFS_KEY);
-		    
 		    Preference qr = findPreference(Rainwave.PREF_IMPORT);
 		    qr.setOnPreferenceClickListener(new OnPreferenceClickListener() {
 				@Override

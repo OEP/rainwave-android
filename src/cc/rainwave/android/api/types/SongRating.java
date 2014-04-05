@@ -2,7 +2,6 @@ package cc.rainwave.android.api.types;
 
 import java.lang.reflect.Type;
 
-import android.util.Log;
 import cc.rainwave.android.api.JsonHelper;
 
 import com.google.gson.JsonDeserializationContext;

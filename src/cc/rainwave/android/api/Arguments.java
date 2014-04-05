@@ -4,10 +4,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 public class Arguments extends HashMap<String, String> {
-    Arguments(final String[] args) {
+	private static final long serialVersionUID = 7112726141447554961L;
+
+	Arguments(final String[] args) {
         super();
 		if(args.length % 2 != 0) {
 			throw new IllegalArgumentException("Must have a multiple of two arguments");
@@ -23,10 +24,10 @@ public class Arguments extends HashMap<String, String> {
 
     public String encode(final String codec) throws UnsupportedEncodingException {
 		StringBuffer buffer = new StringBuffer();
-        Iterator it = entrySet().iterator();
+        Iterator<Entry<String, String>> it = entrySet().iterator();
 
         while(it.hasNext()) {
-            Arguments.Entry pair = (Arguments.Entry) it.next();
+            Arguments.Entry<String, String> pair = it.next();
             final String key = (String) pair.getKey();
             final String value = (String) pair.getValue();
 			buffer.append(URLEncoder.encode(key, codec));

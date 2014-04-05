@@ -1,6 +1,20 @@
 
 package cc.rainwave.android.api;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
 import cc.rainwave.android.R;
 import cc.rainwave.android.Rainwave;
 import cc.rainwave.android.api.types.Album;
@@ -17,24 +31,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-
-import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Log;
-import android.util.SparseArray;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Session {
     private static final String TAG = "Session";
@@ -93,7 +89,6 @@ public class Session {
     }
     
     private void updateSchedules(final JsonElement root) {
-    	final Gson gson = getGson();
     	mCurrentEvent = getIfExists(root, "sched_current", Event.class, mCurrentEvent);
     	mNextEvents = getIfExists(root, "sched_next", Event[].class, mNextEvents);
     	mEventHistory = getIfExists(root, "sched_history", Event[].class, mEventHistory);

@@ -3,6 +3,7 @@ package cc.rainwave.android;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Locale;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -19,24 +20,23 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.widget.AdapterView;
-import android.widget.Button;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Toast;
 import cc.rainwave.android.adapters.SongListAdapter;
 import cc.rainwave.android.adapters.StationListAdapter;
@@ -255,7 +255,7 @@ public class NowPlayingActivity extends Activity {
 					rating = Math.max(1.0f, Math.min(rating, 5.0f));
 					max = hrb.getMax();
 					hrb.setPrimaryValue(rating);
-					String label = String.format("%.1f/%.1f",rating,max);
+					String label = String.format(Locale.US, "%.1f/%.1f",rating,max);
 					hrb.setLabel(label);
 					
 					if(e.getAction() == MotionEvent.ACTION_UP) {
@@ -300,7 +300,7 @@ public class NowPlayingActivity extends Activity {
 				case MotionEvent.ACTION_UP:
 					rating = hrb.getPrimary();
 					max = hrb.getMax();
-					String label = String.format("%.1f/%.1f",rating,max);
+					String label = String.format(Locale.US, "%.1f/%.1f",rating,max);
 					hrb.setLabel(label);
 					
 					if(e.getAction() == MotionEvent.ACTION_UP) {
@@ -315,7 +315,7 @@ public class NowPlayingActivity extends Activity {
 
     	final ListView election = (ListView) findViewById(R.id.np_electionList);
     	election.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-    		public void onItemClick(AdapterView parent, View v, int i, long id) {
+    		public void onItemClick(AdapterView<?> parent, View v, int i, long id) {
     			if(mSession.isTunedIn() && mSession.hasCredentials()) {
     				((SongListAdapter) election.getAdapter()).startCountdown(i);
     			}
@@ -542,7 +542,6 @@ public class NowPlayingActivity extends Activity {
 
 	/** Responds to menu selection */
 	public boolean onOptionsItemSelected(MenuItem item) {
-		Intent i;
 		switch(item.getItemId()) {
 		    
 		// Start RainwavePreferenceActivity.
@@ -778,7 +777,7 @@ public class NowPlayingActivity extends Activity {
     	   .setBothValues(current.getUserRating(), current.getCommunityRating());
     	
     	((HorizontalRatingBar) findViewById(R.id.np_albumRating))
- 	       .setBothValues(album.getUserRating(), album.getRating());
+ 	       .setBothValues(album.getUserRating(), album.getCommunityRating());
     }
     
     /**
@@ -984,8 +983,6 @@ public class NowPlayingActivity extends Activity {
      * Refreshes the title bar every second until the end of an event is reached.
      */
     protected class SongCountdownTask extends AsyncTask<Long, Integer, Boolean> {
-        private String TAG = "Unnamed";
-
         @Override
         protected Boolean doInBackground(Long ... params) {
         	long stopTime = params[0];
@@ -1041,10 +1038,6 @@ public class NowPlayingActivity extends Activity {
     /** Handler keys */
     private static final String
     	BOOL_STATUS = "bool_status";
-    
-    /** Handler keys*/
-    private static final String
-    	STRING_TITLE = "string_title";
     
     /** Dialog identifiers */
     public static final int

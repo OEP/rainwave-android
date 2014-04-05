@@ -2,7 +2,6 @@ package cc.rainwave.android.adapters;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import android.content.Context;
 import android.content.res.Resources;

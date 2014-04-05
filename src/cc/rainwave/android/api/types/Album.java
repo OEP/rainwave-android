@@ -2,26 +2,18 @@ package cc.rainwave.android.api.types;
 
 import java.lang.reflect.Type;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import cc.rainwave.android.api.JsonHelper;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 public class Album implements Parcelable, Comparable<Album> {
-	/** Flag indicating a user's favorite album. */
-	private boolean mFavourite;
-	
 	/** The soonest cooldown time of any songs. */
 	private long mLowestCooldown;
-	
-	/** Indicates album is on cooldown. */
-	private boolean mCooldown;
 	
 	/** Community rating of album. */
 	private float mRating;
@@ -88,8 +80,8 @@ public class Album implements Parcelable, Comparable<Album> {
 		return mSongs.clone();
 	}
 	
-	public float getRating() {
-		return mUserRating;
+	public float getCommunityRating() {
+		return mRating;
 	}
 
 	public String toString() {
@@ -118,7 +110,7 @@ public class Album implements Parcelable, Comparable<Album> {
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeLong(mLowestCooldown);
-		dest.writeFloat(getRating());
+		dest.writeFloat(getCommunityRating());
 		dest.writeFloat(getUserRating());
 		dest.writeString(getName());
 		dest.writeString(getArt());
@@ -151,7 +143,6 @@ public class Album implements Parcelable, Comparable<Album> {
 			a.mName = JsonHelper.getString(element, "name");
 			a.mId = JsonHelper.getInt(element, "id");
 			a.mLowestCooldown = JsonHelper.getLong(element, "cool_lowest", 0);
-			a.mCooldown = JsonHelper.getBoolean(element, "cool", false);
 			
 			// songs may not always be returned by API
 			if(JsonHelper.hasMember(element, "songs")) {

@@ -2,10 +2,10 @@ package cc.rainwave.android;
 
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.Locale;
 
 import android.app.ListActivity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -30,6 +30,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListAdapter;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -71,7 +72,7 @@ public class PlaylistActivity extends ListActivity {
 				return (lhs.isCooling()) ? 1 : -1;
 			}
 			
-			return lhs.getTitle().toLowerCase().compareTo(rhs.getTitle().toLowerCase());
+			return lhs.getTitle().toLowerCase(Locale.US).compareTo(rhs.getTitle().toLowerCase(Locale.US));
 		}
 	};
 	
@@ -84,14 +85,14 @@ public class PlaylistActivity extends ListActivity {
 				return lhsAlbumName.compareTo(rhsAlbumName);
 			}
 			
-			return lhs.getTitle().toLowerCase().compareTo(rhs.getTitle().toLowerCase());
+			return lhs.getTitle().toLowerCase(Locale.US).compareTo(rhs.getTitle().toLowerCase(Locale.US));
 		}
 	};
 	
 	private Comparator<Artist> mArtistComparator = new Comparator<Artist>() {
 		@Override
 		public int compare(Artist lhs, Artist rhs) {
-			return lhs.getName().toLowerCase().compareTo(rhs.getName().toLowerCase());
+			return lhs.getName().toLowerCase(Locale.US).compareTo(rhs.getName().toLowerCase(Locale.US));
 		}
 	};
 	
@@ -102,7 +103,7 @@ public class PlaylistActivity extends ListActivity {
 				return (lhs.isCooling()) ? 1 : -1;
 			}
 			
-			return lhs.getName().toLowerCase().compareTo(rhs.getName().toLowerCase());
+			return lhs.getName().toLowerCase(Locale.US).compareTo(rhs.getName().toLowerCase(Locale.US));
 		}
 	};
 	
@@ -211,19 +212,19 @@ public class PlaylistActivity extends ListActivity {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 				if(mMode == MODE_TOP_LEVEL && isByAlbum()) {
-					ArrayAdapter<Album> adapter = (ArrayAdapter<Album>) getListAdapter();
+					ListAdapter adapter = getListAdapter();
 					hideFilter();
 					setListAdapter(null);
 					mMode = MODE_DETAIL_ALBUM;
-					Album choice = adapter.getItem(position);
+					Album choice = (Album) adapter.getItem(position);
 					fetchAlbum(choice.getId());
 				}
 				else if(mMode == MODE_TOP_LEVEL) {
-					ArrayAdapter<Artist> adapter = (ArrayAdapter<Artist>) getListAdapter();
+					ListAdapter adapter = getListAdapter();
 					hideFilter();
 					setListAdapter(null);
 					mMode = MODE_DETAIL_ARTIST;
-					Artist choice = adapter.getItem(position);
+					Artist choice = (Artist) adapter.getItem(position);
 					fetchArtist(choice.getId());
 				}
 			}
@@ -508,7 +509,6 @@ public class PlaylistActivity extends ListActivity {
 	
     private Handler mHandler = new Handler() {
     	public void handleMessage(Message msg) {
-    		Bundle data = msg.getData();
     		switch(msg.what) {
     		case SET_THE_DATA:
     			setTheData();
@@ -555,12 +555,10 @@ public class PlaylistActivity extends ListActivity {
 			CountdownView circle;
 		}
 		
-		private int mLayout;
 		private int mMode;
 		
 		public SongArrayAdapter(Context context, int layout, Song songs[], int mode) {
 			super(context,layout,songs);
-			mLayout = layout;
 			mMode = mode;
 		}
 		

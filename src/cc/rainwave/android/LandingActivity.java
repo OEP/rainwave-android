@@ -1,20 +1,9 @@
 package cc.rainwave.android;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-
-import cc.rainwave.android.adapters.SongListAdapter;
-import cc.rainwave.android.api.Session;
-import cc.rainwave.android.api.types.RainwaveException;
-import cc.rainwave.android.api.types.Song;
-import cc.rainwave.android.api.types.Station;
-
-import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -26,6 +15,11 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.EditText;
+import cc.rainwave.android.api.Session;
+import cc.rainwave.android.api.types.RainwaveException;
+
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 /**
  * First thing the user sees when starting the app.
@@ -158,7 +152,6 @@ public class LandingActivity extends Activity {
             mSession.setUserInfo(mUser, mKey);
             dispatchThrobberVisibility(true);
             
-            Bundle b = new Bundle();
             try {
             	mSession.info();
                 return true;

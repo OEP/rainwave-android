@@ -1,7 +1,6 @@
 package cc.rainwave.android.api.types;
 
 import android.content.Context;
-import android.content.res.Resources;
 
 public class RainwaveException extends Exception {
 	private static final long serialVersionUID = -6112296581405318238L;

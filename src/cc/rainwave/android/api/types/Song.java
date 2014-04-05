@@ -1,17 +1,16 @@
 package cc.rainwave.android.api.types;
 
 import java.lang.reflect.Type;
+import java.util.Locale;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import cc.rainwave.android.api.JsonHelper;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
-
-import android.os.Parcel;
-import android.os.Parcelable;
 
 public class Song implements Parcelable, Comparable<Song> {
 	
@@ -160,7 +159,7 @@ public class Song implements Parcelable, Comparable<Song> {
 	public String getLengthString() {
 		int m = mSecondsLong / 60;
 		int s = mSecondsLong % 60;
-		return String.format("%d:%02d", m, s);
+		return String.format(Locale.US, "%d:%02d", m, s);
 	}
 	
 	/**
