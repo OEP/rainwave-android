@@ -1,13 +1,8 @@
 package cc.rainwave.android.views;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Canvas;
-import android.graphics.CornerPathEffect;
-import android.graphics.LinearGradient;
 import android.graphics.Paint;
-import android.graphics.Paint.Align;
-import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -18,6 +13,8 @@ public class PagerWidget extends View {
 	private int mCount = 2;
 	
 	private int mCurrent = 0;
+	
+	private Paint mPaint = new Paint();
 	
 	public PagerWidget(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -44,16 +41,15 @@ public class PagerWidget extends View {
 	}
 	
 	public void onDraw(Canvas canvas) {
-		Paint p = new Paint();
-		p.setAntiAlias(true);
+		mPaint.setAntiAlias(true);
 		int h = getHeight();
 		int w = getWidth();
 		float barWidth = (w - (getCount() - 1) * DEFAULT_SPACE) / getCount();
 		
 		for(int i = 0; i < getCount(); i++) {
 			float x = i * (barWidth + DEFAULT_SPACE);
-			p.setColor((getCurrent() == i) ? COLOR_HILIGHT : COLOR_DEFAULT);
-			canvas.drawRect(x, 0, x+barWidth, h, p);
+			mPaint.setColor((getCurrent() == i) ? COLOR_HILIGHT : COLOR_DEFAULT);
+			canvas.drawRect(x, 0, x+barWidth, h, mPaint);
 		}
 	}
 	

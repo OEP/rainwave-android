@@ -785,7 +785,6 @@ public class Workspace extends ViewGroup {
         mNextScreen = whichScreen;
 
         View focusedChild = getFocusedChild();
-        boolean setTabFocus = false;
         if (focusedChild != null && screenDelta != 0 && focusedChild == getScreenAt(
                 mCurrentScreen)) {
             // clearing the focus of the child will cause focus to jump to the tabs,

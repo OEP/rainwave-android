@@ -1,22 +1,9 @@
 package cc.rainwave.android;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-
-import cc.rainwave.android.adapters.SongListAdapter;
-import cc.rainwave.android.api.Session;
-import cc.rainwave.android.api.types.RainwaveException;
-import cc.rainwave.android.api.types.RainwaveResponse;
-import cc.rainwave.android.api.types.Song;
-import cc.rainwave.android.api.types.Station;
-import cc.rainwave.android.listeners.HexadecimalKeyListener;
-
-import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -28,6 +15,11 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.EditText;
+import cc.rainwave.android.api.Session;
+import cc.rainwave.android.api.types.RainwaveException;
+
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 /**
  * First thing the user sees when starting the app.
@@ -43,7 +35,6 @@ public class LandingActivity extends Activity {
 
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
-		Rainwave.onApplicationInit(this);
 		preLayout();
 		setContentView(R.layout.activity_landing);
 		postLayout();
@@ -66,8 +57,6 @@ public class LandingActivity extends Activity {
 	}
 	
 	private void postLayout() {
-		((EditText)findViewById(R.id.land_apiKey)).setKeyListener(new HexadecimalKeyListener());
-		
 		findViewById(R.id.land_login).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -112,11 +101,8 @@ public class LandingActivity extends Activity {
 		}
 		
 		getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-		try {
-			mSession = Session.makeSession(LandingActivity.this);
-		} catch (MalformedURLException e) {
-			Rainwave.showError(this, e);
-		}
+		mSession = Session.getInstance();
+		mSession.unpickle(this);
 	}
 	
 	private void verifyUserInfo(String user, String key) {
@@ -153,54 +139,42 @@ public class LandingActivity extends Activity {
      * @author pkilgo
      *
      */
-    protected class VerifyCredentials extends AsyncTask<String, Integer, Bundle> {
+    protected class VerifyCredentials extends AsyncTask<String, Integer, Boolean> {
         private String TAG = "VerifyCredentials";
 
         private String mUser, mKey;
         
         @Override
-        protected Bundle doInBackground(String ... args) {
+        protected Boolean doInBackground(String ... args) {
             mUser = args[0];
             mKey = args[1];
             
             mSession.setUserInfo(mUser, mKey);
             dispatchThrobberVisibility(true);
             
-            Bundle b = new Bundle();
             try {
-            	RainwaveResponse organizer = mSession.syncInit();
-                b.putParcelable(Rainwave.SCHEDULE, organizer);
-                return b;
+            	mSession.info();
+                return true;
             } catch (IOException e) {
                 Log.e(TAG, "IOException occured: " + e);
                 Rainwave.showError(LandingActivity.this, e);
-                return null;
+                return false;
             } catch (RainwaveException e) {
             	Log.e(TAG, "API error: " + e.getMessage());
             	Rainwave.showError(LandingActivity.this, e);
-            	return null;
+            	return false;
             }
         }
         
-        protected void onPostExecute(Bundle result) {
+        protected void onPostExecute(Boolean result) {
             super.onPostExecute(result);
-            
             dispatchThrobberVisibility(false);
-            
             mVerifyCredentialsTask = null;
             
-            // Was there an IO failure?
-            if(result == null) {
+            if(!result || !mSession.isAuthenticated()) {
             	return;
             }
             
-            RainwaveResponse tmp = result.getParcelable(Rainwave.SCHEDULE);
-            
-            if(tmp == null) {
-            	return;
-            }
-            
-            // Set user credentials and start next activity.
             setInfoAndStart(mUser, mKey);
         }
     }

@@ -2,7 +2,6 @@ package cc.rainwave.android.adapters;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -19,7 +18,6 @@ import android.widget.TextView;
 import cc.rainwave.android.R;
 import cc.rainwave.android.Rainwave;
 import cc.rainwave.android.api.Session;
-import cc.rainwave.android.api.types.GenericResult;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.views.CountdownView;
@@ -43,8 +41,8 @@ public class SongListAdapter extends BaseAdapter {
 	
 	private Handler mVoteHandler;
 	
-	/** Last elec_entry_id */
-	private int mLastVote;
+	/** Records last known election id vote. Set to -1 to imply no vote. */
+	private int mLastVote = -1;
 	
 	/** Vote deadline */
 	private long mDeadline = -1;
@@ -120,13 +118,13 @@ public class SongListAdapter extends BaseAdapter {
 
 	@Override
 	public long getItemId(int i) {
-		return (mSongs == null) ? -1 : mSongs.get(i).song_id;
+		return (mSongs == null) ? -1 : mSongs.get(i).getId();
 	}
 	
 	public void markVoted(int elec_entry_id) {
 		for(int i = 0; i < mSongs.size(); i++) {
 			Song s = mSongs.get(i);
-			if(s.elec_entry_id == elec_entry_id) {
+			if(s.getElectionEntryId() == elec_entry_id) {
 				mLastVote = elec_entry_id;
 				setVoteStatus(true);
 				return;
@@ -152,18 +150,18 @@ public class SongListAdapter extends BaseAdapter {
 			convertView = inflater.inflate(mItemLayout, null);
 			mViews.set(i, convertView);
 			
-			setTextIfExists(convertView, R.id.song, s.song_title);
-			setTextIfExists(convertView, R.id.album, s.album_name);
+			setTextIfExists(convertView, R.id.song, s.getTitle());
+			setTextIfExists(convertView, R.id.album, s.getDefaultAlbum().getName());
 			setTextIfExists(convertView, R.id.artist, s.collapseArtists());
 			
 			if(s.isRequest()) {
 				setImageIfExists(convertView, R.id.accent, R.drawable.accent_song_hilight);
 				setVisibilityIfExists(convertView, R.id.requestor, View.VISIBLE);
 				setTextIfExists(convertView, R.id.requestor,
-						String.format(r.getString(R.string.label_requestor), s.song_requestor));
+						String.format(r.getString(R.string.label_requestor), s.getRequestor()));
 			}
 			
-			if(s.elec_entry_id == mLastVote) {
+			if(s.getElectionEntryId() == mLastVote) {
 				setVoted(((CountdownView)convertView.findViewById(R.id.circle)));
 			}
 			else {
@@ -218,7 +216,7 @@ public class SongListAdapter extends BaseAdapter {
 	}
 	
 	private void reflectSong(CountdownView v, Song s) {
-		v.setBoth(s.song_rating_user, s.song_rating_avg);
+		v.setBoth(s.getUserRating(), s.getCommunityRating());
 		v.setAlternateText(R.string.label_unrated);
 	}
 	
@@ -291,7 +289,7 @@ public class SongListAdapter extends BaseAdapter {
 			mSong = params[0];
 			
 			try {
-				GenericResult result = mSession.vote(mSong.elec_entry_id);
+				mSession.vote(mSong.getElectionEntryId());
 				return true;
 			} catch (IOException e) {
 				Rainwave.showError(SongListAdapter.this.mContext, e);

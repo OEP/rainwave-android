@@ -32,7 +32,7 @@ public class StationListAdapter extends BaseAdapter {
 
 	@Override
 	public long getItemId(int position) {
-		return ((Station) getItem(position)).id;
+		return ((Station) getItem(position)).getId();
 	}
 
 	@Override
@@ -45,8 +45,8 @@ public class StationListAdapter extends BaseAdapter {
 			TextView line2 = (TextView) convertView.findViewById(R.id.station_description);
 			Station s = (Station) getItem(position);
 			
-			line1.setText(s.name);
-			line2.setText(s.description);
+			line1.setText(s.getName());
+			line2.setText(s.getDescription());
 		}
 		
 		return convertView;
