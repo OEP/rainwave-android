@@ -83,9 +83,19 @@ public class Session {
     
     public void sync() throws RainwaveException {
     	final String path = "sync";
-    	
+
+    	// include a last known event id so the server can rush information to
+    	// us if we're behind
+    	String[] args = null;
+    	if(getCurrentEvent() != null) {
+    		args = new String[] {"known_event_id", String.valueOf(getCurrentEvent().getId())};
+    	}
+    	else {
+    		args = new String[0];
+    	}
+    			
     	try {
-    		final JsonElement element = post(path);
+    		final JsonElement element = post(path, args);
     		updateSchedules(element);
     	}
     	catch(final JsonParseException exc) {
