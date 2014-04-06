@@ -291,9 +291,6 @@ public class SongListAdapter extends BaseAdapter {
 			try {
 				mSession.vote(mSong.getElectionEntryId());
 				return true;
-			} catch (IOException e) {
-				Rainwave.showError(SongListAdapter.this.mContext, e);
-				Log.e(TAG, "IO Error: " + e);
 			} catch (RainwaveException e) {
 				Rainwave.showError(SongListAdapter.this.mContext, e);
 				Log.e(TAG, "API Error: " + e);

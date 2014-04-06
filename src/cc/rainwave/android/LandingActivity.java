@@ -1,6 +1,7 @@
 package cc.rainwave.android;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -49,11 +50,13 @@ public class LandingActivity extends Activity {
 		
 		Uri uri = Uri.parse(raw);
 		String userInfo = uri.getUserInfo();
-		String user = Rainwave.extractUserId(userInfo);
-		String key = Rainwave.extractKey(userInfo);
 		
-		((EditText)findViewById(R.id.land_userId)).setText(user);
-		((EditText)findViewById(R.id.land_apiKey)).setText(key);
+		final String[] parts = Rainwave.parseUrl(uri, this);
+		
+		if(parts != null) {
+			((EditText)findViewById(R.id.land_userId)).setText(parts[0]);
+			((EditText)findViewById(R.id.land_apiKey)).setText(parts[1]);
+		}
 	}
 	
 	private void postLayout() {
@@ -155,13 +158,15 @@ public class LandingActivity extends Activity {
             try {
             	mSession.info();
                 return true;
-            } catch (IOException e) {
-                Log.e(TAG, "IOException occured: " + e);
-                Rainwave.showError(LandingActivity.this, e);
-                return false;
             } catch (RainwaveException e) {
-            	Log.e(TAG, "API error: " + e.getMessage());
-            	Rainwave.showError(LandingActivity.this, e);
+            	switch(e.getStatusCode()) {
+            	case HttpURLConnection.HTTP_FORBIDDEN:
+            		Rainwave.showError(LandingActivity.this, R.string.msg_authenticationFailure);
+            		break;
+            	default:
+            		Rainwave.showError(LandingActivity.this, e);
+            		break;
+            	}
             	return false;
             }
         }
@@ -172,6 +177,7 @@ public class LandingActivity extends Activity {
             mVerifyCredentialsTask = null;
             
             if(!result || !mSession.isAuthenticated()) {
+            	mSession.clearUserInfo();
             	return;
             }
             

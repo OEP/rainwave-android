@@ -587,8 +587,7 @@ public class NowPlayingActivity extends Activity {
 	 * Preference store.
 	 */
     private void initializeSession() {
-		// TODO: Maybe ASK the user before we override?
-		handleIntent(getIntent());
+		handleIntent();
 	    mSession = Session.getInstance();
         
         View playlistButton = findViewById(R.id.np_makeRequest);
@@ -599,38 +598,38 @@ public class NowPlayingActivity extends Activity {
         }
     }
     
+
     /**
-     * Handles stuff included from the intent. Called once each
-     * time a Session is initialized.
-     * @param i the intent to handle
-     * @return true if no error occurred, false if there was some error handling the URL.
+     * Handle activity intent. This activity is configured to handle rw:// URL's
+     * if triggered from elsewhere in the OS.
      */
-    private boolean handleIntent(Intent i) {
+    private void handleIntent() {
+    	final Intent i = getIntent();
+    	
     	if(i == null) {
-    		return true;
+    		return;
     	}
     	Bundle b = i.getExtras();
     	Uri uri = i.getData();
     	
-    	// No uri? No need to handle.
     	if(uri == null){
-    		return true;
+    		return;
     	}
     	
+    	// check if this Intent was previously handled
     	boolean handled = (b != null) && b.getBoolean(Rainwave.HANDLED_URI, false);
-    	
     	if(handled) {
-    		return true;
+    		return;
+    	}
+    	
+    	// store in preferences if all is well
+    	final String parts[] = Rainwave.parseUrl(uri, this);
+    	if(parts != null) {
+	    	Rainwave.putUserId(this, parts[0]);
+	    	Rainwave.putKey(this, parts[0]);
     	}
     	
     	i.putExtra(Rainwave.HANDLED_URI, true);
-    	boolean ok = Rainwave.setPreferencesFromUri(this, uri);
-    	
-    	if(!ok) {
-    		Rainwave.showError(this, R.string.msg_invalidUrl);
-    	}
-    	
-    	return ok;
     }
     
     /**
@@ -664,7 +663,7 @@ public class NowPlayingActivity extends Activity {
     private void refreshTitle() {
     	long end = mSession.getCurrentEvent().getEnd();
     	long utc = System.currentTimeMillis() / 1000;
-    	long seconds = (end - utc);
+    	long seconds = (end - utc) - mSession.getDrift();
     	
     	seconds = Math.max(0, seconds);
     	long minutes = seconds / 60;
@@ -696,7 +695,7 @@ public class NowPlayingActivity extends Activity {
     	   .setAdapter(adapter);
     	
     	// Set vote deadline for when the song ends.
-    	adapter.setDeadline(mSession.getCurrentEvent().getEnd());
+    	adapter.setDeadline(mSession.getCurrentEvent().getEnd() - mSession.getDrift());
     	
     	// Open the drawer if the user can vote.
     	boolean canVote = !mSession.hasLastVote() && mSession.isTunedIn();
@@ -837,10 +836,6 @@ public class NowPlayingActivity extends Activity {
 					return mSession.reorderRequests(songs);
 				
 				}
-				
-			} catch (IOException e) {
-				Log.e(TAG, "IO error: " + e.getMessage());
-                Rainwave.showError(NowPlayingActivity.this, e);
 			} catch (RainwaveException e) {
 				Log.e(TAG, "API error: " + e.getMessage());
 				Rainwave.showError(NowPlayingActivity.this, e);
@@ -912,10 +907,6 @@ public class NowPlayingActivity extends Activity {
             		// it should be safe to keep going even if the station endpoint fails for some reason
             		try {
 	            		mSession.getStations();
-            		}
-            		catch(IOException e) {
-            			Log.e(TAG, "IOException occured: " + e);
-                        Rainwave.showError(NowPlayingActivity.this, e);
             		} catch (RainwaveException e) {
                     	Log.e(TAG, "API error: " + e.getMessage());
                     	Rainwave.showError(NowPlayingActivity.this, e);
@@ -940,10 +931,6 @@ public class NowPlayingActivity extends Activity {
                 }
                 
                 return b;
-            } catch (IOException e) {
-                Log.e(TAG, "IOException occured: " + e);
-                Rainwave.showError(NowPlayingActivity.this, e);
-                return null;
             } catch (RainwaveException e) {
             	Log.e(TAG, "API error: " + e.getMessage());
             	Rainwave.showError(NowPlayingActivity.this, e);

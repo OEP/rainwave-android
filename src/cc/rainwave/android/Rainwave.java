@@ -115,10 +115,9 @@ public class Rainwave {
     
     public static void showError(Context ctx, RainwaveException e) {
     	showError(ctx, 1, e.getMessage());
-    }
-    
-    public static void showError(Context ctx, IOException e) {
-    	showError(ctx, 1, e.getMessage());
+    	if(e.getCause() != null) {
+    		Log.e("Rainwave", "Cause", e.getCause());
+    	}
     }
     
     public static void showError(Context ctx, int resId) {
@@ -141,96 +140,6 @@ public class Rainwave {
     	forceType(prefs, PREFS_LASTSTATION, PrefType.INT);
     }
     
-    public static boolean verifyUserInfo(String userInfo) {
-    	boolean seenColon = false;
-    	boolean validUserId = false;
-    	boolean validKey = false;
-    	for(int i = 0; i < userInfo.length(); i++) {
-    		char c = Character.toUpperCase(userInfo.charAt(i));
-    		
-    		if(!seenColon && c == ':') {
-    			seenColon = true;
-    		}
-    		
-    		// If we haven't seen the colon yet, make return false if it isn't a digit, OR
-    		// if we have seen the colon, make sure it's not a digit AND it's not a hexadecimal digit.
-    		else if((!seenColon && !Character.isDigit(c)) ||
-    		  (seenColon && (!Character.isDigit(c) && (c < 'A' || c > 'F')))) {
-    			return false;
-    		}
-
-    		// We saw a valid user id or key, based on whether or not
-    		// we've seen the colon yet.
-    		else if(seenColon) {
-    			validKey = true;
-    		}
-    		else {
-    			validUserId = true;
-    		}
-    	}
-    	return validUserId && validKey && seenColon;
-    }
-    
-    public static boolean setPreferencesFromUri(Context ctx, Uri uri) {
-    	// Probably it is good practice to check the scheme
-    	// before we read data from the Uri.
-    	String scheme = uri.getScheme();
-    	if(!scheme.equals(Rainwave.SCHEME)) {
-    		return false;
-    	}
-    	
-    	boolean result = true;
-    	
-    	String userInfo = uri.getUserInfo();
-    	result &= Rainwave.setPreferencesFromUserInfo(ctx, userInfo);
-    	
-    	// TODO: Handle the hostname.
-    	
-    	String path = uri.getPath();
-    	result &= Rainwave.setPreferencesFromPath(ctx, path);
-    	
-    	return result;
-    }
-    
-    private static boolean setPreferencesFromUserInfo(Context ctx, String userInfo) {
-    	if(userInfo == null) return true;
-    	if(!Rainwave.verifyUserInfo(userInfo)) return false;
-    	
-    	String userId = Rainwave.extractUserId(userInfo);
-		String key = Rainwave.extractKey(userInfo);
-		
-		boolean result = true;
-		result &= Rainwave.putUserId(ctx, userId);
-		result &= Rainwave.putKey(ctx, key);
-		return result;
-    }
-    
-    private static boolean setPreferencesFromPath(Context ctx, String path) {
-    	if(path == null || path.length() < 2) return true;
-    	
-    	// Chop of leading '/'
-    	path = path.substring(1);
-    	
-    	// Chop off trailing '/'
-    	if(path.charAt(path.length()-1)  == '/') {
-    		path = path.substring(0, path.length() - 1);
-    	}
-    	
-    	// Stop here if no path provided.
-    	if(path.length() == 0) {
-    		return true;
-    	}
-    	
-    	// Only numbers allowed!
-    	if(path.matches("[0-9]+") == false) {
-    		return false;
-    	}
-    	
-    	int sid = Integer.parseInt(path);
-    	Rainwave.putLastStation(ctx, sid);
-    	return true;
-    }
-    
     public static void reorderSongs(Song songs[], int from, int to) {
     	Song s = songs[from];
     	if(to < from) {
@@ -244,16 +153,6 @@ public class Rainwave {
     		}
     	}
     	songs[to] = s;
-    }
-    
-    public static String extractUserId(String userInfo) {
-    	String userId = userInfo.split(":")[0];
-    	return userId.substring(0, Math.min(userId.length(), USERID_MAX));
-    }
-    
-    public static String extractKey(String userInfo) {
-    	String key = userInfo.split(":")[1];
-    	return key.substring(0, Math.min(key.length(), KEY_MAX));
     }
     
     /**
@@ -275,6 +174,35 @@ public class Rainwave {
     	}
     	
     	return sb.toString();
+    }
+    
+    /**
+     * Parse a Rainwave Uri.
+     * 
+     * The general format is rw://[userid]:[key]@[hostname]/[stationId] though currently
+     * only user ID's and keys are used.
+     * 
+     * @param uri the uri to parse
+     * @param ctx if not null, show a Toast message saying why
+     * @return a 2-item array containing User ID and key, or null if the parse failed
+     */
+    public static String[] parseUrl(final Uri uri, final Context ctx) {
+		if(!Rainwave.SCHEME.equals(uri.getScheme())) {
+			if(ctx != null) {
+				showError(ctx, R.string.msg_invalidUrl);
+			}
+		}
+		else {
+			final String userInfo = uri.getUserInfo();
+			
+			if(userInfo != null) {
+				return userInfo.split("[:]", 2);
+			}
+			else if(ctx != null) {
+				showError(ctx, R.string.msg_noUserInfo);
+			}
+		}
+		return null;
     }
     
     public static String getTimeTemplate(Context ctx, long time) {
