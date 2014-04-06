@@ -317,6 +317,10 @@ public class Session {
         mKey = key;
     }
     
+    public void clearUserInfo() {
+    	setUserInfo(null, null);
+    }
+    
     public Song[] cloneRequests() {
     	return mRequests.clone();
     }
