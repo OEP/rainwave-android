@@ -837,10 +837,6 @@ public class NowPlayingActivity extends Activity {
 					return mSession.reorderRequests(songs);
 				
 				}
-				
-			} catch (IOException e) {
-				Log.e(TAG, "IO error: " + e.getMessage());
-                Rainwave.showError(NowPlayingActivity.this, e);
 			} catch (RainwaveException e) {
 				Log.e(TAG, "API error: " + e.getMessage());
 				Rainwave.showError(NowPlayingActivity.this, e);
@@ -912,10 +908,6 @@ public class NowPlayingActivity extends Activity {
             		// it should be safe to keep going even if the station endpoint fails for some reason
             		try {
 	            		mSession.getStations();
-            		}
-            		catch(IOException e) {
-            			Log.e(TAG, "IOException occured: " + e);
-                        Rainwave.showError(NowPlayingActivity.this, e);
             		} catch (RainwaveException e) {
                     	Log.e(TAG, "API error: " + e.getMessage());
                     	Rainwave.showError(NowPlayingActivity.this, e);
@@ -940,10 +932,6 @@ public class NowPlayingActivity extends Activity {
                 }
                 
                 return b;
-            } catch (IOException e) {
-                Log.e(TAG, "IOException occured: " + e);
-                Rainwave.showError(NowPlayingActivity.this, e);
-                return null;
             } catch (RainwaveException e) {
             	Log.e(TAG, "API error: " + e.getMessage());
             	Rainwave.showError(NowPlayingActivity.this, e);

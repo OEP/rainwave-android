@@ -31,6 +31,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
 
 public class Session {
     private static final String TAG = "Session";
@@ -66,7 +67,7 @@ public class Session {
     /** Can't instantiate directly */
     private Session() { }
 
-    public void info() throws IOException, RainwaveException {
+    public void info() throws RainwaveException {
     	final String path = "info";
     	try {
     		final JsonElement element = get(path);
@@ -77,8 +78,9 @@ public class Session {
     	}
     }
     
-    public void sync() throws IOException, RainwaveException {
+    public void sync() throws RainwaveException {
     	final String path = "sync";
+    	
     	try {
     		final JsonElement element = post(path);
     		updateSchedules(element);
@@ -119,7 +121,7 @@ public class Session {
     }
 
     public SongRating rateSong(int songId, float rating)
-    throws IOException, RainwaveException {
+    throws RainwaveException {
     	final String path = "rate";
     	final String returns = "rate_result";
     	
@@ -132,7 +134,7 @@ public class Session {
     }
     
     public void vote(int elecId)
-	throws IOException, RainwaveException {
+	throws RainwaveException {
     	final String path = "vote";
     	final String returns = "vote_result";
     	
@@ -147,7 +149,7 @@ public class Session {
     	}
     }
     
-    public Station[] getStations() throws IOException, RainwaveException {
+    public Station[] getStations() throws RainwaveException {
     	final String path = "stations";
     	final String returns = "stations";
     	
@@ -167,7 +169,7 @@ public class Session {
      * @throws IOException in case of a connectivity error
      * @throws RainwaveException in case of a problem understanding the response
      */
-    public Album[] getAlbums() throws IOException, RainwaveException {
+    public Album[] getAlbums() throws RainwaveException {
     	return getAlbums(false);
     }
     
@@ -178,7 +180,7 @@ public class Session {
      * @throws IOException in case of connectivity error 
      * @throws RainwaveException in case of problem understanding the response
      */
-    public Album[] getAlbums(final boolean forceRefresh) throws IOException, RainwaveException {
+    public Album[] getAlbums(final boolean forceRefresh) throws RainwaveException {
     	final String path = "all_albums";
     	final String returns = "all_albums";
     	if(!forceRefresh && mAlbums != null) {
@@ -194,7 +196,7 @@ public class Session {
      * @throws IOException in case of connectivity error
      * @throws RainwaveException in case of problem understanding the response
      */
-    public Artist[] getArtists() throws IOException, RainwaveException {
+    public Artist[] getArtists() throws RainwaveException {
     	return getArtists(false);
     }
     
@@ -205,7 +207,7 @@ public class Session {
      * @throws IOException in case of connectivity error
      * @throws RainwaveException in case of problem understanding the response
      */
-    public Artist[] getArtists(final boolean forceRefresh) throws IOException, RainwaveException {
+    public Artist[] getArtists(final boolean forceRefresh) throws RainwaveException {
     	final String path = "all_artists";
     	final String returns = "all_artists";
     	if(!forceRefresh && mArtists != null) {
@@ -215,7 +217,7 @@ public class Session {
     	return mArtists;
     }
     
-    public Artist getDetailedArtist(int artist_id) throws IOException, RainwaveException {
+    public Artist getDetailedArtist(int artist_id) throws RainwaveException {
     	final String path = "artist";
     	final String returns = "artist";
     	
@@ -224,7 +226,7 @@ public class Session {
     	);
     }
     
-    public Album getDetailedAlbum(int album_id) throws IOException, RainwaveException {
+    public Album getDetailedAlbum(int album_id) throws RainwaveException {
     	final String path = "album";
     	final String returns = "album";
     	
@@ -233,7 +235,7 @@ public class Session {
     	);
     }
     
-    public Song[] submitRequest(int song_id) throws IOException, RainwaveException {
+    public Song[] submitRequest(int song_id) throws RainwaveException {
     	final String path = "request";
     	
     	final JsonElement root = post(path, "song_id", String.valueOf(song_id));
@@ -287,7 +289,7 @@ public class Session {
     }
     
     public Song[] reorderRequests(Song requests[])
-    		throws IOException, RainwaveException {
+    		throws RainwaveException {
     	final String path = "order_requests";
     	
     	final JsonElement root = post(path,
@@ -304,10 +306,9 @@ public class Session {
     }
     
     public void deleteRequest(Song request)
-    		throws IOException, RainwaveException {
-    	post(
-    			"delete_request", 
-    			"song_id", String.valueOf(request.getId())
+    throws RainwaveException {
+    	post("delete_request", 
+			"song_id", String.valueOf(request.getId())
     	);
     }
 
@@ -396,17 +397,17 @@ public class Session {
     }
     
     private JsonElement get(String path, String... params)
-    throws IOException, RainwaveException {
+    throws RainwaveException {
     	return request(Method.GET, path, params);
     }
     
     private JsonElement post(String path, String... params)
-    throws IOException, RainwaveException {
+    throws RainwaveException {
     	return request(Method.POST, path, params);
     }
     
     private JsonElement request(final Method method, String path, String... params)
-            throws IOException, RainwaveException {
+    throws RainwaveException {
         // Construct arguments
         Arguments httpArgs = new Arguments(params);
         httpArgs.put(NAME_STATION, String.valueOf(mStation));
@@ -416,20 +417,41 @@ public class Session {
           httpArgs.put(NAME_KEY, mKey);
         }
 
-        HttpURLConnection conn;
-        switch(method) {
-        case POST:
-        	conn = HttpHelper.makePost(mBaseUrl, path, httpArgs.encode());
-        	break;
-        case GET:
-        	conn = HttpHelper.makeGet(mBaseUrl, String.format("%s?%s", path, httpArgs.encode()), null);
-        	break;
-        default:
-        	throw new IllegalArgumentException("Unhandled HTTP method!");
+        HttpURLConnection conn = null;
+        final Resources r = mContext.getResources();
+        
+        try {
+	        switch(method) {
+	        case POST:
+	        	conn = HttpHelper.makePost(mBaseUrl, path, httpArgs.encode());
+	        	break;
+	        case GET:
+	        	conn = HttpHelper.makeGet(mBaseUrl, String.format("%s?%s", path, httpArgs.encode()));
+	        	break;
+	        default:
+	        	throw new IllegalArgumentException("Unhandled HTTP method!");
+	        }
+	
+	        final int statusCode = conn.getResponseCode();
+	        
+	        switch(statusCode) {
+	        case HttpURLConnection.HTTP_FORBIDDEN:
+	        	throw new RainwaveException(r.getString(R.string.msg_forbidden), statusCode);
+	        }
+        }
+        catch(IOException exc) {
+        	throw new RainwaveException(r.getString(R.string.msg_genericError), exc);
         }
         
-        JsonParser parser = new JsonParser();
-        return parser.parse(getReader(conn));
+        try {
+        	JsonParser parser = new JsonParser();
+        	final InputStream is = conn.getInputStream();
+        	final InputStreamReader reader = new InputStreamReader(is);
+        	return parser.parse(reader);
+        }
+        catch(IOException exc) {
+        	throw new RainwaveException(r.getString(R.string.msg_genericError), exc);
+        }
     }
     
     /**
@@ -448,7 +470,7 @@ public class Session {
     private <T> T requestObject(
     	final Method method, final String path, final String name,
     	final boolean checkError, Class<T> classOfT, final String... params
-    ) throws RainwaveException, IOException {
+    ) throws RainwaveException {
         // Convert the json into Java objects.
         Gson gson = getGson();
         final JsonElement json = request(method, path, params);
@@ -475,25 +497,19 @@ public class Session {
      */
     private void checkError(final JsonElement element) throws RainwaveException {
     	if(!JsonHelper.getBoolean(element, "success")) {
-    		throw new RainwaveException(0,
-    			JsonHelper.getString(element, "text",
-    				mContext.getString(R.string.msg_genericError)
-    			)
-    		);
+    		throw new RainwaveException(
+				JsonHelper.getString(element, "text", mContext.getString(R.string.msg_genericError)),
+				RainwaveException.STATUS_UNKNOWN,
+				JsonHelper.getInt(element, "code", RainwaveException.ERROR_UNKNOWN)
+   			);
     	}
-    }
-    
-    private Reader getReader(HttpURLConnection conn)
-            throws IOException {
-        return new BufferedReader(new InputStreamReader(conn.getInputStream()));
     }
     
     private RainwaveException wrapException(final JsonParseException exc, final String path)
     throws RainwaveException {
     	Resources r = mContext.getResources();
     	String msg = String.format(r.getString(R.string.msgfmt_parseError), path, exc.getMessage());
-    	throw new RainwaveException(0, msg);
-    	
+    	throw new RainwaveException(msg, exc);
     }
 
     private String getUrl(String path) throws MalformedURLException {

@@ -400,9 +400,6 @@ public class PlaylistActivity extends ListActivity {
 			Log.d(TAG, "Fetching albumsin background...");
 			try {
 				return mSession.getAlbums(mForceRefresh);
-			} catch (IOException e) {
-				Rainwave.showError(PlaylistActivity.this, e);
-				Log.e(TAG, "IO Error: " + e);
 			} catch (RainwaveException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "API Error: " + e);
@@ -429,9 +426,6 @@ public class PlaylistActivity extends ListActivity {
 		protected Artist[] doInBackground(String... args) {
 			try {
 				return mSession.getArtists(mForceRefresh);
-			} catch (IOException e) {
-				Rainwave.showError(PlaylistActivity.this, e);
-				Log.e(TAG, "IO Error: " + e);
 			} catch (RainwaveException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "API Error: " + e);
@@ -452,9 +446,6 @@ public class PlaylistActivity extends ListActivity {
 			int artist_id = args[0];
 			try {
 				return mSession.getDetailedArtist(artist_id);
-			} catch (IOException e) {
-				Rainwave.showError(PlaylistActivity.this, e);
-				Log.e(TAG, "IO Error: " + e);
 			} catch (RainwaveException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "API Error: " + e);
@@ -480,9 +471,6 @@ public class PlaylistActivity extends ListActivity {
 			try {
 				Log.d(TAG, "Fetching album...");
 				return mSession.getDetailedAlbum(album_id);
-			} catch (IOException e) {
-				Rainwave.showError(PlaylistActivity.this, e);
-				Log.e(TAG, "IO Error: " + e);
 			} catch (RainwaveException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "API Error: " + e);
@@ -528,9 +516,6 @@ public class PlaylistActivity extends ListActivity {
 			
 			try {
 				return mSession.submitRequest(song_id);
-			} catch (IOException e) {
-				Rainwave.showError(PlaylistActivity.this, e);
-				Log.e(TAG, "IO Error: " + e);
 			} catch (RainwaveException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "API Error: " + e);

@@ -115,10 +115,9 @@ public class Rainwave {
     
     public static void showError(Context ctx, RainwaveException e) {
     	showError(ctx, 1, e.getMessage());
-    }
-    
-    public static void showError(Context ctx, IOException e) {
-    	showError(ctx, 1, e.getMessage());
+    	if(e.getCause() != null) {
+    		Log.e("Rainwave", "Cause", e.getCause());
+    	}
     }
     
     public static void showError(Context ctx, int resId) {

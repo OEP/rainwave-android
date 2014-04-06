@@ -81,4 +81,7 @@
 	<string name="msg_streamNotKnown">Stream URL is not known!</string>
 	<string name="msg_genericError">Operation failed.</string>
 	<string name="msg_noStations">The server did not report any stations.</string>
+	
+	<!-- Generic error messages for HTTP status codes. -->
+	<string name="msg_forbidden">The server forbid the request.</string>
 </resources>

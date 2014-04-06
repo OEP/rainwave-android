@@ -155,10 +155,6 @@ public class LandingActivity extends Activity {
             try {
             	mSession.info();
                 return true;
-            } catch (IOException e) {
-                Log.e(TAG, "IOException occured: " + e);
-                Rainwave.showError(LandingActivity.this, e);
-                return false;
             } catch (RainwaveException e) {
             	Log.e(TAG, "API error: " + e.getMessage());
             	Rainwave.showError(LandingActivity.this, e);
