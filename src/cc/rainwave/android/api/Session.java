@@ -64,6 +64,9 @@ public class Session {
     
     private int mLastVoteId = -1;
     
+    /** Estimate of time delta in seconds between server time and local time. */
+    private long mDrift = 0;
+    
     /** Can't instantiate directly */
     private Session() { }
 
@@ -337,6 +340,16 @@ public class Session {
     	return mLastVoteId;
     }
     
+    /**
+     * Get the difference in seconds between server time and client time. That
+     * is, serverTime - clientTime.
+     * 
+     * @return the drift
+     */
+    public long getDrift() {
+    	return mDrift;
+    }
+    
     public Station[] cloneStations() {
     	return mStations.clone();
     }
@@ -423,6 +436,7 @@ public class Session {
 
         HttpURLConnection conn = null;
         final Resources r = mContext.getResources();
+        final long requestStart = System.currentTimeMillis() / 1000;
         
         try {
 	        switch(method) {
@@ -447,15 +461,27 @@ public class Session {
         	throw new RainwaveException(r.getString(R.string.msg_genericError), exc);
         }
         
+        final JsonElement root;
         try {
         	JsonParser parser = new JsonParser();
         	final InputStream is = conn.getInputStream();
         	final InputStreamReader reader = new InputStreamReader(is);
-        	return parser.parse(reader);
+        	root = parser.parse(reader);
         }
         catch(IOException exc) {
         	throw new RainwaveException(r.getString(R.string.msg_genericError), exc);
         }
+        
+        // most every endpoint returns api_info, so we can try and update
+        // drift whenever possible
+        if(JsonHelper.hasMember(root, "api_info")) {
+        	final JsonElement api_info = JsonHelper.getChild(root, "api_info");
+        	if(JsonHelper.hasMember(api_info, "time")) {
+        		mDrift = JsonHelper.getLong(api_info, "time") - requestStart;
+        	}
+        }
+        
+        return root;
     }
     
     /**
