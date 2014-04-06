@@ -663,7 +663,7 @@ public class NowPlayingActivity extends Activity {
     private void refreshTitle() {
     	long end = mSession.getCurrentEvent().getEnd();
     	long utc = System.currentTimeMillis() / 1000;
-    	long seconds = (end - utc);
+    	long seconds = (end - utc) - mSession.getDrift();
     	
     	seconds = Math.max(0, seconds);
     	long minutes = seconds / 60;
