@@ -10,6 +10,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 
+import cc.rainwave.android.api.Session;
+
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
@@ -36,6 +38,7 @@ public class RainwavePreferenceActivity extends PreferenceActivity {
 				@Override
 				public boolean onPreferenceClick(Preference p) {
 					Rainwave.clearPreferences(RainwavePreferenceActivity.this);
+					Session.getInstance().clearUserInfo();
 					return true;
 				}
 		    });
