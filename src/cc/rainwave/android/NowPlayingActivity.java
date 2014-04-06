@@ -587,8 +587,7 @@ public class NowPlayingActivity extends Activity {
 	 * Preference store.
 	 */
     private void initializeSession() {
-		// TODO: Maybe ASK the user before we override?
-		handleIntent(getIntent());
+		handleIntent();
 	    mSession = Session.getInstance();
         
         View playlistButton = findViewById(R.id.np_makeRequest);
@@ -599,38 +598,38 @@ public class NowPlayingActivity extends Activity {
         }
     }
     
+
     /**
-     * Handles stuff included from the intent. Called once each
-     * time a Session is initialized.
-     * @param i the intent to handle
-     * @return true if no error occurred, false if there was some error handling the URL.
+     * Handle activity intent. This activity is configured to handle rw:// URL's
+     * if triggered from elsewhere in the OS.
      */
-    private boolean handleIntent(Intent i) {
+    private void handleIntent() {
+    	final Intent i = getIntent();
+    	
     	if(i == null) {
-    		return true;
+    		return;
     	}
     	Bundle b = i.getExtras();
     	Uri uri = i.getData();
     	
-    	// No uri? No need to handle.
     	if(uri == null){
-    		return true;
+    		return;
     	}
     	
+    	// check if this Intent was previously handled
     	boolean handled = (b != null) && b.getBoolean(Rainwave.HANDLED_URI, false);
-    	
     	if(handled) {
-    		return true;
+    		return;
+    	}
+    	
+    	// store in preferences if all is well
+    	final String parts[] = Rainwave.parseUrl(uri, this);
+    	if(parts != null) {
+	    	Rainwave.putUserId(this, parts[0]);
+	    	Rainwave.putKey(this, parts[0]);
     	}
     	
     	i.putExtra(Rainwave.HANDLED_URI, true);
-    	boolean ok = Rainwave.setPreferencesFromUri(this, uri);
-    	
-    	if(!ok) {
-    		Rainwave.showError(this, R.string.msg_invalidUrl);
-    	}
-    	
-    	return ok;
     }
     
     /**

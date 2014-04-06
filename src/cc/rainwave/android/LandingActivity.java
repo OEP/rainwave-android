@@ -50,11 +50,13 @@ public class LandingActivity extends Activity {
 		
 		Uri uri = Uri.parse(raw);
 		String userInfo = uri.getUserInfo();
-		String user = Rainwave.extractUserId(userInfo);
-		String key = Rainwave.extractKey(userInfo);
 		
-		((EditText)findViewById(R.id.land_userId)).setText(user);
-		((EditText)findViewById(R.id.land_apiKey)).setText(key);
+		final String[] parts = Rainwave.parseUrl(uri, this);
+		
+		if(parts != null) {
+			((EditText)findViewById(R.id.land_userId)).setText(parts[0]);
+			((EditText)findViewById(R.id.land_apiKey)).setText(parts[1]);
+		}
 	}
 	
 	private void postLayout() {

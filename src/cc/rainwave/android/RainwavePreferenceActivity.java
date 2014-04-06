@@ -45,14 +45,15 @@ public class RainwavePreferenceActivity extends PreferenceActivity {
 			IntentResult ir = IntentIntegrator.parseActivityResult(request, result, data);
 			if(ir == null) return;
 			
+			
 			String raw = ir.getContents();
 			if(raw == null) return;
-			
 			Uri uri = Uri.parse(raw);
-			boolean ok = Rainwave.setPreferencesFromUri(this, uri);
+			final String parts[] = Rainwave.parseUrl(uri, this);
 			
-			if(!ok) {
-				Rainwave.showError(this, R.string.msg_invalidUrl);
+			if(parts != null) {
+				Rainwave.putUserId(this, parts[0]);
+				Rainwave.putKey(this, parts[1]);
 			}
 		}
 	
