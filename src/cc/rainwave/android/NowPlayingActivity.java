@@ -695,7 +695,7 @@ public class NowPlayingActivity extends Activity {
     	   .setAdapter(adapter);
     	
     	// Set vote deadline for when the song ends.
-    	adapter.setDeadline(mSession.getCurrentEvent().getEnd());
+    	adapter.setDeadline(mSession.getCurrentEvent().getEnd() - mSession.getDrift());
     	
     	// Open the drawer if the user can vote.
     	boolean canVote = !mSession.hasLastVote() && mSession.isTunedIn();
