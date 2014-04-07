@@ -4,8 +4,8 @@ ensure app runs for lowest target API
 git flow release start X.Y.Z
 bump versionName and versionCode in AndroidManifest.xml
 git commit AndroidManifest.xml -m 'version bump'
-git flow release finish
-git push origin master develop v1.1.1
+git flow release finish X.Y.Z
+git push origin master develop vX.Y.Z
 
 APK GENERATION AND PUBLICATION
 
