@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Locale;
 
 import android.util.Log;
 
@@ -16,7 +17,6 @@ public class HttpHelper {
 	 * @param baseUrl The base URL of the server.
 	 * @param path The path to make the POST to
 	 * @param params URL-encoded parameters
-	 * @param cookie to send to the server
 	 * @return an <code>HttpURLConnection</code> for the connection
 	 * @throws IOException
 	 */
@@ -30,7 +30,11 @@ public class HttpHelper {
 		connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 		
 		connection.setRequestProperty("Content-Length", Integer.toString(params.getBytes().length));
+		
+		// FIXME: Investigate proper usage of Content-Language
 		connection.setRequestProperty("Content-Language", "en-US");
+		setAcceptLanguage(connection);
+		
 		connection.setUseCaches(false);
 		connection.setDoInput(true);
 		connection.setDoOutput(true);
@@ -48,7 +52,6 @@ public class HttpHelper {
 	 * to use for a GET connection.
 	 * @param baseUrl The base URL of the server
 	 * @param path The path to make the GET call to.
-	 * @param cookie The cookie to send to the server (null if no cookie)
 	 * @return an <code>HttpURLConnection</code> object representing the established connection
 	 * @throws IOException if there was trouble establishing the connection
 	 */
@@ -59,12 +62,38 @@ public class HttpHelper {
 		
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("GET");
+		
+		// FIXME: Investigate proper usage of Content-Language
 		connection.setRequestProperty("Content-Language", "en-US");
+		setAcceptLanguage(connection);
 		
 		connection.setUseCaches(false);
 		connection.setDoInput(true);
 		connection.setDoOutput(false);
 		
 		return connection;
+	}
+	
+	
+	/** Sets the Accept-Language header according to default locale. */
+	private static void setAcceptLanguage(HttpURLConnection conn) {
+		Locale locale = Locale.getDefault();
+		
+		// Do nothing if no language is set.
+		if(locale.getLanguage().length() == 0) {
+			return;
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		
+		// Add country information if available.
+		if(locale.getCountry().length() > 0) {
+			sb.append(locale.getLanguage() + "-" + locale.getCountry() + ",");
+		}
+		
+		// Add just language (Q-score taken from Firefox)
+		sb.append(locale.getLanguage() + ";q=0.5");
+		
+		conn.setRequestProperty("Accept-Language", sb.toString());
 	}
 }
