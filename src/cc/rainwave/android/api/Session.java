@@ -46,6 +46,8 @@ public class Session {
 
     private URL mBaseUrl;
     
+    private Bitmap mCurrentAlbumArt;
+    
     private Event mCurrentEvent;
     
     private Event[] mNextEvents;
@@ -286,7 +288,23 @@ public class Session {
         URL url = new URL(getUrl(path));
     	Log.d(TAG, "GET " + url.toString());
         InputStream is = url.openStream();
-        return BitmapFactory.decodeStream(is);
+        mCurrentAlbumArt = BitmapFactory.decodeStream(is);
+        return mCurrentAlbumArt;
+    }
+    
+    /**
+     * Returns the current album art.
+     * @return album art bitmap if any, null otherwise
+     */
+    public Bitmap getCurrentAlbumArt() {
+        return mCurrentAlbumArt;
+    }
+    
+    /**
+     * Clears the current album art. Sets it to null.
+     */
+    public void clearCurrentAlbumArt() {
+        mCurrentAlbumArt = null;
     }
     
     public Song[] reorderRequests(Song requests[])
@@ -409,6 +427,22 @@ public class Session {
      */
     public boolean isAuthenticated() {
     	return mUser != null;
+    }
+    
+    /**
+     * Returns true if we require a sync. This can be because no current
+     * event is available or the current event is in the past.
+     * 
+     * @return true if a sync is required, false otherwise
+     */
+    public boolean requiresSync() {
+    	if(getCurrentEvent() == null) {
+    		return true;
+    	}
+    	
+    	long endTime = getCurrentEvent().getEnd() - getDrift();
+    	long utc = System.currentTimeMillis() / 1000;
+    	return utc > endTime;
     }
     
     private JsonElement get(String path, String... params)
