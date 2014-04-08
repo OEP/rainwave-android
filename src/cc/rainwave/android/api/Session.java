@@ -577,6 +577,15 @@ public class Session {
 		}
     }
     
+    public void pickle(Context ctx) {
+    	mContext = ctx;
+    	
+    	Rainwave.putLastStation(mContext, mStation);
+    	Rainwave.putUserId(mContext, mUserId);
+    	Rainwave.putKey(mContext, mKey);
+    	// TODO: Rainwave.putUrl() ?
+    }
+    
     /** The singleton */
     private static Session sInstance;
     
