@@ -162,7 +162,7 @@ public class Session {
     	}
     }
     
-    public Station[] getStations() throws RainwaveException {
+    public Station[] fetchStations() throws RainwaveException {
     	final String path = "stations";
     	final String returns = "stations";
     	
@@ -175,62 +175,50 @@ public class Session {
     	
     }
     
-    
     /**
      * Fetch a list of all  the albums. Returns a cached version if available.
      * @return array of Albums
-     * @throws IOException in case of a connectivity error
      * @throws RainwaveException in case of a problem understanding the response
      */
-    public Album[] getAlbums() throws RainwaveException {
-    	return getAlbums(false);
-    }
-    
-    /**
-     * Fetch a list of all albums. Optionally can update the cached version.
-     * @param forceRefresh true to force a refresh of the cache
-     * @return list of all albums
-     * @throws IOException in case of connectivity error 
-     * @throws RainwaveException in case of problem understanding the response
-     */
-    public Album[] getAlbums(final boolean forceRefresh) throws RainwaveException {
+    public Album[] fetchAlbums() throws RainwaveException {
     	final String path = "all_albums";
     	final String returns = "all_albums";
-    	if(!forceRefresh && mAlbums != null) {
-    		return mAlbums;
-    	}
     	mAlbums = requestObject(Method.POST, path, returns, false, Album[].class);
     	return mAlbums;
     }
     
     /**
-     * Fetch a list of all artists. Returns a cached version if available.
-     * @return list of all artists
-     * @throws IOException in case of connectivity error
-     * @throws RainwaveException in case of problem understanding the response
+     * Get album data.
+     * 
+     * @return all albums if cached, or null otherwise
      */
-    public Artist[] getArtists() throws RainwaveException {
-    	return getArtists(false);
+    public Album[] getAlbums() {
+    	return mAlbums;
     }
     
     /**
-     * Fetch a list of all artists. Optionally can refresh the cache.
-     * @param forceRefresh true to force a refresh of the cache
+     * Fetch a list of all artists.
+     * 
      * @return a list of all artists
-     * @throws IOException in case of connectivity error
      * @throws RainwaveException in case of problem understanding the response
      */
-    public Artist[] getArtists(final boolean forceRefresh) throws RainwaveException {
+    public Artist[] fetchArtists() throws RainwaveException {
     	final String path = "all_artists";
     	final String returns = "all_artists";
-    	if(!forceRefresh && mArtists != null) {
-    		return mArtists;
-    	}
     	mArtists = requestObject(Method.POST, path, returns, false, Artist[].class);
     	return mArtists;
     }
     
-    public Artist getDetailedArtist(int artist_id) throws RainwaveException {
+    /**
+     * Get artist data.
+     * 
+     * @return all artist data if cached, or null otherwise
+     */
+    public Artist[] getArtists() {
+    	return mArtists;
+    }
+    
+    public Artist fetchDetailedArtist(int artist_id) throws RainwaveException {
     	final String path = "artist";
     	final String returns = "artist";
     	
@@ -239,7 +227,7 @@ public class Session {
     	);
     }
     
-    public Album getDetailedAlbum(int album_id) throws RainwaveException {
+    public Album fetchDetailedAlbum(int album_id) throws RainwaveException {
     	final String path = "album";
     	final String returns = "album";
     	

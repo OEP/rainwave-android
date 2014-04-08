@@ -903,10 +903,10 @@ public class NowPlayingActivity extends Activity {
                 }
             	     			
                 // fetch stations if we don't have them
-            	if(mSession == null || mSession.getStations() == null) {
+            	if(mSession == null || mSession.fetchStations() == null) {
             		// it should be safe to keep going even if the station endpoint fails for some reason
             		try {
-	            		mSession.getStations();
+	            		mSession.fetchStations();
             		} catch (RainwaveException e) {
                     	Log.e(TAG, "API error: " + e.getMessage());
                     	Rainwave.showError(NowPlayingActivity.this, e);

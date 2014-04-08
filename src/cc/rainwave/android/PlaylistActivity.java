@@ -45,17 +45,9 @@ public class PlaylistActivity extends ListActivity {
 	
 	private static final String TAG = "PlaylistActivity";
 	
-	private Artist mArtists[];
-	
-	private Album mAlbums[];
-	
 	private Song mSongs[];
 	
 	private Session mSession;
-	
-	private FetchAlbumsTask mFetchAlbums;
-	
-	private FetchArtistsTask mFetchArtists;
 	
 	private FetchDetailedAlbumTask mFetchAlbum;
 	
@@ -180,13 +172,9 @@ public class PlaylistActivity extends ListActivity {
 			
 			// check if we're looking at albums or artists and refresh
 			if(isByAlbum()) {
-				mAlbums = null;
-				mFetchAlbums = null;
 				fetchAlbums(true);
 			}
 			else {
-				mArtists = null;
-				mFetchArtists = null;
 				fetchArtists(true);
 			}
 			return true;
@@ -278,8 +266,8 @@ public class PlaylistActivity extends ListActivity {
     private void setTheData() {
     	EditText filterText = hideFilter();
     	if(isByAlbum() && mMode == MODE_TOP_LEVEL) {
-    		if(mAlbums != null) {
-    			ArrayAdapter<Album> adapter = new ArrayAdapter<Album>(this, android.R.layout.simple_list_item_1, mAlbums) {
+    		if(mSession.getAlbums() != null) {
+    			ArrayAdapter<Album> adapter = new ArrayAdapter<Album>(this, android.R.layout.simple_list_item_1, mSession.getAlbums()) {
     				public View getView(int position, View convertView, ViewGroup parent) {
     					View v = super.getView(position, convertView, parent);
     					Album a = getItem(position);
@@ -304,8 +292,8 @@ public class PlaylistActivity extends ListActivity {
     		}
     	}
     	else if(mMode == MODE_TOP_LEVEL){
-    		if(mArtists != null) {
-    			ArrayAdapter<Artist> adapter = new ArrayAdapter<Artist>(this, android.R.layout.simple_list_item_1, mArtists);
+    		if(mSession.getArtists() != null) {
+    			ArrayAdapter<Artist> adapter = new ArrayAdapter<Artist>(this, android.R.layout.simple_list_item_1, mSession.getArtists());
     			adapter.sort(mArtistComparator);
     			filterText.setHint(R.string.msg_filterArtist);
     			filterText.setText("");
@@ -327,12 +315,13 @@ public class PlaylistActivity extends ListActivity {
     }
 
 	private void fetchDataIfNeeded() {
-		if(isByAlbum() && mAlbums == null) {
+		if(isByAlbum() && mSession.getAlbums() == null) {
 			fetchAlbums(false);
 		}
-		else if(mArtists == null) {
+		else if(mSession.getArtists() == null) {
 			fetchArtists(false);
 		}
+		updateView();
 	}
 	
 	private void stopAlbumFetch() {
@@ -356,15 +345,19 @@ public class PlaylistActivity extends ListActivity {
 	}
 	
 	private void fetchAlbums(final boolean forceRefresh) {
-		if(mFetchAlbums != null) return;
-		mFetchAlbums = new FetchAlbumsTask(forceRefresh);
-		mFetchAlbums.execute();
+		if(forceRefresh || mSession.getAlbums() == null) {
+			new FetchAlbumsTask().execute();
+			return;
+		}
+		updateView();
 	}
 	
 	private void fetchArtists(final boolean forceRefresh) {
-		if(mFetchArtists != null) return;
-		mFetchArtists = new FetchArtistsTask(forceRefresh);
-		mFetchArtists.execute();
+		if(forceRefresh || mSession.getArtists() == null) {
+			new FetchArtistsTask().execute();
+			return;
+		}
+		updateView();
 	}
 	
 	private void fetchAlbum(int album_id) {
@@ -388,18 +381,11 @@ public class PlaylistActivity extends ListActivity {
 	
 	private class FetchAlbumsTask extends AsyncTask<String,String,Album[]> {
 		
-		private boolean mForceRefresh;
-		
-		public FetchAlbumsTask(final boolean forceRefresh) {
-			super();
-			mForceRefresh = forceRefresh;
-		}
-		
 		@Override
 		protected Album[] doInBackground(String... args) {
 			Log.d(TAG, "Fetching albumsin background...");
 			try {
-				return mSession.getAlbums(mForceRefresh);
+				return mSession.fetchAlbums();
 			} catch (RainwaveException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "API Error: " + e);
@@ -409,23 +395,16 @@ public class PlaylistActivity extends ListActivity {
 		
 		protected void onPostExecute(Album result[]) {
 			if(result == null) return;
-			mAlbums = result;
 			updateView();
 		}
 	}
 	
 	private class FetchArtistsTask extends AsyncTask<String,String,Artist[]> {
-		private boolean mForceRefresh;
-		
-		public FetchArtistsTask(final boolean forceRefresh) {
-			super();
-			mForceRefresh = forceRefresh;
-		}
 		
 		@Override
 		protected Artist[] doInBackground(String... args) {
 			try {
-				return mSession.getArtists(mForceRefresh);
+				return mSession.fetchArtists();
 			} catch (RainwaveException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "API Error: " + e);
@@ -435,7 +414,6 @@ public class PlaylistActivity extends ListActivity {
 		
 		protected void onPostExecute(Artist result[]) {
 			if(result == null) return;
-			mArtists = result;
 			updateView();
 		}
 	}
@@ -445,7 +423,7 @@ public class PlaylistActivity extends ListActivity {
 		protected Artist doInBackground(Integer ... args) {
 			int artist_id = args[0];
 			try {
-				return mSession.getDetailedArtist(artist_id);
+				return mSession.fetchDetailedArtist(artist_id);
 			} catch (RainwaveException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "API Error: " + e);
@@ -470,7 +448,7 @@ public class PlaylistActivity extends ListActivity {
 			int album_id = args[0];
 			try {
 				Log.d(TAG, "Fetching album...");
-				return mSession.getDetailedAlbum(album_id);
+				return mSession.fetchDetailedAlbum(album_id);
 			} catch (RainwaveException e) {
 				Rainwave.showError(PlaylistActivity.this, e);
 				Log.e(TAG, "API Error: " + e);
