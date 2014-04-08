@@ -1,6 +1,5 @@
 package cc.rainwave.android;
 
-import java.io.IOException;
 import java.net.HttpURLConnection;
 
 import android.app.Activity;
@@ -9,8 +8,6 @@ import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -35,12 +32,25 @@ public class LandingActivity extends Activity {
 
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
-		preLayout();
+		
+		// Unpickle a session
+		mSession = Session.getInstance();
+		mSession.unpickle(this);
+		
+		// Skip this activity if the user has logged in.
+		if(Rainwave.hasUserInfo(this) || Rainwave.skipLanding(this)) {
+			startNowPlaying();
+		}
+		
+		// We use the throbber while we try and login.
+		getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+		
 		setContentView(R.layout.activity_landing);
-		postLayout();
+		setListeners();
 	}
 	
 	public void onActivityResult(int request, int result, Intent data) {
+		// Handle result from bar code scanner
 		IntentResult ir = IntentIntegrator.parseActivityResult(request, result, data);
 		if(ir == null) return;
 		
@@ -48,8 +58,6 @@ public class LandingActivity extends Activity {
 		if(raw == null) return;
 		
 		Uri uri = Uri.parse(raw);
-		String userInfo = uri.getUserInfo();
-		
 		final String[] parts = Rainwave.parseUrl(uri, this);
 		
 		if(parts != null) {
@@ -58,7 +66,8 @@ public class LandingActivity extends Activity {
 		}
 	}
 	
-	private void postLayout() {
+	/** Set actions for buttons. */
+	private void setListeners() {
 		findViewById(R.id.land_login).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -97,16 +106,6 @@ public class LandingActivity extends Activity {
 		});
 	}
 
-	private void preLayout() {
-		if(Rainwave.hasUserInfo(this) || Rainwave.skipLanding(this)) {
-			startNowPlaying();
-		}
-		
-		getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-		mSession = Session.getInstance();
-		mSession.unpickle(this);
-	}
-	
 	private void startNowPlaying() {
 		Intent i = new Intent(this, NowPlayingActivity.class);
 		startActivity(i);
@@ -120,19 +119,15 @@ public class LandingActivity extends Activity {
 	    window.setFormat(PixelFormat.RGBA_8888);
 	}
 	
-	 /**
-     * Fetches the now playing info.
-     * Expects one argument to <code>execute(Object...params)</code> which
-     * is the flag to indicate if this is an initializing (e.g., non-longpoll)
-     * fetch of the schedule data.
-     * @author pkilgo
-     *
-     */
+	/**
+	 * Verifies user credentials in background task.
+	 * 
+	 * @author pkilgo
+	 *
+	 */
     protected class VerifyCredentials extends AsyncTask<String, Integer, String> {
         private String TAG = "VerifyCredentials";
 
-        private String mUser, mKey;
-        
         @Override
         protected void onPreExecute() {
         	findViewById(R.id.land_login).setEnabled(false);
@@ -143,11 +138,10 @@ public class LandingActivity extends Activity {
         
         @Override
         protected String doInBackground(String ... args) {
-            mUser = args[0];
-            mKey = args[1];
+            String userid = args[0];
+            String key = args[1];
             
-            mSession.setUserInfo(mUser, mKey);
-            dispatchThrobberVisibility(true);
+            mSession.setUserInfo(userid, key);
             
             try {
             	mSession.info();
@@ -166,7 +160,9 @@ public class LandingActivity extends Activity {
         @Override
         protected void onPostExecute(String error) {
             super.onPostExecute(error);
-            dispatchThrobberVisibility(false);
+            
+            // 'error' is null when there is no error, or a user-friendly string we should show to the user.
+            setProgressBarIndeterminateVisibility(false);
             
             if(error != null || !mSession.isAuthenticated()) {
             	mSession.clearUserInfo();
@@ -182,25 +178,4 @@ public class LandingActivity extends Activity {
     		startNowPlaying();
         }
     }
-    
-    private void dispatchThrobberVisibility(boolean state) {
-    	Message msg = mHandler.obtainMessage(HANDLER_SET_INDETERMINATE);
-    	Bundle data = msg.getData();
-    	data.putBoolean("bool", state);
-    	msg.sendToTarget();
-    }
-    
-    private Handler mHandler = new Handler() {
-    	public void handleMessage(Message msg) {
-    		Bundle data = msg.getData();
-    		switch(msg.what) {
-    		case HANDLER_SET_INDETERMINATE:
-    			setProgressBarIndeterminateVisibility( data.getBoolean("value") );
-    			break;
-    		}
-    	}
-    };
-    
-    public static final int
-    	HANDLER_SET_INDETERMINATE = 0x1D373;
 }
