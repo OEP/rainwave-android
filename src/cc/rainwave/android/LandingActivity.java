@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.EditText;
+import android.widget.Toast;
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.RainwaveException;
 
@@ -29,8 +30,6 @@ import com.google.zxing.integration.android.IntentResult;
  *
  */
 public class LandingActivity extends Activity {
-	
-	private VerifyCredentials mVerifyCredentialsTask;
 	
     private Session mSession;
 
@@ -67,7 +66,7 @@ public class LandingActivity extends Activity {
 				String key = ((EditText)findViewById(R.id.land_apiKey)).getText().toString();
 				
 				if(user != null && user.length() > 0 && key != null & key.length() > 0) {
-					verifyUserInfo(user,key);
+					new VerifyCredentials().execute(user, key);
 				}
 				else {
 					Rainwave.showError(LandingActivity.this, R.string.msg_nullFieldError);
@@ -108,19 +107,6 @@ public class LandingActivity extends Activity {
 		mSession.unpickle(this);
 	}
 	
-	private void verifyUserInfo(String user, String key) {
-		if(mVerifyCredentialsTask == null) {
-			mVerifyCredentialsTask = new VerifyCredentials();
-			mVerifyCredentialsTask.execute(user,key);
-		}
-	}
-	
-	private void setInfoAndStart(String user, String key) {
-		Rainwave.putUserId(this, user);
-		Rainwave.putKey(this, key);
-		startNowPlaying();
-	}
-	
 	private void startNowPlaying() {
 		Intent i = new Intent(this, NowPlayingActivity.class);
 		startActivity(i);
@@ -142,13 +128,21 @@ public class LandingActivity extends Activity {
      * @author pkilgo
      *
      */
-    protected class VerifyCredentials extends AsyncTask<String, Integer, Boolean> {
+    protected class VerifyCredentials extends AsyncTask<String, Integer, String> {
         private String TAG = "VerifyCredentials";
 
         private String mUser, mKey;
         
         @Override
-        protected Boolean doInBackground(String ... args) {
+        protected void onPreExecute() {
+        	findViewById(R.id.land_login).setEnabled(false);
+        	findViewById(R.id.land_later).setEnabled(false);
+        	findViewById(R.id.land_never).setEnabled(false);
+        	setProgressBarIndeterminateVisibility(true);
+        }
+        
+        @Override
+        protected String doInBackground(String ... args) {
             mUser = args[0];
             mKey = args[1];
             
@@ -157,31 +151,35 @@ public class LandingActivity extends Activity {
             
             try {
             	mSession.info();
-                return true;
+                return null;
             } catch (RainwaveException e) {
             	switch(e.getStatusCode()) {
             	case HttpURLConnection.HTTP_FORBIDDEN:
-            		Rainwave.showError(LandingActivity.this, R.string.msg_authenticationFailure);
-            		break;
+            		return LandingActivity.this.getResources().getString(R.string.msg_authenticationFailure);
             	default:
-            		Rainwave.showError(LandingActivity.this, e);
-            		break;
+            		Log.w(TAG, "Unexpected exception: " + e.getMessage(), e);
+            		return e.getMessage();
             	}
-            	return false;
             }
         }
         
-        protected void onPostExecute(Boolean result) {
-            super.onPostExecute(result);
+        @Override
+        protected void onPostExecute(String error) {
+            super.onPostExecute(error);
             dispatchThrobberVisibility(false);
-            mVerifyCredentialsTask = null;
             
-            if(!result || !mSession.isAuthenticated()) {
+            if(error != null || !mSession.isAuthenticated()) {
             	mSession.clearUserInfo();
+            	findViewById(R.id.land_login).setEnabled(true);
+            	findViewById(R.id.land_later).setEnabled(true);
+            	findViewById(R.id.land_never).setEnabled(true);
+            	setProgressBarIndeterminateVisibility(false);
+            	Toast.makeText(LandingActivity.this, error, Toast.LENGTH_LONG).show();
             	return;
             }
             
-            setInfoAndStart(mUser, mKey);
+    		mSession.pickle(LandingActivity.this);
+    		startNowPlaying();
         }
     }
     
