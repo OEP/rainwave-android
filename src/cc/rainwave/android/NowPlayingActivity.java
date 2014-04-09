@@ -8,7 +8,10 @@ import java.util.Locale;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -77,6 +80,10 @@ public class NowPlayingActivity extends Activity {
         initializeSession();
         setContentView(R.layout.activity_main);
         setListeners();
+        
+        this.registerReceiver(mEventUpdateReceiver,
+                new IntentFilter(SyncService.BROADCAST_EVENT_UPDATE)
+        );
     }
     
     @Override
@@ -107,6 +114,7 @@ public class NowPlayingActivity extends Activity {
     
     public void onDestroy() {
     	super.onDestroy();
+    	unregisterReceiver(mEventUpdateReceiver);
     }
     
 	@Override
@@ -420,8 +428,9 @@ public class NowPlayingActivity extends Activity {
      * the schedule.
      */
     private void refresh() {
-    	stopTasks();
-    	fetchSchedules();
+        Intent local = new Intent(this, SyncService.class);
+        local.setAction(SyncService.ACTION_INFO);
+        startService(local);
     }
     
     /**
@@ -439,7 +448,9 @@ public class NowPlayingActivity extends Activity {
         
         // Only do an immediate fetch from here.
         if(mSession.requiresSync()) {
-        	new FetchInfo().execute();
+            Intent local = new Intent(this, SyncService.class);
+            local.setAction(SyncService.ACTION_INFO);
+            startService(local);
         }
         else {
         	// already have one so just sync
@@ -640,7 +651,7 @@ public class NowPlayingActivity extends Activity {
     	
     	Resources r = getResources();
     	int id = mSession.getStationId();
-    	String stationName = mSession.getStation(id).getName();
+    	String stationName = (mSession.hasStations()) ? mSession.getStation(id).getName() : null;
     	String title = (stationName != null) ? stationName : r.getString(R.string.app_name);
     	String state = r.getString(R.string.label_nottunedin);
     	
@@ -773,6 +784,21 @@ public class NowPlayingActivity extends Activity {
         ((ImageView) findViewById(R.id.np_albumArt)).setImageBitmap(art);
     }
     
+    /** Receives schedule updates from the sync service. */
+    private BroadcastReceiver mEventUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            onScheduleSync();
+            
+            // Let the service know we would like updates.
+            if(mSession.hasCredentials()) {
+                Intent local = new Intent(NowPlayingActivity.this, SyncService.class);
+                local.setAction(SyncService.ACTION_SYNC);
+                startService(local);
+            }
+        }
+    };
+    
     /**
      * AsyncTask for submitting a rating for a song.
      * Expects two arguments to <code>execute(Object...params)</code>,
@@ -841,85 +867,6 @@ public class NowPlayingActivity extends Activity {
 			REMOVE = 0x439023,
 			RATE = 0x4A73,
 			REORDER = 0x4304D34;
-    }
-    
-    /**
-     * Fetches the now playing info.
-     * Expects one argument to <code>execute(Object...params)</code> which
-     * is the flag to indicate if this is an initializing (e.g., non-longpoll)
-     * fetch of the schedule data.
-     * @author pkilgo
-     *
-     */
-    protected class FetchInfo extends AsyncTask<Boolean, Integer, Bundle> {
-    	private static final String TAG = "FetchInfo";
-        
-        public FetchInfo() {
-        }
-        
-        @Override
-        protected void onPreExecute() {
-    		setProgressBarIndeterminateVisibility(true);
-        }
-
-        @Override
-        protected Bundle doInBackground(Boolean ... flags) {
-            Bundle b = new Bundle();
-            try {
-            	Thread.currentThread().setName("FetchTask");
-            	mSession.info();
-            	     			
-                // fetch stations if we don't have them
-            	if(mSession == null || mSession.fetchStations() == null) {
-            		// it should be safe to keep going even if the station endpoint fails for some reason
-            		try {
-	            		mSession.fetchStations();
-            		} catch (RainwaveException e) {
-                    	Log.e(TAG, "API error: " + e.getMessage());
-                    	Rainwave.showError(NowPlayingActivity.this, e);
-            		}
-            	}
-                
-                // not all sync events mean that an event has passed, i.e. the user could have tuned in/out.
-                if(mSession.getCurrentEvent() != null) {
-                    Song song = mSession.getCurrentEvent().getCurrentSong();
-                    try {
-                    	final String art = song.getDefaultAlbum().getArt();
-                    	if(art != null && art.length() > 0) {
-                    		final int minWidth = (NowPlayingActivity.this.findViewById(R.id.np_albumArt)).getWidth();
-	                    	final Bitmap bmArt = mSession.fetchAlbumArt(art, minWidth);
-	                    	b.putParcelable(Rainwave.ART, bmArt);
-                    	}
-                    }
-                    catch(final IOException exc) {
-                    	Log.e(TAG, String.valueOf(exc));
-                    	Rainwave.showError(NowPlayingActivity.this, R.string.msg_albumArtError);
-                    	mSession.clearCurrentAlbumArt();
-                    }
-                }
-                
-                return b;
-            } catch (RainwaveException e) {
-            	Log.e(TAG, "API error: " + e.getMessage());
-            	Rainwave.showError(NowPlayingActivity.this, e);
-            	return null;
-            }
-            
-        }
-        
-        protected void onPostExecute(Bundle result) {
-            super.onPostExecute(result);
-    		setProgressBarIndeterminateVisibility(false);
-            
-            // Stop if there was some error. Do not start a new task.
-            if(result == null) {
-            	return;
-            }
-            
-            // Callback for schedule sync.
-            onScheduleSync();
-            updateAlbumArt((Bitmap) result.getParcelable(Rainwave.ART));
-        }
     }
     
     private Handler mHandler = new Handler() {
