@@ -365,6 +365,11 @@ public class Session {
         return mLastVoteId >= 0;
     }
 
+    /**
+     * Get the election entry ID of the last known vote.
+     * 
+     * @return election entry ID of last known vote, or -1 if it is unknown
+     */
     public int getLastVoteId() {
         return mLastVoteId;
     }
