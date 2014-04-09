@@ -13,13 +13,13 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Event implements Parcelable {
-	private int mId;
-	private int mStationId;
-	private Song mSongs[];
-	private long mEnd;
-	
-	/** Can't instantiate directly. */
-	private Event() {}
+    private int mId;
+    private int mStationId;
+    private Song mSongs[];
+    private long mEnd;
+    
+    /** Can't instantiate directly. */
+    private Event() {}
 
     private Event(Parcel source) {
         Parcelable tmp[] = source.readParcelableArray(Song[].class.getClassLoader());
@@ -32,7 +32,7 @@ public class Event implements Parcelable {
     }
     
     public int getId() {
-    	return mId;
+        return mId;
     }
     
     public int getStationId() {
@@ -40,11 +40,11 @@ public class Event implements Parcelable {
     }
     
     public int getSongCount() {
-    	return mSongs.length;
+        return mSongs.length;
     }
     
     public Song[] cloneSongs() {
-    	return mSongs.clone();
+        return mSongs.clone();
     }
     
     /**
@@ -52,15 +52,15 @@ public class Event implements Parcelable {
      * @return current playing song
      */
     public Song getCurrentSong() {
-    	return getSong(0);
+        return getSong(0);
     }
     
     public Song getSong(int i) {
-    	return mSongs[i];
+        return mSongs[i];
     }
     
     public long getEnd() {
-    	return mEnd;
+        return mEnd;
     }
 
     @Override
@@ -87,17 +87,17 @@ public class Event implements Parcelable {
         }
     };
     
-	public static class Deserializer implements JsonDeserializer<Event> {
-		@Override
-		public Event deserialize(
-			JsonElement element, Type type,	JsonDeserializationContext ctx
-		) throws JsonParseException {
-			final Event a = new Event();
-			a.mId = JsonHelper.getInt(element, "id");
-			a.mStationId = JsonHelper.getInt(element, "sid");
-			a.mEnd = JsonHelper.getLong(element, "end");
-			a.mSongs = ctx.deserialize(JsonHelper.getJsonArray(element, "songs"), Song[].class);
-			return a;
-		}
-	}
+    public static class Deserializer implements JsonDeserializer<Event> {
+        @Override
+        public Event deserialize(
+            JsonElement element, Type type,    JsonDeserializationContext ctx
+        ) throws JsonParseException {
+            final Event a = new Event();
+            a.mId = JsonHelper.getInt(element, "id");
+            a.mStationId = JsonHelper.getInt(element, "sid");
+            a.mEnd = JsonHelper.getLong(element, "end");
+            a.mSongs = ctx.deserialize(JsonHelper.getJsonArray(element, "songs"), Song[].class);
+            return a;
+        }
+    }
 }
