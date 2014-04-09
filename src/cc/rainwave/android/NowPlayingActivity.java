@@ -166,6 +166,15 @@ public class NowPlayingActivity extends Activity {
 					Station s = (Station) listView.getItemAtPosition(index);
 					mSession.setStation(s.getId());
 					NowPlayingActivity.this.dismissDialog(DIALOG_STATION_PICKER);
+					
+					// Stop a service which may be requesting from the wrong station.
+				    stopService(new Intent(NowPlayingActivity.this, SyncService.class)
+					        .setAction(SyncService.ACTION_INFO)
+                    );
+				    stopService(new Intent(NowPlayingActivity.this, SyncService.class)
+				            .setAction(SyncService.ACTION_SYNC)
+				    );
+					
 					refresh();
 				}
 			});
