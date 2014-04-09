@@ -33,14 +33,6 @@ public class SongListAdapter extends BaseAdapter {
 
     private Context mContext;
 
-    private Session mSession;
-
-    private CountdownTask mCountdownTask;
-
-    private VoteTask mVoteTask;
-
-    private Handler mVoteHandler;
-
     /** Records last known election id vote. Set to -1 to imply no vote. */
     private int mLastVote = -1;
 
@@ -50,9 +42,8 @@ public class SongListAdapter extends BaseAdapter {
     /** Item XML ID */
     private int mItemLayout;
 
-    public SongListAdapter(Context ctx, int resId, Session session, ArrayList<Song> songs) {
+    public SongListAdapter(Context ctx, int resId, ArrayList<Song> songs) {
         mContext = ctx;
-        mSession = session;
         mSongs = songs;
         mViews = new ArrayList<View>();
         for(int i = 0; i < mSongs.size(); i++) {
@@ -61,41 +52,13 @@ public class SongListAdapter extends BaseAdapter {
         mItemLayout = resId;
     }
 
-    public void startCountdown(int i) {
-        if(hasVoted()) return;
-
-        boolean rush = rushVotes();
-
-        if(!rush && mCountdownTask == null) {
-            mCountdownTask = new CountdownTask(i);
-            mCountdownTask.execute();
-            return;
-        }
-
-        if(rush || mCountdownTask.getSelection() == i) {
-            if(mCountdownTask != null){
-                int old = mCountdownTask.getSelection();
-                setRating(old);
-                mCountdownTask.cancel(true);
-            }
-            submitVote(i);
-        }
-        else {
-            int old = mCountdownTask.getSelection();
-            setRating(old);
-            mCountdownTask.cancel(true);
-            mCountdownTask = null;
-            startCountdown(i);
-        }
-    }
-
     public boolean rushVotes() {
         long utc = System.currentTimeMillis() / 1000;
         return mDeadline > 0 && (mDeadline - utc) <= 15;
     }
 
     public boolean hasVoted() {
-        return mVoted || mVoteTask != null;
+        return mVoted;
     }
 
     public ArrayList<Song> getSongs() {
@@ -165,7 +128,7 @@ public class SongListAdapter extends BaseAdapter {
                 setVoted(((CountdownView)convertView.findViewById(R.id.circle)));
             }
             else {
-                reflectSong(((CountdownView)convertView.findViewById(R.id.circle)), s);
+                revert(((CountdownView)convertView.findViewById(R.id.circle)), s);
             }
         }
 
@@ -215,22 +178,40 @@ public class SongListAdapter extends BaseAdapter {
         return (CountdownView) mViews.get(i).findViewById(R.id.circle);
     }
 
-    private void reflectSong(CountdownView v, Song s) {
-        v.setBoth(s.getUserRating(), s.getCommunityRating());
-        v.setAlternateText(R.string.label_unrated);
+    /**
+     * Revert the i-th item to its default state.
+     * 
+     * @param i the index of the item to revert
+     */
+    public void revert(int i) {
+        Song song = getSong(i);
+        CountdownView view = getCountdownView(i);
+        revert(view, song);
     }
 
-    private void setRating(int i) {
-        reflectSong(getCountdownView(i), mSongs.get(i));
+    /** Make the CountdownView reflect the given song. */
+    private void revert(CountdownView view, Song song) {
+        view.setBoth(song.getUserRating(), song.getCommunityRating());
+        view.setAlternateText(R.string.label_unrated);
     }
 
-    private void setVoting(int i) {
+    /**
+     * Mark the i-th item as being voted for.
+     * 
+     * @param i index of item for which we are voting
+     */
+    public void setVoting(int i) {
         CountdownView cnt = getCountdownView(i);
         cnt.setBoth(0, 0);
         cnt.setAlternateText(R.string.label_voting);
     }
 
-    private void setVoted(int i) {
+    /**
+     * Mark the i-th item as the current vote selection.
+     * 
+     * @param i index of the item for which we have voted
+     */
+    public void setVoted(int i) {
         setVoted( getCountdownView(i) );
     }
 
@@ -238,16 +219,6 @@ public class SongListAdapter extends BaseAdapter {
         if(view == null) return;
         view.setBoth(0, 0);
         view.setAlternateText(R.string.label_voted);
-    }
-
-    public void setOnVoteHandler(Handler handler) {
-        mVoteHandler = handler;
-    }
-
-    public void submitVote(int selection) {
-        mVoteTask = new VoteTask(selection);
-        mVoteTask.execute(mSongs.get(selection));
-        setVoting(selection);
     }
 
     public ArrayList<Song> moveSong(int from, int to) {
@@ -271,102 +242,4 @@ public class SongListAdapter extends BaseAdapter {
             mViews.set(i, null);
         }
     }
-
-    private class VoteTask extends AsyncTask<Song, Integer, Boolean> {
-
-        private CountdownView mCountdown;
-
-        private Song mSong;
-
-        private int mSelection;
-
-        public VoteTask(int selection) {
-            mCountdown = getCountdownView(selection);
-            mSelection = selection;
-        }
-
-        protected Boolean doInBackground(Song...params) {
-            mSong = params[0];
-
-            try {
-                mSession.vote(mSong.getElectionEntryId());
-                return true;
-            } catch (RainwaveException e) {
-                Rainwave.showError(SongListAdapter.this.mContext, e);
-                Log.e(TAG, "API Error: " + e);
-            }
-
-            return false;
-        }
-
-        protected void onPostExecute(Boolean result) {
-            if(result) {
-                setVoted(mSelection);
-            }
-            else {
-                reflectSong(mCountdown, mSong);
-                mVoteTask = null;
-            }
-
-            if(mVoteHandler != null) {
-                Message msg = mVoteHandler.obtainMessage(CODE_VOTED);
-                msg.arg1 = (result) ? CODE_SUCCESS : CODE_GENERIC_FAIL;
-                msg.sendToTarget();
-            }
-        }
-    }
-
-    private class CountdownTask extends AsyncTask<Integer, Integer, Boolean> {
-        private int mSelection;
-
-        private CountdownView mCountdownView;
-
-        private Song mSong;
-
-        public CountdownTask(int selection) {
-            mSelection = selection;
-            View v = SongListAdapter.this.mViews.get(mSelection);
-            mCountdownView = (CountdownView) v.findViewById(R.id.circle);
-            mSong = mSongs.get(selection);
-        }
-
-        @Override
-        protected Boolean doInBackground(Integer ...params) {
-            mCountdownView.setMax(5.0f);
-            mCountdownView.setBoth(5.0f, 0.0f);
-            mCountdownView.setShowValue(true);
-            mCountdownView.setAlternateText(R.string.label_voting);
-            while(mCountdownView.getPrimary() > 0) {
-                mCountdownView.decrementPrimary(0.1f);
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        protected void onPostExecute(Boolean result) {
-            if(result == true) {
-                submitVote(mSelection);
-            }
-            else {
-                reflectSong(mCountdownView, mSong);
-            }
-            mCountdownTask = null;
-        }
-
-        public int getSelection() {
-            return mSelection;
-        }
-    }
-
-    public static final int
-        CODE_GENERIC_FAIL = 1,
-        CODE_SUCCESS = 0;
-
-    public static final int
-        CODE_VOTED = 0xB073D;
 }

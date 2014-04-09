@@ -50,6 +50,7 @@ import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.api.types.SongRating;
 import cc.rainwave.android.api.types.Station;
+import cc.rainwave.android.views.CountdownView;
 import cc.rainwave.android.views.HorizontalRatingBar;
 import cc.rainwave.android.views.PagerWidget;
 
@@ -320,7 +321,7 @@ public class NowPlayingActivity extends Activity {
         election.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int i, long id) {
                 if(mSession.isTunedIn() && mSession.hasCredentials()) {
-                    ((SongListAdapter) election.getAdapter()).startCountdown(i);
+                    new VoteTask(i).execute();
                 }
                 else {
                     showDialog(R.string.msg_tunedInVote);
@@ -685,7 +686,7 @@ public class NowPlayingActivity extends Activity {
     private void updateElection() {
         SongListAdapter adapter = new SongListAdapter(
                 this,
-                R.layout.item_song_election,mSession,
+                R.layout.item_song_election,
                 new ArrayList<Song>(Arrays.asList(mSession.getNextEvent().cloneSongs()))
         );
         ((ListView)findViewById(R.id.np_electionList))
@@ -697,9 +698,6 @@ public class NowPlayingActivity extends Activity {
         // Open the drawer if the user can vote.
         boolean canVote = !mSession.hasLastVote() && mSession.isTunedIn();
         setDrawerState(canVote);
-
-        // Set the vote listener for th list adapter.
-        adapter.setOnVoteHandler(mHandler);
 
         if(mSession.hasLastVote()) {
             adapter.markVoted(mSession.getLastVoteId());
@@ -721,7 +719,6 @@ public class NowPlayingActivity extends Activity {
             new SongListAdapter(
                 this,
                 R.layout.item_song_request,
-                mSession,
                 new ArrayList<Song>(Arrays.asList(songs))
             )
         );
@@ -886,6 +883,51 @@ public class NowPlayingActivity extends Activity {
             RATE = 0x4A73,
             REORDER = 0x4304D34;
     }
+    
+    private class VoteTask extends AsyncTask<Song, Integer, Boolean> {
+
+        private Song mSong;
+
+        private int mSelection;
+
+        public VoteTask(int selection) {
+            ListView electionList = (ListView) findViewById(R.id.np_electionList);
+            SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
+            mSelection = selection;
+            mSong = adapter.getSong(selection);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            ListView electionList = (ListView) findViewById(R.id.np_electionList);
+            SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
+            adapter.setVoting(mSelection);
+        }
+
+        protected Boolean doInBackground(Song...params) {
+            try {
+                mSession.vote(mSong.getElectionEntryId());
+                return true;
+            } catch (RainwaveException e) {
+                Rainwave.showError(NowPlayingActivity.this, e);
+                Log.e(TAG, "API Error: " + e);
+            }
+
+            return false;
+        }
+
+        protected void onPostExecute(Boolean result) {
+            ListView electionList = (ListView) findViewById(R.id.np_electionList);
+            SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
+
+            if(result) {
+                adapter.setVoted(mSelection);
+            }
+            else {
+                adapter.revert(mSelection);
+            }
+        }
+    }
 
     private Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -893,12 +935,6 @@ public class NowPlayingActivity extends Activity {
             switch(msg.what) {                
             case UPDATE_TITLE:
                 refreshTitle();
-                break;
-
-            case SongListAdapter.CODE_VOTED:
-                if(msg.arg1 == SongListAdapter.CODE_SUCCESS) {
-                    setDrawerState(false);
-                }
                 break;
             }
         }
