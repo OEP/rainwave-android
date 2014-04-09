@@ -2,22 +2,18 @@
 <manifest
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	package="cc.rainwave.android"
-	android:versionCode="6"
-	android:versionName="1.1.2beta1">
-	<uses-sdk
-		android:minSdkVersion="7"
-		android:targetSdkVersion="7" />
-
+	android:versionCode="7"
+	android:versionName="1.1.2beta2">
+	
 	<supports-screens
 		android:smallScreens="true"
 		android:normalScreens="true"
 		android:largeScreens="true"
 		android:anyDensity="true" />
 
-
 	<uses-sdk
-		android:minSdkVersion="3"
-		android:targetSdkVersion="4" />
+		android:minSdkVersion="5"
+		android:targetSdkVersion="8" />
 
 	<uses-permission android:name="android.permission.INTERNET" />
 
@@ -25,6 +21,10 @@
 	    android:theme="@style/app_theme"
 		android:icon="@drawable/rainwave"
 		android:label="@string/app_name">
+		<service
+		    android:name=".SyncService"
+		    android:exported="false" />
+	    
 		<activity
 			android:name=".NowPlayingActivity"
 			android:label="@string/app_name">
