@@ -105,13 +105,24 @@ public class Session {
     	}
     }
     
+    /** Update schedules if we are still listening to their updates. */
     private void updateSchedules(final JsonElement root) {
-    	mCurrentEvent = getIfExists(root, "sched_current", Event.class, mCurrentEvent);
-    	mNextEvents = getIfExists(root, "sched_next", Event[].class, mNextEvents);
-    	mEventHistory = getIfExists(root, "sched_history", Event[].class, mEventHistory);
-    	mUser = getIfExists(root, "user", User.class, mUser);
-    	mRequests = getIfExists(root, "requests", Song[].class, mRequests);
-    	
+        Event newCurrent = getIfExists(root, "sched_current", Event.class, mCurrentEvent);
+
+        // It's possible that someone could have changed the station and this is
+        // and update for a previous station we don't need any more.
+        //
+        // FIXME: This is pretty bad practice -- is there another way?
+        if(newCurrent.getStationId() != getStationId()) {
+            return;
+        }
+
+        mCurrentEvent = newCurrent;
+        mNextEvents = getIfExists(root, "sched_next", Event[].class, mNextEvents);
+        mEventHistory = getIfExists(root, "sched_history", Event[].class, mEventHistory);
+        mUser = getIfExists(root, "user", User.class, mUser);
+        mRequests = getIfExists(root, "requests", Song[].class, mRequests);
+        
     	// This does some checking to see if the "last_vote" reported by the api actually belongs
     	// to the current election. If it does, it accepts the ID, otherwise it is set to -1.
     	if(JsonHelper.hasMember(root, "vote_result")) {
