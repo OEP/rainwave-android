@@ -27,6 +27,7 @@ public class SyncService extends IntentService {
             try {
                 session.info();
                 fetchArt(session);
+                fetchStations(session);
                 notifyUpdate();
             } catch (RainwaveException e) {
                 if(e.getCause() != null) {
@@ -40,6 +41,7 @@ public class SyncService extends IntentService {
                 try {
                     session.sync();
                     fetchArt(session);
+                    fetchStations(session);
                     notifyUpdate();
                 } catch (RainwaveException e) {
                     if(e.getCause() != null) {
@@ -81,6 +83,18 @@ public class SyncService extends IntentService {
         else {
             // no album art
             session.clearCurrentAlbumArt();
+        }
+    }
+    
+    /** Fetches station data if necessary. */
+    private void fetchStations(Session session) {
+        if(session.hasStations()) {
+            return;
+        }
+        try {
+            session.fetchStations();
+        } catch (RainwaveException e) {
+            Log.w(TAG, "Could not fetch station data", e);
         }
     }
     
