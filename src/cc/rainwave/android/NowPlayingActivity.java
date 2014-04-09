@@ -8,7 +8,10 @@ import java.util.Locale;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -16,6 +19,7 @@ import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -66,16 +70,9 @@ public class NowPlayingActivity extends Activity {
 	/** This manages our connection with the Rainwave server */
 	private Session mSession;
 	
-	/** AsyncTask for schedule syncs */
-	private FetchInfo mFetchInfo;
-	
 	/** AsyncTask for song ratings */
 	private ActionTask mRateTask, mReorderTask, mRemoveTask;
 	
-	/** AsycnTask for song timer */
-	private SongCountdownTask mSongCountdownTask;
-	
-    /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,6 +80,10 @@ public class NowPlayingActivity extends Activity {
         initializeSession();
         setContentView(R.layout.activity_main);
         setListeners();
+        
+        this.registerReceiver(mEventUpdateReceiver,
+                new IntentFilter(SyncService.BROADCAST_EVENT_UPDATE)
+        );
     }
     
     @Override
@@ -99,13 +100,9 @@ public class NowPlayingActivity extends Activity {
     public void onResume() {
         super.onResume();
         initializeSession();
-        initSchedules();
+        fetchSchedules();
     }
-
-    /**
-     * We also want to stop our threads as much as possible, as they
-     * should solely run in the foreground.
-     */
+    
     public void onPause() {
     	super.onPause();
     	stopTasks();
@@ -117,6 +114,7 @@ public class NowPlayingActivity extends Activity {
     
     public void onDestroy() {
     	super.onDestroy();
+    	unregisterReceiver(mEventUpdateReceiver);
     }
     
 	@Override
@@ -168,6 +166,15 @@ public class NowPlayingActivity extends Activity {
 					Station s = (Station) listView.getItemAtPosition(index);
 					mSession.setStation(s.getId());
 					NowPlayingActivity.this.dismissDialog(DIALOG_STATION_PICKER);
+					
+					// Stop a service which may be requesting from the wrong station.
+				    stopService(new Intent(NowPlayingActivity.this, SyncService.class)
+					        .setAction(SyncService.ACTION_INFO)
+                    );
+				    stopService(new Intent(NowPlayingActivity.this, SyncService.class)
+				            .setAction(SyncService.ACTION_SYNC)
+				    );
+					
 					refresh();
 				}
 			});
@@ -409,11 +416,6 @@ public class NowPlayingActivity extends Activity {
      * all references to them.
      */
     private void stopTasks() {
-    	if(mFetchInfo != null) {
-    		mFetchInfo.cancel(true);
-    		mFetchInfo = null;
-    	}
-    	
     	if(mRateTask != null) {
     		mRateTask.cancel(true);
     		mRateTask = null;
@@ -428,11 +430,6 @@ public class NowPlayingActivity extends Activity {
     		mRemoveTask.cancel(true);
     		mRemoveTask = null;
     	}
-    	
-    	if(mSongCountdownTask != null) {
-    		mSongCountdownTask.cancel(true);
-    		mSongCountdownTask = null;
-    	}
     }
     
     /**
@@ -440,24 +437,9 @@ public class NowPlayingActivity extends Activity {
      * the schedule.
      */
     private void refresh() {
-    	stopTasks();
-    	fetchSchedules(true);
-    }
-    
-    /**
-     * Performs an initial (e.g., non-longpoll) fetch
-     * of our song info.
-     */
-    private void initSchedules() {
-        fetchSchedules(true);
-    }
-    
-    /**
-     * Performs a long-polling synchronous update
-     * of our song info.
-     */
-    private void syncSchedules() {
-        fetchSchedules(false);
+        Intent local = new Intent(this, SyncService.class);
+        local.setAction(SyncService.ACTION_INFO);
+        startService(local);
     }
     
     /**
@@ -465,7 +447,7 @@ public class NowPlayingActivity extends Activity {
      * @param init flag to indicate this
      *   is an initial (non-long-poll) fetch.
      */
-    private void fetchSchedules(boolean init) {
+    private void fetchSchedules() {
         // Some really bad thing happened and we don't
         // have a connection at all.
         if(mSession == null) {
@@ -473,9 +455,15 @@ public class NowPlayingActivity extends Activity {
             return;
         }
         
-        if(mFetchInfo == null) {
-            mFetchInfo = new FetchInfo();
-            mFetchInfo.execute(init);
+        // Only do an immediate fetch from here.
+        if(mSession.requiresSync()) {
+            Intent local = new Intent(this, SyncService.class);
+            local.setAction(SyncService.ACTION_INFO);
+            startService(local);
+        }
+        else {
+        	// already have one so just sync
+        	onScheduleSync();
         }
     }
     
@@ -501,19 +489,6 @@ public class NowPlayingActivity extends Activity {
         	mRemoveTask = new ActionTask();
         	mRemoveTask.execute(ActionTask.REMOVE, s);
         }
-    }
-    
-    /**
-     * Starts AsyncTask for song countdown.
-     * @param endTime the UTC time to stop counting
-     */
-    private void startCountdown(long endTime) {
-    	if(mSongCountdownTask != null) {
-    		mSongCountdownTask.cancel(true);
-    	}
-    	
-    	mSongCountdownTask = new SongCountdownTask();
-    	mSongCountdownTask.execute(endTime);
     }
     
     /**
@@ -641,8 +616,8 @@ public class NowPlayingActivity extends Activity {
     	ImageButton play = (ImageButton) findViewById(R.id.np_play);
     	ImageButton station = (ImageButton) findViewById(R.id.np_stationPick);
     	
-    	play.setEnabled(true);
-    	station.setEnabled(true);
+    	play.setEnabled(mSession.hasStations());
+    	station.setEnabled(mSession.hasStations());
     	
     	// Updates title, album, and artists.
     	updateSongInfo(mSession.getCurrentEvent().getCurrentSong());
@@ -658,6 +633,20 @@ public class NowPlayingActivity extends Activity {
     	
     	// Updates request lsit.
     	updateRequests();
+    	
+    	// Update album art if there is any
+    	updateAlbumArt(mSession.getCurrentAlbumArt());
+    	
+        // Start a countdown task for the event.
+        if(mSession.getCurrentEvent() != null) {
+        	new CountDownTimer(mSession.getCurrentEvent().getEnd() - mSession.getDrift(), 1000) {
+        		public void onFinish() { }
+        		
+        		public void onTick(long millisUntilFinished) {
+        			refreshTitle();
+        		}
+        	}.start();
+        }
     }
     
     private void refreshTitle() {
@@ -671,7 +660,7 @@ public class NowPlayingActivity extends Activity {
     	
     	Resources r = getResources();
     	int id = mSession.getStationId();
-    	String stationName = mSession.getStation(id).getName();
+    	String stationName = (mSession.hasStations()) ? mSession.getStation(id).getName() : null;
     	String title = (stationName != null) ? stationName : r.getString(R.string.app_name);
     	String state = r.getString(R.string.label_nottunedin);
     	
@@ -804,6 +793,21 @@ public class NowPlayingActivity extends Activity {
         ((ImageView) findViewById(R.id.np_albumArt)).setImageBitmap(art);
     }
     
+    /** Receives schedule updates from the sync service. */
+    private BroadcastReceiver mEventUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            onScheduleSync();
+            
+            // Let the service know we would like updates.
+            if(mSession.hasCredentials()) {
+                Intent local = new Intent(NowPlayingActivity.this, SyncService.class);
+                local.setAction(SyncService.ACTION_SYNC);
+                startService(local);
+            }
+        }
+    };
+    
     /**
      * AsyncTask for submitting a rating for a song.
      * Expects two arguments to <code>execute(Object...params)</code>,
@@ -818,20 +822,24 @@ public class NowPlayingActivity extends Activity {
 		protected Object doInBackground(Object ... params) {
 			Log.d(TAG, "Beginning ActionTask.");
 			mAction = (Integer) params[0];
+			Thread currentThread = Thread.currentThread();
 			
 			try {
 				switch(mAction) {
 				case RATE:
+					currentThread.setName("RateTask");
 					int songId = (Integer) params[1];
 					float rating = (Float) params[2];
 					return mSession.rateSong(songId, rating);
 					
 				case REMOVE:
+					currentThread.setName("RemoveTask");
 					Song s = (Song) params[1];
 					mSession.deleteRequest(s);
 					break;
 					
 				case REORDER:
+					currentThread.setName("ReorderTask");
 					Song songs[] = (Song[]) params[1];
 					return mSession.reorderRequests(songs);
 				
@@ -870,133 +878,10 @@ public class NowPlayingActivity extends Activity {
 			REORDER = 0x4304D34;
     }
     
-    /**
-     * Fetches the now playing info.
-     * Expects one argument to <code>execute(Object...params)</code> which
-     * is the flag to indicate if this is an initializing (e.g., non-longpoll)
-     * fetch of the schedule data.
-     * @author pkilgo
-     *
-     */
-    protected class FetchInfo extends AsyncTask<Boolean, Integer, Bundle> {
-        private String TAG = "Unnamed";
-        private boolean mInit = false;
-
-        @Override
-        protected Bundle doInBackground(Boolean ... flags) {
-            mInit = flags[0];
-            
-            if(mInit) {
-            	dispatchThrobberVisibility(true);
-            }
-            
-            TAG = (mInit) ? "InitialPoll" : "UpdatePoll";
-        	Log.d(TAG, "Fetching a schedule");
-        	
-            Bundle b = new Bundle();
-            try {
-                if(mInit) {
-                	mSession.info();
-                }
-                else {
-                	mSession.sync();
-                }
-            	     			
-                // fetch stations if we don't have them
-            	if(mSession == null || mSession.fetchStations() == null) {
-            		// it should be safe to keep going even if the station endpoint fails for some reason
-            		try {
-	            		mSession.fetchStations();
-            		} catch (RainwaveException e) {
-                    	Log.e(TAG, "API error: " + e.getMessage());
-                    	Rainwave.showError(NowPlayingActivity.this, e);
-            		}
-            	}
-                
-                // not all sync events mean that an event has passed, i.e. the user could have tuned in/out.
-                if(mSession.getCurrentEvent() != null) {
-                    Song song = mSession.getCurrentEvent().getCurrentSong();
-                    try {
-                    	final String art = song.getDefaultAlbum().getArt();
-                    	if(art != null && art.length() > 0) {
-                    		final int minWidth = (NowPlayingActivity.this.findViewById(R.id.np_albumArt)).getWidth();
-	                    	final Bitmap bmArt = mSession.fetchAlbumArt(art, minWidth);
-	                    	b.putParcelable(Rainwave.ART, bmArt);
-                    	}
-                    }
-                    catch(final IOException exc) {
-                    	Log.e(TAG, String.valueOf(exc));
-                    	Rainwave.showError(NowPlayingActivity.this, R.string.msg_albumArtError);
-                    }
-                }
-                
-                return b;
-            } catch (RainwaveException e) {
-            	Log.e(TAG, "API error: " + e.getMessage());
-            	Rainwave.showError(NowPlayingActivity.this, e);
-            	return null;
-            }
-            
-        }
-        
-        protected void onPostExecute(Bundle result) {
-            super.onPostExecute(result);
-            
-            dispatchThrobberVisibility(false);
-            
-            mFetchInfo = null;
-            
-            // Was there an IO failure?
-            if(result == null) {
-                mFetchInfo = null;
-            	return;
-            }
-            
-            // Callback for schedule sync.
-            onScheduleSync();
-            updateAlbumArt( (Bitmap) result.getParcelable(Rainwave.ART) );
-            
-            if(mSession.hasCredentials()) {
-                syncSchedules();
-            }
-            
-            startCountdown(mSession.getCurrentEvent().getEnd());
-            
-            Log.d(TAG, "Exiting successfully.");
-        }
-    }
-    
-    /**
-     * Refreshes the title bar every second until the end of an event is reached.
-     */
-    protected class SongCountdownTask extends AsyncTask<Long, Integer, Boolean> {
-        @Override
-        protected Boolean doInBackground(Long ... params) {
-        	long stopTime = params[0];
-        	long utc = System.currentTimeMillis() / 1000;
-        	
-        	while(utc < stopTime) {
-        		try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					return false;
-				}
-        		
-        		Message msg = mHandler.obtainMessage(UPDATE_TITLE);
-            	msg.sendToTarget();
-        	}
-        	return true;
-        }
-    }
-    
     private Handler mHandler = new Handler() {
     	public void handleMessage(Message msg) {
     		Bundle data = msg.getData();
-    		switch(msg.what) {
-    		case HANDLER_SET_INDETERMINATE:
-    			setProgressBarIndeterminateVisibility( data.getBoolean(BOOL_STATUS) );
-    			break;
-    			
+    		switch(msg.what) {    			
     		case UPDATE_TITLE:
     			refreshTitle();
     			break;
@@ -1010,17 +895,9 @@ public class NowPlayingActivity extends Activity {
     	}
     };
     
-    private void dispatchThrobberVisibility(boolean state) {
-    	Message msg = mHandler.obtainMessage(HANDLER_SET_INDETERMINATE);
-    	Bundle data = msg.getData();
-    	data.putBoolean(BOOL_STATUS, state);
-    	msg.sendToTarget();
-    }
-    
     /** Handler codes */
     private static final int
-    	UPDATE_TITLE = 0x71713,
-    	HANDLER_SET_INDETERMINATE = 0x1D373;
+    	UPDATE_TITLE = 0x71713;
     
     /** Handler keys */
     private static final String

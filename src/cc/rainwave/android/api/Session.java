@@ -46,6 +46,8 @@ public class Session {
 
     private URL mBaseUrl;
     
+    private Bitmap mCurrentAlbumArt;
+    
     private Event mCurrentEvent;
     
     private Event[] mNextEvents;
@@ -103,13 +105,24 @@ public class Session {
     	}
     }
     
+    /** Update schedules if we are still listening to their updates. */
     private void updateSchedules(final JsonElement root) {
-    	mCurrentEvent = getIfExists(root, "sched_current", Event.class, mCurrentEvent);
-    	mNextEvents = getIfExists(root, "sched_next", Event[].class, mNextEvents);
-    	mEventHistory = getIfExists(root, "sched_history", Event[].class, mEventHistory);
-    	mUser = getIfExists(root, "user", User.class, mUser);
-    	mRequests = getIfExists(root, "requests", Song[].class, mRequests);
-    	
+        Event newCurrent = getIfExists(root, "sched_current", Event.class, mCurrentEvent);
+
+        // It's possible that someone could have changed the station and this is
+        // and update for a previous station we don't need any more.
+        //
+        // FIXME: This is pretty bad practice -- is there another way?
+        if(newCurrent.getStationId() != getStationId()) {
+            return;
+        }
+
+        mCurrentEvent = newCurrent;
+        mNextEvents = getIfExists(root, "sched_next", Event[].class, mNextEvents);
+        mEventHistory = getIfExists(root, "sched_history", Event[].class, mEventHistory);
+        mUser = getIfExists(root, "user", User.class, mUser);
+        mRequests = getIfExists(root, "requests", Song[].class, mRequests);
+        
     	// This does some checking to see if the "last_vote" reported by the api actually belongs
     	// to the current election. If it does, it accepts the ID, otherwise it is set to -1.
     	if(JsonHelper.hasMember(root, "vote_result")) {
@@ -286,7 +299,23 @@ public class Session {
         URL url = new URL(getUrl(path));
     	Log.d(TAG, "GET " + url.toString());
         InputStream is = url.openStream();
-        return BitmapFactory.decodeStream(is);
+        mCurrentAlbumArt = BitmapFactory.decodeStream(is);
+        return mCurrentAlbumArt;
+    }
+    
+    /**
+     * Returns the current album art.
+     * @return album art bitmap if any, null otherwise
+     */
+    public Bitmap getCurrentAlbumArt() {
+        return mCurrentAlbumArt;
+    }
+    
+    /**
+     * Clears the current album art. Sets it to null.
+     */
+    public void clearCurrentAlbumArt() {
+        mCurrentAlbumArt = null;
     }
     
     public Song[] reorderRequests(Song requests[])
@@ -409,6 +438,22 @@ public class Session {
      */
     public boolean isAuthenticated() {
     	return mUser != null;
+    }
+    
+    /**
+     * Returns true if we require a sync. This can be because no current
+     * event is available or the current event is in the past.
+     * 
+     * @return true if a sync is required, false otherwise
+     */
+    public boolean requiresSync() {
+    	if(getCurrentEvent() == null) {
+    		return true;
+    	}
+    	
+    	long endTime = getCurrentEvent().getEnd() - getDrift();
+    	long utc = System.currentTimeMillis() / 1000;
+    	return utc > endTime;
     }
     
     private JsonElement get(String path, String... params)
