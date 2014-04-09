@@ -118,6 +118,7 @@ public class NowPlayingActivity extends Activity {
 
     public void onDestroy() {
         super.onDestroy();
+        stopSyncService();
         unregisterReceiver(mEventUpdateReceiver);
     }
 
@@ -170,15 +171,6 @@ public class NowPlayingActivity extends Activity {
                     Station s = (Station) listView.getItemAtPosition(index);
                     mSession.setStation(s.getId());
                     NowPlayingActivity.this.dismissDialog(DIALOG_STATION_PICKER);
-
-                    // Stop a service which may be requesting from the wrong station.
-                    stopService(new Intent(NowPlayingActivity.this, SyncService.class)
-                            .setAction(SyncService.ACTION_INFO)
-                    );
-                    stopService(new Intent(NowPlayingActivity.this, SyncService.class)
-                            .setAction(SyncService.ACTION_SYNC)
-                    );
-
                     refresh();
                 }
             });
@@ -436,10 +428,21 @@ public class NowPlayingActivity extends Activity {
         }
     }
 
+    /** Tell a SyncService that it should stop. */
+    private void stopSyncService() {
+        stopService(new Intent(NowPlayingActivity.this, SyncService.class)
+                .setAction(SyncService.ACTION_INFO)
+        );
+        stopService(new Intent(NowPlayingActivity.this, SyncService.class)
+                .setAction(SyncService.ACTION_SYNC)
+        );
+    }
+
     /**
      * Force an update of the schedule information.
      */
     private void refresh() {
+        stopSyncService();
         Intent local = new Intent(this, SyncService.class);
         local.setAction(SyncService.ACTION_INFO);
         startService(local);
