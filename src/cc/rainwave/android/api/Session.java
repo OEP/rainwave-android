@@ -479,7 +479,7 @@ public class Session {
 
         HttpURLConnection conn = null;
         final Resources r = mContext.getResources();
-        final long requestStart = System.currentTimeMillis() / 1000;
+        long requestEnd;
 
         try {
             switch(method) {
@@ -499,6 +499,9 @@ public class Session {
             case HttpURLConnection.HTTP_FORBIDDEN:
                 throw new RainwaveException(r.getString(R.string.msg_forbidden), statusCode);
             }
+            
+            // log timestamp to calculate drift
+            requestEnd = System.currentTimeMillis() / 1000;
         }
         catch(IOException exc) {
             throw new RainwaveException(r.getString(R.string.msg_genericError), exc);
@@ -520,7 +523,7 @@ public class Session {
         if(JsonHelper.hasMember(root, "api_info")) {
             final JsonElement api_info = JsonHelper.getChild(root, "api_info");
             if(JsonHelper.hasMember(api_info, "time")) {
-                mDrift = JsonHelper.getLong(api_info, "time") - requestStart;
+                mDrift = JsonHelper.getLong(api_info, "time") - requestEnd;
             }
         }
 
