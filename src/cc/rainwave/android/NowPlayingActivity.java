@@ -932,21 +932,6 @@ public class NowPlayingActivity extends Activity {
         }
     }
 
-    private Handler mHandler = new Handler() {
-        public void handleMessage(Message msg) {
-            Bundle data = msg.getData();
-            switch(msg.what) {                
-            case UPDATE_TITLE:
-                refreshTitle();
-                break;
-            }
-        }
-    };
-
-    /** Handler codes */
-    private static final int
-        UPDATE_TITLE = 0x71713;
-
     /** Handler keys */
     private static final String
         BOOL_STATUS = "bool_status";
