@@ -84,7 +84,33 @@ public class SongListAdapter extends BaseAdapter {
         return (mSongs == null) ? -1 : mSongs.get(i).getId();
     }
 
-    public void markVoted(int elec_entry_id) {
+    /**
+     * Update the election list to reflect that the given election entry id
+     * has been voted for. This does a linear search and updates all of the
+     * items in the list as necessary. This does update the UI as well.
+     * 
+     * @param elec_entry_id the election id of the last known vote
+     */
+    public void resyncVoteState(int elec_entry_id) {
+        for(int i = 0; i < mSongs.size(); i++) {
+            Song s = mSongs.get(i);
+            if(s.getElectionEntryId() == elec_entry_id) {
+                setVoted(i);
+            }
+            else {
+                revert(i);
+            }
+        }
+    }
+
+    /**
+     * Search the current songs and accept the election entry ID if it
+     * corresponds to one in memory. This does not alter the GUI so it
+     * is safe to call before the views have been inflated.
+     * 
+     * @param elec_entry_id election entry id to search for
+     */
+    public void updateVoteState(int elec_entry_id) {
         for(int i = 0; i < mSongs.size(); i++) {
             Song s = mSongs.get(i);
             if(s.getElectionEntryId() == elec_entry_id) {

@@ -320,6 +320,15 @@ public class NowPlayingActivity extends Activity {
         final ListView election = (ListView) findViewById(R.id.np_electionList);
         election.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int i, long id) {
+                SongListAdapter adapter = (SongListAdapter) election.getAdapter();
+                Song song = adapter.getSong(i);
+
+                // Do nothing if they selected the item we last voted for.
+                if(song.getElectionEntryId() == mSession.getLastVoteId()) {
+                    return;
+                }
+
+                // Show a message if they are not tuned in.
                 if(mSession.isTunedIn() && mSession.hasCredentials()) {
                     new VoteTask(i).execute();
                 }
@@ -700,7 +709,7 @@ public class NowPlayingActivity extends Activity {
         setDrawerState(canVote);
 
         if(mSession.hasLastVote()) {
-            adapter.markVoted(mSession.getLastVoteId());
+            adapter.updateVoteState(mSession.getLastVoteId());
         }
     }
 
@@ -919,13 +928,7 @@ public class NowPlayingActivity extends Activity {
         protected void onPostExecute(Boolean result) {
             ListView electionList = (ListView) findViewById(R.id.np_electionList);
             SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
-
-            if(result) {
-                adapter.setVoted(mSelection);
-            }
-            else {
-                adapter.revert(mSelection);
-            }
+            adapter.resyncVoteState(mSession.getLastVoteId());
         }
     }
 
