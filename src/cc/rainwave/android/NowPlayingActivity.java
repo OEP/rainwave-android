@@ -73,8 +73,12 @@ public class NowPlayingActivity extends Activity {
     /** AsyncTask for song ratings */
     private ActionTask mRateTask, mReorderTask, mRemoveTask;
 
+    /** True if device supports Window.FEATURE_INDETERMINATE_PROGRESS. */
+    private boolean mHasIndeterminateProgress;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        mHasIndeterminateProgress = requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         super.onCreate(savedInstanceState);
         setup();
         initializeSession();
@@ -433,13 +437,16 @@ public class NowPlayingActivity extends Activity {
     }
 
     /**
-     * Stops all running tasks and re-initializes
-     * the schedule.
+     * Force an update of the schedule information.
      */
     private void refresh() {
         Intent local = new Intent(this, SyncService.class);
         local.setAction(SyncService.ACTION_INFO);
         startService(local);
+        if(mHasIndeterminateProgress) {
+            setProgressBarIndeterminateVisibility(true);
+            setProgressBarIndeterminate(true);
+        }
     }
 
     /**
@@ -457,9 +464,7 @@ public class NowPlayingActivity extends Activity {
 
         // Only do an immediate fetch from here.
         if(mSession.requiresSync()) {
-            Intent local = new Intent(this, SyncService.class);
-            local.setAction(SyncService.ACTION_INFO);
-            startService(local);
+            refresh();
         }
         else {
             // already have one so just sync
@@ -797,6 +802,7 @@ public class NowPlayingActivity extends Activity {
     private BroadcastReceiver mEventUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            setProgressBarIndeterminateVisibility(false);
             onScheduleSync();
 
             // Let the service know we would like updates.
