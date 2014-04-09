@@ -173,6 +173,8 @@ public class Session {
         catch(final JsonParseException exc) {
             throw wrapException(exc, path);
         }
+        // checkError() would have thrown if there was an error
+        mLastVoteId = elecId;
     }
 
     public Station[] fetchStations() throws RainwaveException {
