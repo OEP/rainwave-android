@@ -35,7 +35,7 @@ import com.google.gson.stream.JsonReader;
 
 public class Session {
     private static final String TAG = "Session";
-    
+
     private Context mContext;
 
     private int mStation = 1;
@@ -45,30 +45,30 @@ public class Session {
     private String mKey;
 
     private URL mBaseUrl;
-    
+
     private Bitmap mCurrentAlbumArt;
-    
+
     private Event mCurrentEvent;
-    
+
     private Event[] mNextEvents;
-    
+
     private Event[] mEventHistory;
-    
+
     private Song[] mRequests;
-    
+
     private User mUser;
-    
+
     private Station[] mStations;
-    
+
     private Artist[] mArtists;
-    
+
     private Album[] mAlbums;
-    
+
     private int mLastVoteId = -1;
-    
+
     /** Estimate of time delta in seconds between server time and local time. */
     private long mDrift = 0;
-    
+
     /** Can't instantiate directly */
     private Session() { }
 
@@ -82,7 +82,7 @@ public class Session {
             throw wrapException(exc, path);
         }
     }
-    
+
     public void sync() throws RainwaveException {
         final String path = "sync";
 
@@ -95,7 +95,7 @@ public class Session {
         else {
             args = new String[0];
         }
-                
+
         try {
             final JsonElement element = post(path, args);
             updateSchedules(element);
@@ -104,7 +104,7 @@ public class Session {
             throw wrapException(exc, path);
         }
     }
-    
+
     /** Update schedules if we are still listening to their updates. */
     private void updateSchedules(final JsonElement root) {
         Event newCurrent = getIfExists(root, "sched_current", Event.class, mCurrentEvent);
@@ -122,13 +122,13 @@ public class Session {
         mEventHistory = getIfExists(root, "sched_history", Event[].class, mEventHistory);
         mUser = getIfExists(root, "user", User.class, mUser);
         mRequests = getIfExists(root, "requests", Song[].class, mRequests);
-        
+
         // This does some checking to see if the "last_vote" reported by the api actually belongs
         // to the current election. If it does, it accepts the ID, otherwise it is set to -1.
         if(JsonHelper.hasMember(root, "vote_result")) {
             final JsonElement child = JsonHelper.getChild(root, "vote_result");
             final int elecId = JsonHelper.getInt(child, "elec_id");
-            
+
             if(elecId != mCurrentEvent.getId()) {
                 mLastVoteId = JsonHelper.getInt(JsonHelper.getChild(root, "vote_result"), "entry_id");
             }
@@ -137,7 +137,7 @@ public class Session {
             }
         }
     }
-    
+
     private static <T> T getIfExists(final JsonElement root, final String name, Class<T> classOfT, T defaultValue) {
         if(JsonHelper.hasMember(root, name)) {
             final Gson gson = getGson();
@@ -150,20 +150,20 @@ public class Session {
     throws RainwaveException {
         final String path = "rate";
         final String returns = "rate_result";
-        
+
         rating = Math.max(1.0f, Math.min(rating, 5.0f));
-        
+
         return requestObject(Method.POST, path, returns, true, SongRating.class,
             "song_id", String.valueOf(songId),
             "rating", String.valueOf(rating)
         );
     }
-    
+
     public void vote(int elecId)
     throws RainwaveException {
         final String path = "vote";
         final String returns = "vote_result";
-        
+
         try {
             final JsonElement element = post(path,
                 "entry_id", String.valueOf(elecId)
@@ -174,20 +174,20 @@ public class Session {
             throw wrapException(exc, path);
         }
     }
-    
+
     public Station[] fetchStations() throws RainwaveException {
         final String path = "stations";
         final String returns = "stations";
-        
+
         if(hasStations()) {
             return cloneStations();
         }
-        
+
         mStations = requestObject(Method.POST, path, returns, false, Station[].class);
         return cloneStations();
-        
+
     }
-    
+
     /**
      * Fetch a list of all  the albums. Returns a cached version if available.
      * @return array of Albums
@@ -199,7 +199,7 @@ public class Session {
         mAlbums = requestObject(Method.POST, path, returns, false, Album[].class);
         return mAlbums;
     }
-    
+
     /**
      * Get album data.
      * 
@@ -208,7 +208,7 @@ public class Session {
     public Album[] getAlbums() {
         return mAlbums;
     }
-    
+
     /**
      * Fetch a list of all artists.
      * 
@@ -221,7 +221,7 @@ public class Session {
         mArtists = requestObject(Method.POST, path, returns, false, Artist[].class);
         return mArtists;
     }
-    
+
     /**
      * Get artist data.
      * 
@@ -230,28 +230,28 @@ public class Session {
     public Artist[] getArtists() {
         return mArtists;
     }
-    
+
     public Artist fetchDetailedArtist(int artist_id) throws RainwaveException {
         final String path = "artist";
         final String returns = "artist";
-        
+
         return requestObject(Method.POST, path, returns, false, Artist.class,
             "id", String.valueOf(artist_id)
         );
     }
-    
+
     public Album fetchDetailedAlbum(int album_id) throws RainwaveException {
         final String path = "album";
         final String returns = "album";
-        
+
         return requestObject(Method.POST, path, returns, false, Album.class,
             "id", String.valueOf(album_id)
         );
     }
-    
+
     public Song[] submitRequest(int song_id) throws RainwaveException {
         final String path = "request";
-        
+
         final JsonElement root = post(path, "song_id", String.valueOf(song_id));
         try {
             final Gson gson = getGson();
@@ -262,7 +262,7 @@ public class Session {
             throw wrapException(exc, path);
         }
     }
-    
+
     /**
      * Fetch a full resolution album art.
      * 
@@ -294,7 +294,7 @@ public class Session {
             return fetchAlbumArt(path);
         }
     }
-    
+
     private Bitmap fetchAlbumArtHelper(String path) throws IOException {
         URL url = new URL(getUrl(path));
         Log.d(TAG, "GET " + url.toString());
@@ -302,7 +302,7 @@ public class Session {
         mCurrentAlbumArt = BitmapFactory.decodeStream(is);
         return mCurrentAlbumArt;
     }
-    
+
     /**
      * Returns the current album art.
      * @return album art bitmap if any, null otherwise
@@ -310,18 +310,18 @@ public class Session {
     public Bitmap getCurrentAlbumArt() {
         return mCurrentAlbumArt;
     }
-    
+
     /**
      * Clears the current album art. Sets it to null.
      */
     public void clearCurrentAlbumArt() {
         mCurrentAlbumArt = null;
     }
-    
+
     public Song[] reorderRequests(Song requests[])
             throws RainwaveException {
         final String path = "order_requests";
-        
+
         final JsonElement root = post(path,
             "order", Rainwave.makeRequestQueueString(requests)
         );
@@ -334,7 +334,7 @@ public class Session {
             throw wrapException(exc, path);
         }
     }
-    
+
     public void deleteRequest(Song request)
     throws RainwaveException {
         post("delete_request", 
@@ -346,27 +346,27 @@ public class Session {
         mUserId = userId;
         mKey = key;
     }
-    
+
     public void clearUserInfo() {
         setUserInfo(null, null);
     }
-    
+
     public Song[] cloneRequests() {
         return mRequests.clone();
     }
-    
+
     public boolean hasStations() {
         return mStations != null;
     }
-    
+
     public boolean hasLastVote() {
         return mLastVoteId >= 0;
     }
-    
+
     public int getLastVoteId() {
         return mLastVoteId;
     }
-    
+
     /**
      * Get the difference in seconds between server time and client time. That
      * is, serverTime - clientTime.
@@ -376,16 +376,16 @@ public class Session {
     public long getDrift() {
         return mDrift;
     }
-    
+
     public Station[] cloneStations() {
         return mStations.clone();
     }
-    
+
     public void setStation(int stationId) {
         mStation = stationId;
         Rainwave.putLastStation(mContext, stationId);
     }
-    
+
     public Station getStation(int stationId) {
         for(int i = 0; i < mStations.length; i++) {
             if(mStations[i].getId() == stationId) {
@@ -394,27 +394,27 @@ public class Session {
         }
         return null;
     }
-    
+
     public String getUrl() {
         return mBaseUrl.toString();
     }
-    
+
     public int getStationId() {
         return mStation;
     }
-    
+
     public Event getCurrentEvent() {
         return mCurrentEvent;
     }
-    
+
     public Event getNextEvent() {
         return mNextEvents[0];
     }
-    
+
     public boolean isTunedIn() {
         return mUser != null && mUser.getTunedIn();
     }
-    
+
     /**
      * Returns true if the server sent a request list on the last sync() or info().
      * @return
@@ -422,7 +422,7 @@ public class Session {
     public boolean hasRequests() {
         return mRequests != null;
     }
-    
+
     /**
      * Returns true if we have set credentials via setUserInfo().
      * @return
@@ -430,7 +430,7 @@ public class Session {
     public boolean hasCredentials() {
         return mUserId != null && mKey != null && mUserId.length() > 0 && mKey.length() > 0;
     }
-    
+
     /**
      * Returns true if the server thinks we are authenticated.
      * 
@@ -439,7 +439,7 @@ public class Session {
     public boolean isAuthenticated() {
         return mUser != null;
     }
-    
+
     /**
      * Returns true if we require a sync. This can be because no current
      * event is available or the current event is in the past.
@@ -450,22 +450,22 @@ public class Session {
         if(getCurrentEvent() == null) {
             return true;
         }
-        
+
         long endTime = getCurrentEvent().getEnd() - getDrift();
         long utc = System.currentTimeMillis() / 1000;
         return utc > endTime;
     }
-    
+
     private JsonElement get(String path, String... params)
     throws RainwaveException {
         return request(Method.GET, path, params);
     }
-    
+
     private JsonElement post(String path, String... params)
     throws RainwaveException {
         return request(Method.POST, path, params);
     }
-    
+
     private JsonElement request(final Method method, String path, String... params)
     throws RainwaveException {
         // Construct arguments
@@ -480,7 +480,7 @@ public class Session {
         HttpURLConnection conn = null;
         final Resources r = mContext.getResources();
         final long requestStart = System.currentTimeMillis() / 1000;
-        
+
         try {
             switch(method) {
             case POST:
@@ -492,9 +492,9 @@ public class Session {
             default:
                 throw new IllegalArgumentException("Unhandled HTTP method!");
             }
-    
+
             final int statusCode = conn.getResponseCode();
-            
+
             switch(statusCode) {
             case HttpURLConnection.HTTP_FORBIDDEN:
                 throw new RainwaveException(r.getString(R.string.msg_forbidden), statusCode);
@@ -503,7 +503,7 @@ public class Session {
         catch(IOException exc) {
             throw new RainwaveException(r.getString(R.string.msg_genericError), exc);
         }
-        
+
         final JsonElement root;
         try {
             JsonParser parser = new JsonParser();
@@ -514,7 +514,7 @@ public class Session {
         catch(IOException exc) {
             throw new RainwaveException(r.getString(R.string.msg_genericError), exc);
         }
-        
+
         // most every endpoint returns api_info, so we can try and update
         // drift whenever possible
         if(JsonHelper.hasMember(root, "api_info")) {
@@ -523,10 +523,10 @@ public class Session {
                 mDrift = JsonHelper.getLong(api_info, "time") - requestStart;
             }
         }
-        
+
         return root;
     }
-    
+
     /**
      * Fetches a single object from the API.
      * 
@@ -547,7 +547,7 @@ public class Session {
         // Convert the json into Java objects.
         Gson gson = getGson();
         final JsonElement json = request(method, path, params);
-        
+
         try {
             final JsonElement element = JsonHelper.getChild(json, name);
             if(checkError) {
@@ -559,7 +559,7 @@ public class Session {
             throw wrapException(e, path);
         }
     }
-    
+
     /**
      * Check for errors in a JSON response. Checks the value of a member
      * name called "success" and if it is false, throw an error containing
@@ -577,7 +577,7 @@ public class Session {
                );
         }
     }
-    
+
     private RainwaveException wrapException(final JsonParseException exc, final String path)
     throws RainwaveException {
         Resources r = mContext.getResources();
@@ -591,8 +591,8 @@ public class Session {
         final URL url = new URL(mBaseUrl, path);
         return url.toString();
     }
-    
-    
+
+
     /**
      * Restore a session from a previously saved one.
      * 
@@ -602,26 +602,26 @@ public class Session {
         mContext = ctx;
         mStation = Rainwave.getLastStation(ctx, mStation);
         setUserInfo(Rainwave.getUserId(ctx), Rainwave.getKey(ctx));
-        
+
         try {
             mBaseUrl = new URL(Rainwave.getUrl(ctx));
         } catch (MalformedURLException e) {
             mBaseUrl = Rainwave.DEFAULT_URL;
         }
     }
-    
+
     public void pickle(Context ctx) {
         mContext = ctx;
-        
+
         Rainwave.putLastStation(mContext, mStation);
         Rainwave.putUserId(mContext, mUserId);
         Rainwave.putKey(mContext, mKey);
         // TODO: Rainwave.putUrl() ?
     }
-    
+
     /** The singleton */
     private static Session sInstance;
-    
+
     public static Session getInstance() {
         if(sInstance == null) {
             sInstance = new Session();
@@ -641,7 +641,7 @@ public class Session {
         builder.registerTypeAdapter(SongRating.AlbumRating.class, new SongRating.AlbumRating.Deserializer());
         return builder.create();
     }
-    
+
     private static enum Method {
         GET, POST
     }

@@ -12,29 +12,29 @@ import com.google.gson.JsonParseException;
 public class SongRating {
     private float mUserRating;
     private AlbumRating[] mUpdatedAlbums;
-    
+
     /** Can't instantiate directly. */
     private SongRating() {}
-    
+
     public float getUserRating() {
         return mUserRating;
     }
-    
+
     public AlbumRating getDefaultAlbumRating() {
         return getAlbumRating(0);
     }
-    
+
     private AlbumRating getAlbumRating(int i) {
         return mUpdatedAlbums[i];
     }
-    
+
     public static class AlbumRating {
         private float mUserRating;
-        
+
         public float getUserRating() {
             return mUserRating;
         }
-        
+
         public static class Deserializer implements JsonDeserializer<AlbumRating> {
             @Override
             public AlbumRating deserialize(
@@ -46,7 +46,7 @@ public class SongRating {
             }
         }
     }
-    
+
     public static class Deserializer implements JsonDeserializer<SongRating> {
         @Override
         public SongRating deserialize(

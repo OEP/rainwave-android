@@ -15,26 +15,26 @@ import android.os.Parcelable;
 public class Station implements Parcelable {
     /** Description of radio station. */
     private String mDescription;
-    
+
     /** URL to main stream. */
     private String mStream;
-    
+
     /** Name of radio station. */
     private String mName;
-    
+
     /** ID of radio station. */
     private int mId;
-    
+
     /** Can't instantiate directly. */
     private Station() {}
-    
+
     private Station(Parcel in) {
         mDescription = in.readString();
         mStream = in.readString();
         mName = in.readString();
         mId = in.readInt();
     }
-    
+
     /**
      * Get the radio station's name.
      * @return the name
@@ -42,7 +42,7 @@ public class Station implements Parcelable {
     public String getName() {
         return mName;
     }
-    
+
     /**
      * Get the radio station's description.
      * @return the description
@@ -50,7 +50,7 @@ public class Station implements Parcelable {
     public String getDescription() {
         return mDescription;
     }
-    
+
     /**
      * Get the URL to the main stream.
      * @return url to stream
@@ -58,7 +58,7 @@ public class Station implements Parcelable {
     public String getMainStream() {
         return mStream;
     }
-    
+
     /**
      * Get the station's ID.
      * @return station id
@@ -66,7 +66,7 @@ public class Station implements Parcelable {
     public int getId() {
         return mId;
     }
-    
+
     public String toString() {
         return mName;
     }
@@ -83,7 +83,7 @@ public class Station implements Parcelable {
         dest.writeString(mName);
         dest.writeInt(mId);
     }
-    
+
     public static final Parcelable.Creator<Station> CREATOR
     = new Parcelable.Creator<Station>() {
         @Override
@@ -96,7 +96,7 @@ public class Station implements Parcelable {
             return new Station[size];
         }
     };
-    
+
     public static class Deserializer implements JsonDeserializer<Station> {
         @Override
         public Station deserialize(

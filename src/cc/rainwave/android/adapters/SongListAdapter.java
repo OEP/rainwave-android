@@ -24,32 +24,32 @@ import cc.rainwave.android.views.CountdownView;
 
 public class SongListAdapter extends BaseAdapter {
     private static final String TAG = "ElectionListAdapter";
-    
+
     private boolean mVoted = false;
-    
+
     private ArrayList<View> mViews;
-    
+
     private ArrayList<Song> mSongs;
-    
+
     private Context mContext;
-    
+
     private Session mSession;
-    
+
     private CountdownTask mCountdownTask;
-    
+
     private VoteTask mVoteTask;
-    
+
     private Handler mVoteHandler;
-    
+
     /** Records last known election id vote. Set to -1 to imply no vote. */
     private int mLastVote = -1;
-    
+
     /** Vote deadline */
     private long mDeadline = -1;
-    
+
     /** Item XML ID */
     private int mItemLayout;
-    
+
     public SongListAdapter(Context ctx, int resId, Session session, ArrayList<Song> songs) {
         mContext = ctx;
         mSession = session;
@@ -60,18 +60,18 @@ public class SongListAdapter extends BaseAdapter {
         }
         mItemLayout = resId;
     }
-    
+
     public void startCountdown(int i) {
         if(hasVoted()) return;
-        
+
         boolean rush = rushVotes();
-        
+
         if(!rush && mCountdownTask == null) {
             mCountdownTask = new CountdownTask(i);
             mCountdownTask.execute();
             return;
         }
-        
+
         if(rush || mCountdownTask.getSelection() == i) {
             if(mCountdownTask != null){
                 int old = mCountdownTask.getSelection();
@@ -88,16 +88,16 @@ public class SongListAdapter extends BaseAdapter {
             startCountdown(i);
         }
     }
-    
+
     public boolean rushVotes() {
         long utc = System.currentTimeMillis() / 1000;
         return mDeadline > 0 && (mDeadline - utc) <= 15;
     }
-    
+
     public boolean hasVoted() {
         return mVoted || mVoteTask != null;
     }
-    
+
     public ArrayList<Song> getSongs() {
         return mSongs;
     }
@@ -111,7 +111,7 @@ public class SongListAdapter extends BaseAdapter {
     public Object getItem(int i) {
         return (mSongs == null) ? null : mSongs.get(i);
     }
-    
+
     public Song getSong(int i) {
         return (mSongs == null) ? null : mSongs.get(i);
     }
@@ -120,7 +120,7 @@ public class SongListAdapter extends BaseAdapter {
     public long getItemId(int i) {
         return (mSongs == null) ? -1 : mSongs.get(i).getId();
     }
-    
+
     public void markVoted(int elec_entry_id) {
         for(int i = 0; i < mSongs.size(); i++) {
             Song s = mSongs.get(i);
@@ -131,36 +131,36 @@ public class SongListAdapter extends BaseAdapter {
             }
         }
     }
-    
+
     public void setDeadline(long utc) {
         mDeadline = utc;
     }
-    
+
     private void setVoteStatus(boolean state) {
         mVoted = state; 
     }
-    
+
     @Override
     public View getView(int i, View convertView, ViewGroup parent) {
         if(mViews.get(i) == null || convertView == null) {
             Song s = mSongs.get(i);
-            
+
             Resources r = mContext.getResources();
             LayoutInflater inflater = LayoutInflater.from(mContext);
             convertView = inflater.inflate(mItemLayout, null);
             mViews.set(i, convertView);
-            
+
             setTextIfExists(convertView, R.id.song, s.getTitle());
             setTextIfExists(convertView, R.id.album, s.getDefaultAlbum().getName());
             setTextIfExists(convertView, R.id.artist, s.collapseArtists());
-            
+
             if(s.isRequest()) {
                 setImageIfExists(convertView, R.id.accent, R.drawable.accent_song_hilight);
                 setVisibilityIfExists(convertView, R.id.requestor, View.VISIBLE);
                 setTextIfExists(convertView, R.id.requestor,
                         String.format(r.getString(R.string.label_requestor), s.getRequestor()));
             }
-            
+
             if(s.getElectionEntryId() == mLastVote) {
                 setVoted(((CountdownView)convertView.findViewById(R.id.circle)));
             }
@@ -168,10 +168,10 @@ public class SongListAdapter extends BaseAdapter {
                 reflectSong(((CountdownView)convertView.findViewById(R.id.circle)), s);
             }
         }
-        
+
         return convertView;
     }
-    
+
     /**
      * Sets the visibility if we found the View.
      */
@@ -181,7 +181,7 @@ public class SongListAdapter extends BaseAdapter {
         if(v == null) return;
         v.setVisibility(visibility);
     }
-    
+
     /**
      * Attempts to find the provided view ID and sets
      * the image source if it exists and is an ImageView.
@@ -193,7 +193,7 @@ public class SongListAdapter extends BaseAdapter {
         ImageView iv = (ImageView) v;
         iv.setImageResource(picId);
     }
-    
+
     /**
      * Attempts to find the provided view ID and sets
      * the text if it exists and is a TextView.
@@ -207,63 +207,63 @@ public class SongListAdapter extends BaseAdapter {
         View v = parent.findViewById(resId);
         if(v == null || !(v instanceof TextView)) return;
         TextView tv = (TextView) v;
-        
+
         tv.setText(s);
     }
-    
+
     private CountdownView getCountdownView(int i) {
         return (CountdownView) mViews.get(i).findViewById(R.id.circle);
     }
-    
+
     private void reflectSong(CountdownView v, Song s) {
         v.setBoth(s.getUserRating(), s.getCommunityRating());
         v.setAlternateText(R.string.label_unrated);
     }
-    
+
     private void setRating(int i) {
         reflectSong(getCountdownView(i), mSongs.get(i));
     }
-    
+
     private void setVoting(int i) {
         CountdownView cnt = getCountdownView(i);
         cnt.setBoth(0, 0);
         cnt.setAlternateText(R.string.label_voting);
     }
-    
+
     private void setVoted(int i) {
         setVoted( getCountdownView(i) );
     }
-    
+
     private void setVoted(CountdownView view) {
         if(view == null) return;
         view.setBoth(0, 0);
         view.setAlternateText(R.string.label_voted);
     }
-    
+
     public void setOnVoteHandler(Handler handler) {
         mVoteHandler = handler;
     }
-    
+
     public void submitVote(int selection) {
         mVoteTask = new VoteTask(selection);
         mVoteTask.execute(mSongs.get(selection));
         setVoting(selection);
     }
-    
+
     public ArrayList<Song> moveSong(int from, int to) {
         Song s = mSongs.remove(from);
         mSongs.add(to, s);
         notifyDataSetChanged();
         return mSongs;
     }
-    
+
     public Song removeSong(int which) {
         Song s = mSongs.remove(which);
         mViews.remove(which);
         notifyDataSetChanged();
         return s;
     }
-    
+
     @Override
     public void notifyDataSetChanged() {
         super.notifyDataSetChanged();
@@ -271,23 +271,23 @@ public class SongListAdapter extends BaseAdapter {
             mViews.set(i, null);
         }
     }
-    
+
     private class VoteTask extends AsyncTask<Song, Integer, Boolean> {
-        
+
         private CountdownView mCountdown;
-        
+
         private Song mSong;
-        
+
         private int mSelection;
-        
+
         public VoteTask(int selection) {
             mCountdown = getCountdownView(selection);
             mSelection = selection;
         }
-        
+
         protected Boolean doInBackground(Song...params) {
             mSong = params[0];
-            
+
             try {
                 mSession.vote(mSong.getElectionEntryId());
                 return true;
@@ -295,10 +295,10 @@ public class SongListAdapter extends BaseAdapter {
                 Rainwave.showError(SongListAdapter.this.mContext, e);
                 Log.e(TAG, "API Error: " + e);
             }
-            
+
             return false;
         }
-        
+
         protected void onPostExecute(Boolean result) {
             if(result) {
                 setVoted(mSelection);
@@ -307,7 +307,7 @@ public class SongListAdapter extends BaseAdapter {
                 reflectSong(mCountdown, mSong);
                 mVoteTask = null;
             }
-            
+
             if(mVoteHandler != null) {
                 Message msg = mVoteHandler.obtainMessage(CODE_VOTED);
                 msg.arg1 = (result) ? CODE_SUCCESS : CODE_GENERIC_FAIL;
@@ -315,21 +315,21 @@ public class SongListAdapter extends BaseAdapter {
             }
         }
     }
-    
+
     private class CountdownTask extends AsyncTask<Integer, Integer, Boolean> {
         private int mSelection;
-        
+
         private CountdownView mCountdownView;
-        
+
         private Song mSong;
-        
+
         public CountdownTask(int selection) {
             mSelection = selection;
             View v = SongListAdapter.this.mViews.get(mSelection);
             mCountdownView = (CountdownView) v.findViewById(R.id.circle);
             mSong = mSongs.get(selection);
         }
-        
+
         @Override
         protected Boolean doInBackground(Integer ...params) {
             mCountdownView.setMax(5.0f);
@@ -344,10 +344,10 @@ public class SongListAdapter extends BaseAdapter {
                     return false;
                 }
             }
-            
+
             return true;
         }
-        
+
         protected void onPostExecute(Boolean result) {
             if(result == true) {
                 submitVote(mSelection);
@@ -357,16 +357,16 @@ public class SongListAdapter extends BaseAdapter {
             }
             mCountdownTask = null;
         }
-        
+
         public int getSelection() {
             return mSelection;
         }
     }
-    
+
     public static final int
         CODE_GENERIC_FAIL = 1,
         CODE_SUCCESS = 0;
-    
+
     public static final int
         CODE_VOTED = 0xB073D;
 }

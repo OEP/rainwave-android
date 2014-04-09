@@ -19,28 +19,28 @@ import android.util.Log;
 import android.widget.Toast;
 
 public class Rainwave {
-    
+
     public static boolean putIntPreference(Context ctx, String name, int value) {
         SharedPreferences prefs = getPreferences(ctx);
         Editor editor = prefs.edit();
         editor.putInt(name, value);
         return editor.commit();
     }
-    
+
     public static boolean putStringPreference(Context ctx, String name, String value) {
         SharedPreferences prefs = getPreferences(ctx);
         Editor editor = prefs.edit();
         editor.putString(name, value);
         return editor.commit();
     }
-    
+
     public static boolean putBoolPreference(Context ctx, String name, boolean value) {
         SharedPreferences prefs = getPreferences(ctx);
         Editor editor = prefs.edit();
         editor.putBoolean(name, value);
         return editor.commit();
     }
-    
+
     public static boolean clearPreferences(Context ctx) {
         Editor editor = getPreferences(ctx).edit();
         editor.remove(PREFS_KEY);
@@ -50,88 +50,88 @@ public class Rainwave {
         editor.remove(PREF_AUTOSHOW_ELECTION);
         return editor.commit();
     }
-    
+
     public static boolean getAutoShowElectionFlag(Context ctx) {
         return getBoolPref(ctx, PREF_AUTOSHOW_ELECTION, true);
     }
-    
+
     public static boolean skipLanding(Context ctx) {
         return getBoolPref(ctx, PREFS_SKIPLANDING, false);
     }
-    
+
     public static boolean setSkipLanding(Context ctx, boolean value) {
         return putBoolPreference(ctx, PREFS_SKIPLANDING, value);
     }
-    
+
     public static boolean hasUserInfo(Context ctx) {
         String user = getUserId(ctx);
         String key = getKey(ctx);
         return user != null && key != null && user.length() > 0 && key.length() > 0;
     }
-    
+
     public static String getUrl(Context ctx) {
         return getStringPref(ctx,PREFS_URL, RAINWAVE_URL);
     }
-    
+
     public static String getUserId(Context ctx) {
         return getStringPref(ctx,PREFS_USERID,null);
     }
-    
+
     public static boolean putUserId(Context ctx, String value) {
         return putStringPreference(ctx, PREFS_USERID, value);
     }
-    
+
     public static String getKey(Context ctx) {
         return getStringPref(ctx,PREFS_KEY,null);
     }
-    
+
     public static boolean putKey(Context ctx, String value) {
         return putStringPreference(ctx, PREFS_KEY, value);
     }
-    
+
     public static int getLastStation(Context ctx, int defValue) {
         return getIntPref(ctx, PREFS_LASTSTATION, defValue);
     }
-    
+
     public static boolean putLastStation(Context ctx, int value) {
         return putIntPreference(ctx, PREFS_LASTSTATION, value);
     }
-    
+
     public static boolean getBoolPref(Context ctx, String key, boolean defValue) {
         return getPreferences(ctx).getBoolean(key, defValue);
     }
-    
+
     public static String getStringPref(Context ctx, String key, String defValue) {
         return getPreferences(ctx).getString(key, defValue);
     }
-    
+
     public static int getIntPref(Context ctx, String key, int defValue) {
         return getPreferences(ctx).getInt(key, defValue);
     }
-    
+
     public static SharedPreferences getPreferences(Context ctx) {
         return PreferenceManager.getDefaultSharedPreferences(ctx);
     }
-    
+
     public static void showError(Context ctx, RainwaveException e) {
         showError(ctx, 1, e.getMessage());
         if(e.getCause() != null) {
             Log.e("Rainwave", "Cause", e.getCause());
         }
     }
-    
+
     public static void showError(Context ctx, int resId) {
         Resources r = ctx.getResources();
         showError(ctx, 1, r.getString(resId));
     }
-    
+
     public static void showError(Context ctx, int code, String msg) {
         Message m = ERROR_QUEUE.obtainMessage(code, ctx);
         Bundle data = m.getData();
         data.putString("text", msg);
         m.sendToTarget();
     }
-    
+
     public static void forceCompatibility(Context ctx) {
         SharedPreferences prefs = getPreferences(ctx);
         forceType(prefs, PREFS_URL, PrefType.STRING);
@@ -139,7 +139,7 @@ public class Rainwave {
         forceType(prefs, PREFS_KEY, PrefType.STRING);
         forceType(prefs, PREFS_LASTSTATION, PrefType.INT);
     }
-    
+
     public static void reorderSongs(Song songs[], int from, int to) {
         Song s = songs[from];
         if(to < from) {
@@ -154,7 +154,7 @@ public class Rainwave {
         }
         songs[to] = s;
     }
-    
+
     /**
      * Makes a comma-delimited string out of an array of songs
      * delineating the value of Song.requestq_id.
@@ -164,18 +164,18 @@ public class Rainwave {
     public static String makeRequestQueueString(Song requests[]) {
         if(requests == null || requests.length == 0) return "";
         if(requests.length == 1) return String.valueOf(requests[0].getId());
-        
+
         StringBuilder sb = new StringBuilder();
         sb.append(requests[0].getId());
-        
+
         for(int i = 1; i < requests.length; i++) {
             sb.append(",");
             sb.append(requests[i].getId());
         }
-        
+
         return sb.toString();
     }
-    
+
     /**
      * Parse a Rainwave Uri.
      * 
@@ -194,7 +194,7 @@ public class Rainwave {
         }
         else {
             final String userInfo = uri.getUserInfo();
-            
+
             if(userInfo != null) {
                 return userInfo.split("[:]", 2);
             }
@@ -204,7 +204,7 @@ public class Rainwave {
         }
         return null;
     }
-    
+
     public static String getTimeTemplate(Context ctx, long time) {
         long d = time / 86400, h = time / 3600, m = time / 60;
         String template;
@@ -228,11 +228,11 @@ public class Rainwave {
         }
         return String.format(template, n);
     }
-    
+
     private static boolean forceType(SharedPreferences prefs, String key, PrefType type) {
         if(!prefs.contains(key))
             return false;
-        
+
         try {
             switch(type) {
             case STRING: prefs.getString(key, null); break;
@@ -251,7 +251,7 @@ public class Rainwave {
         }
         return false;
     }
-    
+
     private static final Handler ERROR_QUEUE = new Handler() {
         public void handleMessage(Message msg) {
             Bundle data = msg.getData();
@@ -260,20 +260,20 @@ public class Rainwave {
             Toast.makeText(ctx, text, Toast.LENGTH_LONG).show();
         }
     };
-    
+
     private enum PrefType { STRING, BOOL, INT, LONG, FLOAT };
-    
+
     public static final int
         USERID_MAX = 10,
         KEY_MAX = 10;
-    
+
     /** Bundle constants */
     public static final String
         HANDLED_URI = "handled-uri",
         SCHEDULE = "schedule",
         ART = "art";
-    
-    
+
+
     public static final String
         RAINWAVE_URL = "http://rainwave.cc/api4",
         SCHEME = "rw",
@@ -285,9 +285,9 @@ public class Rainwave {
         PREF_CLEAR_PREFERENCES = "clear_preferences",
         PREF_AUTOSHOW_ELECTION = "pref_autoshow_elections",
         PREFS_KEY = "pref_key";
-    
+
     public static final URL    DEFAULT_URL;
-    
+
     static {
         URL tmp;
         try {

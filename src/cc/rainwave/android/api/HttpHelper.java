@@ -10,7 +10,7 @@ import android.util.Log;
 
 public class HttpHelper {
     private static final String TAG = "HttpHelper";
-    
+
     /**
      * Create an <code>HttpURLConnection</code> object and make it post
      * its parameters to the server.
@@ -24,21 +24,21 @@ public class HttpHelper {
     throws IOException {
         URL url = new URL(String.format("%s/%s", baseUrl.toString(), path));
         Log.d(TAG, "POST " + url.toString() + " " + params);
-        
+
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        
+
         connection.setRequestProperty("Content-Length", Integer.toString(params.getBytes().length));
-        
+
         // FIXME: Investigate proper usage of Content-Language
         connection.setRequestProperty("Content-Language", "en-US");
         setAcceptLanguage(connection);
-        
+
         connection.setUseCaches(false);
         connection.setDoInput(true);
         connection.setDoOutput(true);
-        
+
         // Send the request
         DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
         wr.writeBytes(params);
@@ -46,7 +46,7 @@ public class HttpHelper {
         wr.close();
         return connection;
     }
-    
+
     /**
      * Construct and return an <code>HttpURLConnection</code> object
      * to use for a GET connection.
@@ -59,41 +59,41 @@ public class HttpHelper {
     throws IOException {
         URL url = new URL(String.format("%s/%s", baseUrl.toString(), path));
         Log.d(TAG, "GET " + url.toString());
-        
+
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
-        
+
         // FIXME: Investigate proper usage of Content-Language
         connection.setRequestProperty("Content-Language", "en-US");
         setAcceptLanguage(connection);
-        
+
         connection.setUseCaches(false);
         connection.setDoInput(true);
         connection.setDoOutput(false);
-        
+
         return connection;
     }
-    
-    
+
+
     /** Sets the Accept-Language header according to default locale. */
     private static void setAcceptLanguage(HttpURLConnection conn) {
         Locale locale = Locale.getDefault();
-        
+
         // Do nothing if no language is set.
         if(locale.getLanguage().length() == 0) {
             return;
         }
-        
+
         StringBuilder sb = new StringBuilder();
-        
+
         // Add country information if available.
         if(locale.getCountry().length() > 0) {
             sb.append(locale.getLanguage() + "-" + locale.getCountry() + ",");
         }
-        
+
         // Add just language (Q-score taken from Firefox)
         sb.append(locale.getLanguage() + ";q=0.5");
-        
+
         conn.setRequestProperty("Accept-Language", sb.toString());
     }
 }

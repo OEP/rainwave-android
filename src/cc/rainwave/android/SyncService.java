@@ -57,20 +57,20 @@ public class SyncService extends IntentService {
             Log.i(TAG, "Ignoring unknown action: " + workIntent.getAction());
         }
     }
-    
+
     /** Send a global broadcast that the event has changed. */
     private void notifyUpdate() {
         // FIXME: Change to LocalBroadcastManager
         sendBroadcast(new Intent(BROADCAST_EVENT_UPDATE));
     }
-    
+
     /** Fetches the art for the current event. */
     private void fetchArt(Session session) {
         if(session.getCurrentEvent() == null) {
             Log.i(TAG, "No current event seen, not fetching album art.");
             return;
         }
-        
+
         Album album = session.getCurrentEvent().getCurrentSong().getDefaultAlbum();
         if(album.getArt() != null && album.getArt().length() > 0) {
             try {
@@ -85,7 +85,7 @@ public class SyncService extends IntentService {
             session.clearCurrentAlbumArt();
         }
     }
-    
+
     /** Fetches station data if necessary. */
     private void fetchStations(Session session) {
         if(session.hasStations()) {
@@ -97,13 +97,13 @@ public class SyncService extends IntentService {
             Log.w(TAG, "Could not fetch station data", e);
         }
     }
-    
+
     /** Send to the service to perform an immediate schedule lookup. */
     public static final String ACTION_INFO = "cc.rainwave.android.INFO";
-    
+
     /** Send to the service to long-poll the remote server for an event change. */
     public static final String ACTION_SYNC = "cc.rainwave.android.SYNC";
-    
+
     /** Sent by the service when schedule data has updated. */
     public static final String BROADCAST_EVENT_UPDATE = "cc.rainwave.android.EVENT_UPDATE";
 }

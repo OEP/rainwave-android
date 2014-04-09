@@ -17,7 +17,7 @@ public class Event implements Parcelable {
     private int mStationId;
     private Song mSongs[];
     private long mEnd;
-    
+
     /** Can't instantiate directly. */
     private Event() {}
 
@@ -25,28 +25,28 @@ public class Event implements Parcelable {
         Parcelable tmp[] = source.readParcelableArray(Song[].class.getClassLoader());
         mEnd = source.readLong();
         mSongs = new Song[tmp.length];
-        
+
         for(int i = 0; i < tmp.length; i++) {
             mSongs[i] = (Song) tmp[i];
         }
     }
-    
+
     public int getId() {
         return mId;
     }
-    
+
     public int getStationId() {
         return mStationId;
     }
-    
+
     public int getSongCount() {
         return mSongs.length;
     }
-    
+
     public Song[] cloneSongs() {
         return mSongs.clone();
     }
-    
+
     /**
      * Get the currently playing song (for a "current event" only).
      * @return current playing song
@@ -54,11 +54,11 @@ public class Event implements Parcelable {
     public Song getCurrentSong() {
         return getSong(0);
     }
-    
+
     public Song getSong(int i) {
         return mSongs[i];
     }
-    
+
     public long getEnd() {
         return mEnd;
     }
@@ -73,7 +73,7 @@ public class Event implements Parcelable {
         dest.writeParcelableArray(mSongs, flags);
         dest.writeLong(mEnd);
     }
-    
+
     public static final Parcelable.Creator<Event> CREATOR
     = new Parcelable.Creator<Event>() {
         @Override
@@ -86,7 +86,7 @@ public class Event implements Parcelable {
             return new Event[size];
         }
     };
-    
+
     public static class Deserializer implements JsonDeserializer<Event> {
         @Override
         public Event deserialize(

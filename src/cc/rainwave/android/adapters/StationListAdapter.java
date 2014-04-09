@@ -10,11 +10,11 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 public class StationListAdapter extends BaseAdapter {
-    
+
     private Station mStations[];
-    
+
     private Context mContext;
-    
+
     public StationListAdapter(Context ctx, Station stations[]) {
         mContext = ctx;
         mStations = stations;
@@ -40,15 +40,15 @@ public class StationListAdapter extends BaseAdapter {
         if(convertView == null) {
             LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = inflater.inflate(R.layout.item_station, null);
-            
+
             TextView line1 = (TextView) convertView.findViewById(R.id.station_title);
             TextView line2 = (TextView) convertView.findViewById(R.id.station_description);
             Station s = (Station) getItem(position);
-            
+
             line1.setText(s.getName());
             line2.setText(s.getDescription());
         }
-        
+
         return convertView;
     }
 
