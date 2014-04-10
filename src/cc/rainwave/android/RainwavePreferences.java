@@ -76,10 +76,19 @@ public class RainwavePreferences {
 
     /**
      * Get the last station ID stored.
-     * @return the last station ID, or 0 if none is stored
+     * @return the last station ID, or -1 if none is stored
      */
     public int getLastStationId() {
-        return mPreferences.getInt(LASTSTATION, 0);
+        return mPreferences.getInt(LASTSTATION, -1);
+    }
+
+    /**
+     * Get last station ID stored.
+     * @param defaultValue what to return if no last station is known
+     * @return the last station ID, or the default value if not known
+     */
+    public int getLastStationId(int defaultValue) {
+        return mPreferences.getInt(LASTSTATION, defaultValue);
     }
 
     /**

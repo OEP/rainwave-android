@@ -615,7 +615,7 @@ public class Session {
      * @param ctx the new context for the session
      */
     public void unpickle() {
-        mStation = mPreferences.getLastStationId();
+        mStation = mPreferences.getLastStationId(mStation);
         setUserInfo(mPreferences.getUserId(), mPreferences.getKey());
 
         try {
