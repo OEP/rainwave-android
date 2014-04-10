@@ -50,6 +50,7 @@ import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.api.types.SongRating;
 import cc.rainwave.android.api.types.Station;
+import cc.rainwave.android.views.CountdownView;
 import cc.rainwave.android.views.HorizontalRatingBar;
 import cc.rainwave.android.views.PagerWidget;
 
@@ -69,12 +70,17 @@ public class NowPlayingActivity extends Activity {
 
     /** This manages our connection with the Rainwave server */
     private Session mSession;
+    private RainwavePreferences mPreferences;
 
     /** AsyncTask for song ratings */
     private ActionTask mRateTask, mReorderTask, mRemoveTask;
 
+    /** True if device supports Window.FEATURE_INDETERMINATE_PROGRESS. */
+    private boolean mHasIndeterminateProgress;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        mHasIndeterminateProgress = requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         super.onCreate(savedInstanceState);
         setup();
         initializeSession();
@@ -114,6 +120,7 @@ public class NowPlayingActivity extends Activity {
 
     public void onDestroy() {
         super.onDestroy();
+        stopSyncService();
         unregisterReceiver(mEventUpdateReceiver);
     }
 
@@ -166,15 +173,6 @@ public class NowPlayingActivity extends Activity {
                     Station s = (Station) listView.getItemAtPosition(index);
                     mSession.setStation(s.getId());
                     NowPlayingActivity.this.dismissDialog(DIALOG_STATION_PICKER);
-
-                    // Stop a service which may be requesting from the wrong station.
-                    stopService(new Intent(NowPlayingActivity.this, SyncService.class)
-                            .setAction(SyncService.ACTION_INFO)
-                    );
-                    stopService(new Intent(NowPlayingActivity.this, SyncService.class)
-                            .setAction(SyncService.ACTION_SYNC)
-                    );
-
                     refresh();
                 }
             });
@@ -222,7 +220,6 @@ public class NowPlayingActivity extends Activity {
 
     private void setup() {
         getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-        Rainwave.forceCompatibility(this);
     }
 
     /**
@@ -323,8 +320,17 @@ public class NowPlayingActivity extends Activity {
         final ListView election = (ListView) findViewById(R.id.np_electionList);
         election.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int i, long id) {
+                SongListAdapter adapter = (SongListAdapter) election.getAdapter();
+                Song song = adapter.getSong(i);
+
+                // Do nothing if they selected the item we last voted for.
+                if(song.getElectionEntryId() == mSession.getLastVoteId()) {
+                    return;
+                }
+
+                // Show a message if they are not tuned in.
                 if(mSession.isTunedIn() && mSession.hasCredentials()) {
-                    ((SongListAdapter) election.getAdapter()).startCountdown(i);
+                    new VoteTask(i).execute();
                 }
                 else {
                     showDialog(R.string.msg_tunedInVote);
@@ -432,14 +438,28 @@ public class NowPlayingActivity extends Activity {
         }
     }
 
+    /** Tell a SyncService that it should stop. */
+    private void stopSyncService() {
+        stopService(new Intent(NowPlayingActivity.this, SyncService.class)
+                .setAction(SyncService.ACTION_INFO)
+        );
+        stopService(new Intent(NowPlayingActivity.this, SyncService.class)
+                .setAction(SyncService.ACTION_SYNC)
+        );
+    }
+
     /**
-     * Stops all running tasks and re-initializes
-     * the schedule.
+     * Force an update of the schedule information.
      */
     private void refresh() {
+        stopSyncService();
         Intent local = new Intent(this, SyncService.class);
         local.setAction(SyncService.ACTION_INFO);
         startService(local);
+        if(mHasIndeterminateProgress) {
+            setProgressBarIndeterminateVisibility(true);
+            setProgressBarIndeterminate(true);
+        }
     }
 
     /**
@@ -457,9 +477,7 @@ public class NowPlayingActivity extends Activity {
 
         // Only do an immediate fetch from here.
         if(mSession.requiresSync()) {
-            Intent local = new Intent(this, SyncService.class);
-            local.setAction(SyncService.ACTION_INFO);
-            startService(local);
+            refresh();
         }
         else {
             // already have one so just sync
@@ -492,12 +510,14 @@ public class NowPlayingActivity extends Activity {
     }
 
     /**
-     * Sets the vote drawer to opened or closed.
+     * Sets the vote drawer to opened or closed. Does nothing if the auto-slide preference is disabled.
+     * 
      * @param state, true for open, false for closed
      */
     private void setDrawerState(boolean state) {
-        boolean pref = Rainwave.getAutoShowElectionFlag(this);
-        if(!pref) return;
+        if(!mPreferences.getAutoshowElection()) {
+            return;
+        }
         SlidingDrawer v = (SlidingDrawer) this.findViewById(R.id.np_drawer);
         if(state && !v.isOpened()) {
             v.animateOpen();
@@ -563,7 +583,8 @@ public class NowPlayingActivity extends Activity {
      */
     private void initializeSession() {
         handleIntent();
-        mSession = Session.getInstance();
+        mSession = Session.getInstance(this);
+        mPreferences = RainwavePreferences.getInstance(this);
 
         View playlistButton = findViewById(R.id.np_makeRequest);
         if(playlistButton != null) {
@@ -600,8 +621,7 @@ public class NowPlayingActivity extends Activity {
         // store in preferences if all is well
         final String parts[] = Rainwave.parseUrl(uri, this);
         if(parts != null) {
-            Rainwave.putUserId(this, parts[0]);
-            Rainwave.putKey(this, parts[0]);
+            mPreferences.setUserInfo(parts[0], parts[1]);
         }
 
         i.putExtra(Rainwave.HANDLED_URI, true);
@@ -677,7 +697,7 @@ public class NowPlayingActivity extends Activity {
     private void updateElection() {
         SongListAdapter adapter = new SongListAdapter(
                 this,
-                R.layout.item_song_election,mSession,
+                R.layout.item_song_election,
                 new ArrayList<Song>(Arrays.asList(mSession.getNextEvent().cloneSongs()))
         );
         ((ListView)findViewById(R.id.np_electionList))
@@ -690,11 +710,8 @@ public class NowPlayingActivity extends Activity {
         boolean canVote = !mSession.hasLastVote() && mSession.isTunedIn();
         setDrawerState(canVote);
 
-        // Set the vote listener for th list adapter.
-        adapter.setOnVoteHandler(mHandler);
-
         if(mSession.hasLastVote()) {
-            adapter.markVoted(mSession.getLastVoteId());
+            adapter.updateVoteState(mSession.getLastVoteId());
         }
     }
 
@@ -713,7 +730,6 @@ public class NowPlayingActivity extends Activity {
             new SongListAdapter(
                 this,
                 R.layout.item_song_request,
-                mSession,
                 new ArrayList<Song>(Arrays.asList(songs))
             )
         );
@@ -797,6 +813,7 @@ public class NowPlayingActivity extends Activity {
     private BroadcastReceiver mEventUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            setProgressBarIndeterminateVisibility(false);
             onScheduleSync();
 
             // Let the service know we would like updates.
@@ -877,27 +894,45 @@ public class NowPlayingActivity extends Activity {
             RATE = 0x4A73,
             REORDER = 0x4304D34;
     }
+    
+    private class VoteTask extends AsyncTask<Song, Integer, Boolean> {
 
-    private Handler mHandler = new Handler() {
-        public void handleMessage(Message msg) {
-            Bundle data = msg.getData();
-            switch(msg.what) {                
-            case UPDATE_TITLE:
-                refreshTitle();
-                break;
+        private Song mSong;
 
-            case SongListAdapter.CODE_VOTED:
-                if(msg.arg1 == SongListAdapter.CODE_SUCCESS) {
-                    setDrawerState(false);
-                }
-                break;
-            }
+        private int mSelection;
+
+        public VoteTask(int selection) {
+            ListView electionList = (ListView) findViewById(R.id.np_electionList);
+            SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
+            mSelection = selection;
+            mSong = adapter.getSong(selection);
         }
-    };
 
-    /** Handler codes */
-    private static final int
-        UPDATE_TITLE = 0x71713;
+        @Override
+        protected void onPreExecute() {
+            ListView electionList = (ListView) findViewById(R.id.np_electionList);
+            SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
+            adapter.setVoting(mSelection);
+        }
+
+        protected Boolean doInBackground(Song...params) {
+            try {
+                mSession.vote(mSong.getElectionEntryId());
+                return true;
+            } catch (RainwaveException e) {
+                Rainwave.showError(NowPlayingActivity.this, e);
+                Log.e(TAG, "API Error: " + e);
+            }
+
+            return false;
+        }
+
+        protected void onPostExecute(Boolean result) {
+            ListView electionList = (ListView) findViewById(R.id.np_electionList);
+            SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
+            adapter.resyncVoteState(mSession.getLastVoteId());
+        }
+    }
 
     /** Handler keys */
     private static final String

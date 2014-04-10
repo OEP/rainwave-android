@@ -17,6 +17,7 @@ import android.graphics.BitmapFactory;
 import android.util.Log;
 import cc.rainwave.android.R;
 import cc.rainwave.android.Rainwave;
+import cc.rainwave.android.RainwavePreferences;
 import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.Artist;
 import cc.rainwave.android.api.types.Event;
@@ -37,6 +38,8 @@ public class Session {
     private static final String TAG = "Session";
 
     private Context mContext;
+
+    private RainwavePreferences mPreferences;
 
     private int mStation = 1;
 
@@ -69,8 +72,11 @@ public class Session {
     /** Estimate of time delta in seconds between server time and local time. */
     private long mDrift = 0;
 
-    /** Can't instantiate directly */
-    private Session() { }
+    /** Initialize session with a context. */
+    private Session(Context ctx) {
+        mContext = ctx;
+        mPreferences = RainwavePreferences.getInstance(ctx);
+    }
 
     public void info() throws RainwaveException {
         final String path = "info";
@@ -173,6 +179,8 @@ public class Session {
         catch(final JsonParseException exc) {
             throw wrapException(exc, path);
         }
+        // checkError() would have thrown if there was an error
+        mLastVoteId = elecId;
     }
 
     public Station[] fetchStations() throws RainwaveException {
@@ -363,6 +371,11 @@ public class Session {
         return mLastVoteId >= 0;
     }
 
+    /**
+     * Get the election entry ID of the last known vote.
+     * 
+     * @return election entry ID of last known vote, or -1 if it is unknown
+     */
     public int getLastVoteId() {
         return mLastVoteId;
     }
@@ -383,7 +396,7 @@ public class Session {
 
     public void setStation(int stationId) {
         mStation = stationId;
-        Rainwave.putLastStation(mContext, stationId);
+        mPreferences.setLastStationId(stationId);
     }
 
     public Station getStation(int stationId) {
@@ -601,33 +614,38 @@ public class Session {
      * 
      * @param ctx the new context for the session
      */
-    public void unpickle(Context ctx) {
-        mContext = ctx;
-        mStation = Rainwave.getLastStation(ctx, mStation);
-        setUserInfo(Rainwave.getUserId(ctx), Rainwave.getKey(ctx));
+    public void unpickle() {
+        mStation = mPreferences.getLastStationId(mStation);
+        setUserInfo(mPreferences.getUserId(), mPreferences.getKey());
 
         try {
-            mBaseUrl = new URL(Rainwave.getUrl(ctx));
+            if(mPreferences.getUrl() != null) {
+                mBaseUrl = new URL(mPreferences.getUrl());
+            }
         } catch (MalformedURLException e) {
+        }
+        if(mBaseUrl == null) {
             mBaseUrl = Rainwave.DEFAULT_URL;
         }
     }
 
-    public void pickle(Context ctx) {
-        mContext = ctx;
-
-        Rainwave.putLastStation(mContext, mStation);
-        Rainwave.putUserId(mContext, mUserId);
-        Rainwave.putKey(mContext, mKey);
-        // TODO: Rainwave.putUrl() ?
+    public void pickle() {
+        mPreferences.setLastStationId(mStation);
+        mPreferences.setUserInfo(mUserId, mKey);
+        // TODO: mPreferences.putUrl() ?
     }
 
     /** The singleton */
     private static Session sInstance;
 
-    public static Session getInstance() {
+    /**
+     * Get the singleton.
+     * @param ctx used when constructing session for the first time
+     * @return singleton instance
+     */
+    public static Session getInstance(Context ctx) {
         if(sInstance == null) {
-            sInstance = new Session();
+            sInstance = new Session(ctx);
         }
         return sInstance;
     }
