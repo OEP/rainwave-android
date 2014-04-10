@@ -29,16 +29,18 @@ import com.google.zxing.integration.android.IntentResult;
 public class LandingActivity extends Activity {
 
     private Session mSession;
+    private RainwavePreferences mPreferences;
 
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
         // Unpickle a session
-        mSession = Session.getInstance();
-        mSession.unpickle(this);
+        mSession = Session.getInstance(this);
+        mSession.unpickle();
+        mPreferences = RainwavePreferences.getInstance(this);
 
         // Skip this activity if the user has logged in.
-        if(Rainwave.hasUserInfo(this) || Rainwave.skipLanding(this)) {
+        if(mSession.hasCredentials() || mPreferences.getSkipLanding()) {
             startNowPlaying();
         }
 
@@ -93,7 +95,7 @@ public class LandingActivity extends Activity {
         findViewById(R.id.land_never).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Rainwave.setSkipLanding(LandingActivity.this, true);
+                mPreferences.setSkipLanding(true);
                 startNowPlaying();
             }
         });
@@ -174,7 +176,7 @@ public class LandingActivity extends Activity {
                 return;
             }
 
-            mSession.pickle(LandingActivity.this);
+            mSession.pickle();
             startNowPlaying();
         }
     }

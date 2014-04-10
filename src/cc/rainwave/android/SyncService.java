@@ -19,7 +19,7 @@ public class SyncService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent workIntent) {
-        Session session = Session.getInstance();
+        Session session = Session.getInstance(this);
         if(workIntent.getAction() == null) {
             Log.i(TAG, "No action specified -- ignoring.");
         }
