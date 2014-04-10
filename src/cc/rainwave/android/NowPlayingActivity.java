@@ -70,6 +70,7 @@ public class NowPlayingActivity extends Activity {
 
     /** This manages our connection with the Rainwave server */
     private Session mSession;
+    private RainwavePreferences mPreferences;
 
     /** AsyncTask for song ratings */
     private ActionTask mRateTask, mReorderTask, mRemoveTask;
@@ -219,7 +220,6 @@ public class NowPlayingActivity extends Activity {
 
     private void setup() {
         getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-        Rainwave.forceCompatibility(this);
     }
 
     /**
@@ -510,12 +510,14 @@ public class NowPlayingActivity extends Activity {
     }
 
     /**
-     * Sets the vote drawer to opened or closed.
+     * Sets the vote drawer to opened or closed. Does nothing if the auto-slide preference is disabled.
+     * 
      * @param state, true for open, false for closed
      */
     private void setDrawerState(boolean state) {
-        boolean pref = Rainwave.getAutoShowElectionFlag(this);
-        if(!pref) return;
+        if(!mPreferences.getAutoshowElection()) {
+            return;
+        }
         SlidingDrawer v = (SlidingDrawer) this.findViewById(R.id.np_drawer);
         if(state && !v.isOpened()) {
             v.animateOpen();
@@ -581,7 +583,8 @@ public class NowPlayingActivity extends Activity {
      */
     private void initializeSession() {
         handleIntent();
-        mSession = Session.getInstance();
+        mSession = Session.getInstance(this);
+        mPreferences = RainwavePreferences.getInstance(this);
 
         View playlistButton = findViewById(R.id.np_makeRequest);
         if(playlistButton != null) {
@@ -618,8 +621,7 @@ public class NowPlayingActivity extends Activity {
         // store in preferences if all is well
         final String parts[] = Rainwave.parseUrl(uri, this);
         if(parts != null) {
-            Rainwave.putUserId(this, parts[0]);
-            Rainwave.putKey(this, parts[0]);
+            mPreferences.setUserInfo(parts[0], parts[1]);
         }
 
         i.putExtra(Rainwave.HANDLED_URI, true);

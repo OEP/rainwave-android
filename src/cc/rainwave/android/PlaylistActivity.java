@@ -108,7 +108,7 @@ public class PlaylistActivity extends ListActivity {
 
     public void onResume() {
         super.onResume();
-        mSession = Session.getInstance();
+        mSession = Session.getInstance(this);
         fetchDataIfNeeded();
     }
 
