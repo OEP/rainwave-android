@@ -90,9 +90,6 @@ public class NowPlayingActivity extends Activity {
         setContentView(R.layout.activity_main);
         setListeners();
 
-        this.registerReceiver(mEventUpdateReceiver,
-                new IntentFilter(SyncService.BROADCAST_EVENT_UPDATE)
-        );
     }
 
     @Override
@@ -100,24 +97,27 @@ public class NowPlayingActivity extends Activity {
         super.onStart();
     }
 
-    /**
-     * Our strategy here is to attempt to re-initialize the
-     * app as much as possible. This helps us to catch preference
-     * changes, and to not have lingering song data lying around.
-     */
     @Override
     public void onResume() {
+        // Assuming a cold start every time, so need to register the schedule
+        // update receiver and update the schedule if needed.
         super.onResume();
         initializeSession();
+        registerReceiver(mEventUpdateReceiver,
+                new IntentFilter(SyncService.BROADCAST_EVENT_UPDATE));
         fetchSchedules();
     }
 
     public void onPause() {
+        // Should not continue any long-running background tasks when not in
+        // the foreground.
         super.onPause();
         stopTasks();
         if(mCountdown != null) {
             mCountdown.cancel();
         }
+        stopSyncService();
+        unregisterReceiver(mEventUpdateReceiver);
     }
 
     public void onStop() {
@@ -126,8 +126,6 @@ public class NowPlayingActivity extends Activity {
 
     public void onDestroy() {
         super.onDestroy();
-        stopSyncService();
-        unregisterReceiver(mEventUpdateReceiver);
     }
 
     @Override
