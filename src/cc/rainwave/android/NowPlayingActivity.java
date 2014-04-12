@@ -590,6 +590,7 @@ public class NowPlayingActivity extends Activity {
     private void initializeSession() {
         handleIntent();
         mSession = Session.getInstance(this);
+        mSession.unpickle();
         mPreferences = RainwavePreferences.getInstance(this);
 
         View playlistButton = findViewById(R.id.np_makeRequest);
