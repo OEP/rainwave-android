@@ -157,8 +157,7 @@ public class Rainwave {
         try {
             tmp = new URL(RAINWAVE_URL);
         } catch (MalformedURLException e) {
-            Log.e("Rainwave", "Rainwave URL is malformed!");
-            tmp = null;
+            throw new RuntimeException("Could not initialize the default URL.", e);
         }
         DEFAULT_URL = tmp;
     }
