@@ -355,8 +355,17 @@ public class Session {
         mKey = key;
     }
 
+    /**
+     * Return this session to an unauthenticated state.
+     */
     public void clearUserInfo() {
         setUserInfo(null, null);
+
+        // to remove stale requests
+        mRequests = null;
+
+        // to remove the listen key from the stream URL's
+        mStations = null;
     }
 
     public Song[] cloneRequests() {
