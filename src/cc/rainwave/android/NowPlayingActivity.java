@@ -72,8 +72,8 @@ public class NowPlayingActivity extends Activity {
     private Session mSession;
     private RainwavePreferences mPreferences;
 
-    /** AsyncTask for song ratings */
-    private ActionTask mRateTask, mReorderTask, mRemoveTask;
+    /** Reference to song countdown timer. */
+    private CountDownTimer mCountdown;
 
     /** True if device supports Window.FEATURE_INDETERMINATE_PROGRESS. */
     private boolean mHasIndeterminateProgress;
@@ -87,9 +87,6 @@ public class NowPlayingActivity extends Activity {
         setContentView(R.layout.activity_main);
         setListeners();
 
-        this.registerReceiver(mEventUpdateReceiver,
-                new IntentFilter(SyncService.BROADCAST_EVENT_UPDATE)
-        );
     }
 
     @Override
@@ -97,21 +94,26 @@ public class NowPlayingActivity extends Activity {
         super.onStart();
     }
 
-    /**
-     * Our strategy here is to attempt to re-initialize the
-     * app as much as possible. This helps us to catch preference
-     * changes, and to not have lingering song data lying around.
-     */
     @Override
     public void onResume() {
+        // Assuming a cold start every time, so need to register the schedule
+        // update receiver and update the schedule if needed.
         super.onResume();
         initializeSession();
+        registerReceiver(mEventUpdateReceiver,
+                new IntentFilter(SyncService.BROADCAST_EVENT_UPDATE));
         fetchSchedules();
     }
 
     public void onPause() {
+        // Should not continue any long-running background tasks when not in
+        // the foreground.
         super.onPause();
-        stopTasks();
+        if(mCountdown != null) {
+            mCountdown.cancel();
+        }
+        stopSyncService();
+        unregisterReceiver(mEventUpdateReceiver);
     }
 
     public void onStop() {
@@ -120,8 +122,6 @@ public class NowPlayingActivity extends Activity {
 
     public void onDestroy() {
         super.onDestroy();
-        stopSyncService();
-        unregisterReceiver(mEventUpdateReceiver);
     }
 
     @Override
@@ -417,27 +417,6 @@ public class NowPlayingActivity extends Activity {
         registerForContextMenu(findViewById(R.id.np_request_list));
     }
 
-    /**
-     * Stops ALL AsyncTasks and removes
-     * all references to them.
-     */
-    private void stopTasks() {
-        if(mRateTask != null) {
-            mRateTask.cancel(true);
-            mRateTask = null;
-        }
-
-        if(mReorderTask != null) {
-            mReorderTask.cancel(true);
-            mReorderTask = null;
-        }
-
-        if(mRemoveTask != null) {
-            mRemoveTask.cancel(true);
-            mRemoveTask = null;
-        }
-    }
-
     /** Tell a SyncService that it should stop. */
     private void stopSyncService() {
         stopService(new Intent(NowPlayingActivity.this, SyncService.class)
@@ -491,10 +470,7 @@ public class NowPlayingActivity extends Activity {
             return;
         }
 
-        if(mReorderTask == null) {
-            mReorderTask = new ActionTask();
-            mReorderTask.execute(ActionTask.REORDER, requests);
-        }
+        new ActionTask().execute(ActionTask.REORDER, requests);
     }
 
     private void requestRemove(Song s) {
@@ -503,10 +479,7 @@ public class NowPlayingActivity extends Activity {
             return;
         }
 
-        if(mRemoveTask == null) {
-            mRemoveTask = new ActionTask();
-            mRemoveTask.execute(ActionTask.REMOVE, s);
-        }
+        new ActionTask().execute(ActionTask.REMOVE, s);
     }
 
     /**
@@ -584,6 +557,7 @@ public class NowPlayingActivity extends Activity {
     private void initializeSession() {
         handleIntent();
         mSession = Session.getInstance(this);
+        mSession.unpickle();
         mPreferences = RainwavePreferences.getInstance(this);
 
         View playlistButton = findViewById(R.id.np_makeRequest);
@@ -657,9 +631,14 @@ public class NowPlayingActivity extends Activity {
         // Update album art if there is any
         updateAlbumArt(mSession.getCurrentAlbumArt());
 
+        // Cancel old countdown if there is one.
+        if(mCountdown != null) {
+            mCountdown.cancel();
+        }
+
         // Start a countdown task for the event.
         if(mSession.getCurrentEvent() != null) {
-            new CountDownTimer(mSession.getCurrentEvent().getEnd() - mSession.getDrift(), 1000) {
+            mCountdown = new CountDownTimer(mSession.getCurrentEvent().getEnd() - mSession.getDrift(), 1000) {
                 public void onFinish() { }
 
                 public void onTick(long millisUntilFinished) {
@@ -873,17 +852,14 @@ public class NowPlayingActivity extends Activity {
 
             switch(mAction) {
             case RATE:
-                mRateTask = null;
                 if(result == null) return;
                 onRateSong((SongRating) result);
                 break;
 
             case REORDER:
-                mReorderTask = null;
                 break;
 
             case REMOVE:
-                mRemoveTask = null;
                 break;
 
             }
