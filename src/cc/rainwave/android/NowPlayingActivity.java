@@ -72,9 +72,6 @@ public class NowPlayingActivity extends Activity {
     private Session mSession;
     private RainwavePreferences mPreferences;
 
-    /** AsyncTask for song ratings */
-    private ActionTask mRateTask, mReorderTask, mRemoveTask;
-
     /** Reference to song countdown timer. */
     private CountDownTimer mCountdown;
 
@@ -112,7 +109,6 @@ public class NowPlayingActivity extends Activity {
         // Should not continue any long-running background tasks when not in
         // the foreground.
         super.onPause();
-        stopTasks();
         if(mCountdown != null) {
             mCountdown.cancel();
         }
@@ -421,27 +417,6 @@ public class NowPlayingActivity extends Activity {
         registerForContextMenu(findViewById(R.id.np_request_list));
     }
 
-    /**
-     * Stops ALL AsyncTasks and removes
-     * all references to them.
-     */
-    private void stopTasks() {
-        if(mRateTask != null) {
-            mRateTask.cancel(true);
-            mRateTask = null;
-        }
-
-        if(mReorderTask != null) {
-            mReorderTask.cancel(true);
-            mReorderTask = null;
-        }
-
-        if(mRemoveTask != null) {
-            mRemoveTask.cancel(true);
-            mRemoveTask = null;
-        }
-    }
-
     /** Tell a SyncService that it should stop. */
     private void stopSyncService() {
         stopService(new Intent(NowPlayingActivity.this, SyncService.class)
@@ -495,10 +470,7 @@ public class NowPlayingActivity extends Activity {
             return;
         }
 
-        if(mReorderTask == null) {
-            mReorderTask = new ActionTask();
-            mReorderTask.execute(ActionTask.REORDER, requests);
-        }
+        new ActionTask().execute(ActionTask.REORDER, requests);
     }
 
     private void requestRemove(Song s) {
@@ -507,10 +479,7 @@ public class NowPlayingActivity extends Activity {
             return;
         }
 
-        if(mRemoveTask == null) {
-            mRemoveTask = new ActionTask();
-            mRemoveTask.execute(ActionTask.REMOVE, s);
-        }
+        new ActionTask().execute(ActionTask.REMOVE, s);
     }
 
     /**
@@ -883,17 +852,14 @@ public class NowPlayingActivity extends Activity {
 
             switch(mAction) {
             case RATE:
-                mRateTask = null;
                 if(result == null) return;
                 onRateSong((SongRating) result);
                 break;
 
             case REORDER:
-                mReorderTask = null;
                 break;
 
             case REMOVE:
-                mRemoveTask = null;
                 break;
 
             }
