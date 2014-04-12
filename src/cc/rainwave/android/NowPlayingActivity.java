@@ -75,6 +75,9 @@ public class NowPlayingActivity extends Activity {
     /** AsyncTask for song ratings */
     private ActionTask mRateTask, mReorderTask, mRemoveTask;
 
+    /** Reference to song countdown timer. */
+    private CountDownTimer mCountdown;
+
     /** True if device supports Window.FEATURE_INDETERMINATE_PROGRESS. */
     private boolean mHasIndeterminateProgress;
 
@@ -112,6 +115,9 @@ public class NowPlayingActivity extends Activity {
     public void onPause() {
         super.onPause();
         stopTasks();
+        if(mCountdown != null) {
+            mCountdown.cancel();
+        }
     }
 
     public void onStop() {
@@ -657,9 +663,14 @@ public class NowPlayingActivity extends Activity {
         // Update album art if there is any
         updateAlbumArt(mSession.getCurrentAlbumArt());
 
+        // Cancel old countdown if there is one.
+        if(mCountdown != null) {
+            mCountdown.cancel();
+        }
+
         // Start a countdown task for the event.
         if(mSession.getCurrentEvent() != null) {
-            new CountDownTimer(mSession.getCurrentEvent().getEnd() - mSession.getDrift(), 1000) {
+            mCountdown = new CountDownTimer(mSession.getCurrentEvent().getEnd() - mSession.getDrift(), 1000) {
                 public void onFinish() { }
 
                 public void onTick(long millisUntilFinished) {
