@@ -7,9 +7,26 @@ git commit AndroidManifest.xml -m 'version bump'
 git flow release finish X.Y.Z
 git push origin master develop vX.Y.Z
 
-APK GENERATION AND PUBLICATION
+AUTOMATIC APK GENERATION
+
+1. Set your local.properties to:
+
+sdk.dir = path/to/android/sdk
+key.store = path/to/keystore
+key.alias = <alias name>
+key.store.password = <keystore password>
+key.alias.password = <alias password>
+
+2. From now on
+
+ant clean release
+ant installr
+publish bin/rainwave-android-release.apk
+
+MANUAL APK GENERATION
 
 ant clean release
 jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore path/to/keystore bin/rainwave-android-release-unsigned.apk <aliasname>
 zipalign -v 4 bin/rainwave-android-release-unsigned.apk bin/rainwave-android-X.Y.Z.apk
+ant installr
 publish bin/rainwave-android-X.Y.Z.apk

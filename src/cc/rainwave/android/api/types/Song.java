@@ -6,7 +6,9 @@ import java.util.Locale;
 import android.os.Parcel;
 import android.os.Parcelable;
 import cc.rainwave.android.api.JsonHelper;
+import cc.rainwave.android.api.Session;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -243,23 +245,8 @@ public class Song implements Parcelable, Comparable<Song> {
             if(s.mArtists == null) {
                 String artistParseable = JsonHelper.getString(element, "artist_parseable", null);
                 if(artistParseable != null) {
-                    String parts[] = artistParseable.split(",");
-                    s.mArtists = new Artist[parts.length];
-                    for(int i = 0; i < parts.length; i++) {
-                        final String part = parts[i];
-
-                        String idname[] = part.split("[|]");
-                        if(idname.length != 2) {
-                            throw new JsonParseException(
-                                String.format("%s split on pipe has %d part(s).", artistParseable, idname.length)
-                            );
-                        }
-
-                        final int id = Integer.valueOf(idname[0]);
-                        final String name = idname[1];
-
-                        s.mArtists[i] = new Artist(id, name);
-                    }
+                    Gson gson = Session.getGson();
+                    s.mArtists = gson.fromJson(artistParseable, Artist[].class);
                 }
             }
             return s;
