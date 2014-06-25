@@ -659,7 +659,7 @@ public class Session {
         return sInstance;
     }
 
-    private static Gson getGson() {
+    public static Gson getGson() {
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(Album.class, new Album.Deserializer());
         builder.registerTypeAdapter(Song.class, new Song.Deserializer());
