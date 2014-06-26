@@ -186,22 +186,22 @@ public class RainwavePreferences {
     }
 
     /** Key for URL preference. */
-    private static final String URL = "pref_url";
+    public static final String URL = "pref_url";
 
     /** Key for skip landing preference. */
-    private static final String SKIPLANDING = "pref_skipLanding";
+    public static final String SKIPLANDING = "pref_skipLanding";
 
     /** Key for last known user ID. */
-    private static final String USERID = "pref_userId";
+    public static final String USERID = "pref_userId";
 
     /** Key for last station ID. */
-    private static final String LASTSTATION = "pref_lastStation";
+    public static final String LASTSTATION = "pref_lastStation";
 
     /** Key for autoshowing election preference. */
-    private static final String AUTOSHOW_ELECTION = "pref_autoshow_elections";
+    public static final String AUTOSHOW_ELECTION = "pref_autoshow_elections";
 
     /** Key for API key. */
-    private static final String KEY = "pref_key";
+    public static final String KEY = "pref_key";
 
     /** Key for last known preference version. */
     private static final String VERSION = "version";

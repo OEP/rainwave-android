@@ -368,6 +368,10 @@ public class Session {
         mStations = null;
     }
 
+    public void clearStations() {
+        mStations = null;
+    }
+
     public Song[] cloneRequests() {
         return mRequests.clone();
     }
