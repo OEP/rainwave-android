@@ -1,11 +1,13 @@
 package cc.rainwave.android;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
@@ -19,11 +21,34 @@ public class RainwavePreferenceActivity extends PreferenceActivity {
 
     private RainwavePreferences mPreferences;
 
+    private Session mSession;
+
+    private SharedPreferences.OnSharedPreferenceChangeListener mListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+                String key) {
+            if(key.equals(RainwavePreferences.USERID) || key.equals(RainwavePreferences.KEY)) {
+                mSession.clearStations();
+                mSession.unpickle();
+            }
+        }
+    };
+
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         mPreferences = RainwavePreferences.getInstance(this);
+        mSession = Session.getInstance(this);
         addPreferencesFromResource(R.xml.preferences);
+        PreferenceManager.getDefaultSharedPreferences(this)
+            .registerOnSharedPreferenceChangeListener(mListener);
         setupUI();
+    }
+
+    public void onDestroy() {
+        super.onDestroy();
+        PreferenceManager.getDefaultSharedPreferences(this)
+           .unregisterOnSharedPreferenceChangeListener(mListener);
     }
 
     private void setupUI() {
@@ -41,7 +66,6 @@ public class RainwavePreferenceActivity extends PreferenceActivity {
             @Override
             public boolean onPreferenceClick(Preference p) {
                 mPreferences.clear();
-                Session.getInstance(RainwavePreferenceActivity.this).clearUserInfo();
                 return true;
             }
         });
