@@ -15,7 +15,7 @@ import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.views.CountdownView;
 
 public class SongListAdapter extends BaseAdapter {
-    private static final String TAG = "ElectionListAdapter";
+    private static final String TAG = "SongListAdapter";
 
     private boolean mVoted = false;
 

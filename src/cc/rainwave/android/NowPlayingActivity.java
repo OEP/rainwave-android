@@ -935,10 +935,6 @@ public class NowPlayingActivity extends Activity {
         }
     }
 
-    /** Handler keys */
-    private static final String
-        BOOL_STATUS = "bool_status";
-
     /** Dialog identifiers */
     public static final int
         DIALOG_STATION_PICKER = 0xb1c7;
