@@ -1,6 +1,5 @@
 package cc.rainwave.android;
 
-import java.io.IOException;
 import java.util.Comparator;
 import java.util.Locale;
 

@@ -1,22 +1,18 @@
 package cc.rainwave.android;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import cc.rainwave.android.api.types.RainwaveException;
-import cc.rainwave.android.api.types.Song;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
+import cc.rainwave.android.api.types.RainwaveException;
+import cc.rainwave.android.api.types.Song;
 
 public class Rainwave {
     public static void showError(Context ctx, RainwaveException e) {
