@@ -19,24 +19,20 @@
     <string name="label_key">API Key</string>
     <string name="label_autoshow_elections">Elections popups</string>
     <string name="label_preferences">Preferences</string>
-    <string name="label_goToPreferences">Go to preferences</string>
     <string name="label_refresh">Refresh</string>
     <string name="label_pickStation">Pick station</string>
-    <string name="label_tuneIn">Tune in</string>
     <string name="label_by_album">By album</string>
     <string name="label_by_artist">By artist</string>
     <string name="label_loading">Loading…</string>
     <string name="label_album">Album</string>
     <string name="label_song">Song</string>
     <string name="label_requestor">Requested by: %s</string>
-    <string name="label_rateSong">Rate song</string>
     <string name="label_remove">Remove</string>
     <string name="label_request">Request</string>
     <string name="label_login">Login</string>
     <string name="label_later">Later</string>
     <string name="label_never">Never</string>
     <string name="label_cancel">Cancel</string>
-    <string name="label_rate">Rate!</string>
     <string name="label_voted">Voted!</string>
     <string name="label_voting">Voting…</string>
     <string name="label_unrated">Unrated</string>
@@ -45,7 +41,6 @@
     <string name="label_tunedin">Tuned in</string>
     <string name="label_nottunedin">Not tuned in</string>
     <string name="label_anonymous">Anonymous</string>
-    <string name="label_welcome">Welcome!</string>
     <string name="label_import_qr">Import from QR code</string>
     <string name="label_clear_preferences">Clear preferences</string>
 
@@ -63,7 +58,6 @@
     <string name="msg_requested">Your request was submitted!</string>
     <string name="msg_noRequests">You have no pending requests.</string>
     <string name="msg_nullFieldError">Please fill in all fields.</string>
-    <string name="msg_albumArtError">Failed to fetch album art.</string>
     <string name="msg_tuneInFirst">Tune in first!</string>
     <string name="msg_tunedInVote">You must be tuned in to vote.</string>
     <string name="msg_invalidUrl">Unsure of how to handle URI. Parts may have been omitted.</string>
