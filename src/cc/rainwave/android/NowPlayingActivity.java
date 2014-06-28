@@ -86,7 +86,6 @@ public class NowPlayingActivity extends Activity {
         initializeSession();
         setContentView(R.layout.activity_main);
         setListeners();
-
     }
 
     @Override
@@ -100,8 +99,14 @@ public class NowPlayingActivity extends Activity {
         // update receiver and update the schedule if needed.
         super.onResume();
         initializeSession();
-        registerReceiver(mEventUpdateReceiver,
-                new IntentFilter(SyncService.BROADCAST_EVENT_UPDATE));
+
+        // Construct intent filter
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(SyncService.BROADCAST_EVENT_UPDATE);
+        filter.addAction(SyncService.BROADCAST_EVENT_UPDATE_FAILED);
+        filter.addAction(SyncService.BROADCAST_REAUTHENTICATE);
+        registerReceiver(mEventUpdateReceiver, filter);
+
         fetchSchedules();
     }
 
@@ -792,15 +797,39 @@ public class NowPlayingActivity extends Activity {
     private BroadcastReceiver mEventUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            Log.d(TAG, String.format("Got '%s'", action));
+            Context ctx = NowPlayingActivity.this;
             setProgressBarIndeterminateVisibility(false);
-            onScheduleSync();
 
-            // Let the service know we would like updates.
-            if(mSession.hasCredentials()) {
-                Intent local = new Intent(NowPlayingActivity.this, SyncService.class);
-                local.setAction(SyncService.ACTION_SYNC);
-                startService(local);
+            // Success -- update the UI and receive further updates.
+            if(SyncService.BROADCAST_EVENT_UPDATE.equals(action)) {
+                onScheduleSync();
+                if(mSession.hasCredentials()) {
+                    Intent local = new Intent(NowPlayingActivity.this, SyncService.class);
+                    local.setAction(SyncService.ACTION_SYNC);
+                    startService(local);
+                }
             }
+            // Credentials are bad. Automatic sync will not be attempted. The
+            // user may re-initiate and an anonymous request is attempted.
+            else if(SyncService.BROADCAST_REAUTHENTICATE.equals(action)) {
+                mSession.clearUserInfo();
+                Toast.makeText(ctx, R.string.msg_authenticationFailure, Toast.LENGTH_LONG).show();
+            }
+            // General failure -- connection or otherwise.
+            else if(SyncService.BROADCAST_EVENT_UPDATE_FAILED.equals(action)) {
+                Toast.makeText(ctx, R.string.msg_eventUpdateFailure, Toast.LENGTH_LONG).show();
+            }
+            else if(action == null) {
+                Log.w(TAG, "Sync service sent no action -- ignoring.");
+            }
+            else {
+                Log.w(TAG,
+                        String.format("Sync service sent unrecognized action '%s'.", action)
+                );
+            }
+
         }
     };
 

@@ -83,6 +83,7 @@
 	<string name="msg_noStations">The server did not report any stations.</string>
 	<string name="msg_authenticationFailure">Authentication failure; please check your user ID and key.</string>
 	<string name="msg_noUserInfo">Could not find user information in URL.</string>
+	<string name="msg_eventUpdateFailure">Could not fetch an event update.</string>
 	
 	<!-- Generic error messages for HTTP status codes. -->
 	<string name="msg_forbidden">The server forbid the request. Has your key been invalidated?</string>
