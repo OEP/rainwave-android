@@ -1,14 +1,9 @@
 package cc.rainwave.android.adapters;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,14 +11,11 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import cc.rainwave.android.R;
-import cc.rainwave.android.Rainwave;
-import cc.rainwave.android.api.Session;
-import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.views.CountdownView;
 
 public class SongListAdapter extends BaseAdapter {
-    private static final String TAG = "ElectionListAdapter";
+    private static final String TAG = "SongListAdapter";
 
     private boolean mVoted = false;
 

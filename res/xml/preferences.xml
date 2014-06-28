@@ -15,7 +15,6 @@
 
         <EditTextPreference
             android:dialogTitle="@string/label_key"
-            android:inputType="textCapCharacters"
             android:key="pref_key"
             android:summary="@string/msg_manageAuth"
             android:title="@string/label_key" />

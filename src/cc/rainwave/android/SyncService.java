@@ -1,11 +1,11 @@
 package cc.rainwave.android;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 
 import android.app.IntentService;
 import android.content.Intent;
 import android.util.Log;
-import android.widget.Toast;
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.RainwaveException;
@@ -28,12 +28,9 @@ public class SyncService extends IntentService {
                 session.info();
                 fetchArt(session);
                 fetchStations(session);
-                notifyUpdate();
+                notifyUpdate(BROADCAST_EVENT_UPDATE);
             } catch (RainwaveException e) {
-                if(e.getCause() != null) {
-                    Log.w(TAG, "Unknown exception thrown.", e.getCause());
-                }
-                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                handleException(e);
             }
         }
         else if(workIntent.getAction().equals(ACTION_SYNC)) {
@@ -42,11 +39,9 @@ public class SyncService extends IntentService {
                     session.sync();
                     fetchArt(session);
                     fetchStations(session);
-                    notifyUpdate();
+                    notifyUpdate(BROADCAST_EVENT_UPDATE);
                 } catch (RainwaveException e) {
-                    if(e.getCause() != null) {
-                        Log.w(TAG, "Unknown exception thrown.", e.getCause());
-                    }
+                    handleException(e);
                 }
             }
             else {
@@ -59,9 +54,22 @@ public class SyncService extends IntentService {
     }
 
     /** Send a global broadcast that the event has changed. */
-    private void notifyUpdate() {
+    private void notifyUpdate(String action) {
         // FIXME: Change to LocalBroadcastManager
-        sendBroadcast(new Intent(BROADCAST_EVENT_UPDATE));
+        Log.d(TAG, String.format("Sending '%s'.", action));
+        sendBroadcast(new Intent(action));
+    }
+
+    private void handleException(RainwaveException exc) {
+        Log.w(TAG, "Exception thrown", exc);
+        switch(exc.getStatusCode()) {
+        case HttpURLConnection.HTTP_FORBIDDEN:
+            notifyUpdate(BROADCAST_REAUTHENTICATE);
+            break;
+        default:
+            notifyUpdate(BROADCAST_EVENT_UPDATE_FAILED);
+            break;
+        }
     }
 
     /** Fetches the art for the current event. */
@@ -106,4 +114,10 @@ public class SyncService extends IntentService {
 
     /** Sent by the service when schedule data has updated. */
     public static final String BROADCAST_EVENT_UPDATE = "cc.rainwave.android.EVENT_UPDATE";
+
+    /** Sent by the service when schedule update failed. */
+    public static final String BROADCAST_EVENT_UPDATE_FAILED = "cc.rainwave.android.EVENT_UPDATE_FAILED";
+
+    /** Sent by service when authentication credentials are invalid. */
+    public static final String BROADCAST_REAUTHENTICATE = "cc.rainwave.android.REAUTHENTICATE";
 }
