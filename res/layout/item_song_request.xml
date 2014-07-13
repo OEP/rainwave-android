@@ -16,7 +16,9 @@
 ** limitations under the License.
 */
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="66dip"
     android:baselineAligned="false"
@@ -40,7 +42,8 @@
             android:ellipsize="end"
             android:lines="1"
             android:scrollHorizontally="true"
-            android:text="Large Text"
+            tools:ignore="HardcodedText"
+            android:text="[Large Text]"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView
@@ -52,7 +55,8 @@
             android:ellipsize="end"
             android:lines="1"
             android:scrollHorizontally="true"
-            android:text="Medium Text"
+            tools:ignore="HardcodedText"
+            android:text="[Medium Text]"
             android:textAppearance="?android:attr/textAppearanceMedium" />
     </RelativeLayout>
 
