@@ -78,12 +78,6 @@ public class PlaylistActivity extends ListActivity {
 
     private Session mSession;
 
-    private FetchDetailedAlbumTask mFetchAlbum;
-
-    private FetchDetailedArtistTask mFetchArtist;
-
-    private RequestTask mRequest;
-
     private int mMode = MODE_TOP_LEVEL;
 
     private Comparator<Song> mAlbumSongComparator = new Comparator<Song>() {
@@ -178,7 +172,7 @@ public class PlaylistActivity extends ListActivity {
         switch (item.getItemId()) {
         case R.id.request:
             Song s = (Song) getListView().getItemAtPosition(info.position);
-            request(s.getId());
+            new RequestTask().execute(s.getId());
             return true;
         default:
             return super.onContextItemSelected(item);
@@ -234,7 +228,7 @@ public class PlaylistActivity extends ListActivity {
                     setListAdapter(null);
                     mMode = MODE_DETAIL_ALBUM;
                     Album choice = (Album) adapter.getItem(position);
-                    fetchAlbum(choice.getId());
+                    new FetchDetailedAlbumTask().execute(choice.getId());
                 }
                 else if(mMode == MODE_TOP_LEVEL) {
                     ListAdapter adapter = getListAdapter();
@@ -242,7 +236,7 @@ public class PlaylistActivity extends ListActivity {
                     setListAdapter(null);
                     mMode = MODE_DETAIL_ARTIST;
                     Artist choice = (Artist) adapter.getItem(position);
-                    fetchArtist(choice.getId());
+                    new FetchDetailedArtistTask().execute(choice.getId());
                 }
             }
         });
@@ -354,26 +348,12 @@ public class PlaylistActivity extends ListActivity {
         refreshData();
     }
 
-    private void stopAlbumFetch() {
-        if(mFetchAlbum != null) {
-            mFetchAlbum.cancel(true);
-            mFetchAlbum = null;
-        }
-    }
-
-    private void stopArtistFetch() {
-        if(mFetchArtist != null) {
-            mFetchArtist.cancel(true);
-            mFetchArtist = null;
-        }
-    }
-
-    private void request(int song_id) {
-        if(mRequest != null) return;
-        mRequest = new RequestTask();
-        mRequest.execute(song_id);
-    }
-
+    /**
+     * Fetch an entire list of albums if needed.
+     * 
+     * @param forceRefresh
+     *            always perform the fetch
+     */
     private void fetchAlbums(final boolean forceRefresh) {
         if(forceRefresh || mSession.getAlbums() == null) {
             new FetchAlbumsTask().execute();
@@ -382,26 +362,18 @@ public class PlaylistActivity extends ListActivity {
         refreshData();
     }
 
+    /**
+     * Fetch an entire list of artists if needed.
+     * 
+     * @param forceRefresh
+     *            always perform the fetch
+     */
     private void fetchArtists(final boolean forceRefresh) {
         if(forceRefresh || mSession.getArtists() == null) {
             new FetchArtistsTask().execute();
             return;
         }
         refreshData();
-    }
-
-    private void fetchAlbum(int album_id) {
-        stopArtistFetch();
-        if(mFetchAlbum != null) return;
-        mFetchAlbum = new FetchDetailedAlbumTask();
-        mFetchAlbum.execute(album_id);
-    }
-
-    private void fetchArtist(int artist_id) {
-        stopAlbumFetch();
-        if(mFetchArtist != null) return;
-        mFetchArtist = new FetchDetailedArtistTask();
-        mFetchArtist.execute(artist_id);
     }
 
     private boolean isByAlbum() {
@@ -463,12 +435,10 @@ public class PlaylistActivity extends ListActivity {
 
         protected void onPostExecute(Artist result) {
             if(result == null) {
-                mFetchArtist = null;
                 return;
             }
             mSongs = result.cloneSongs();
             refreshData();
-            mFetchArtist = null;
         }
     }
 
@@ -481,7 +451,7 @@ public class PlaylistActivity extends ListActivity {
                 return mSession.fetchDetailedAlbum(album_id);
             } catch (RainwaveException e) {
                 Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.e(TAG, "API Error", e);
             }
             Log.d(TAG, "Error fetching album!");
             return null;
@@ -490,12 +460,10 @@ public class PlaylistActivity extends ListActivity {
         protected void onPostExecute(Album result) {
             if(result == null){
                 Log.d(TAG, "Album fetch failed!");
-                mFetchAlbum = null;
                 return;
             }
             mSongs = result.cloneSongs();
             refreshData();
-            mFetchAlbum = null;
         }
     }
 
@@ -515,11 +483,9 @@ public class PlaylistActivity extends ListActivity {
 
         protected void onPostExecute(Song[] songs) {
             if(songs == null){
-                mRequest = null;
                 return;
             }
             Toast.makeText(PlaylistActivity.this, R.string.msg_requested, Toast.LENGTH_SHORT).show();
-            mRequest = null;
         }
     }
 
