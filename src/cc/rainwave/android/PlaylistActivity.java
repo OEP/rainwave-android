@@ -513,7 +513,7 @@ public class PlaylistActivity extends ListActivity {
                 Context ctx = getContext();
                 LayoutInflater inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-                convertView = inflater.inflate(R.layout.item_song_playlist, null);
+                convertView = inflater.inflate(R.layout.item_song_playlist, parent, false);
                 holder = new ViewHolder();
 
                 holder.text1 = (TextView) convertView.findViewById(android.R.id.text1);
