@@ -96,7 +96,7 @@ public class LandingActivity extends Activity {
         if(raw == null) return;
 
         Uri uri = Uri.parse(raw);
-        final String[] parts = Rainwave.parseUrl(uri, this);
+        final String[] parts = Rainwave.parseUrl(uri);
 
         if(parts != null) {
             ((EditText)findViewById(R.id.land_userId)).setText(parts[0]);
@@ -118,7 +118,7 @@ public class LandingActivity extends Activity {
                     new VerifyCredentials().execute(user, key);
                 }
                 else {
-                    Rainwave.showError(LandingActivity.this, R.string.msg_nullFieldError);
+                    Toast.makeText(LandingActivity.this, R.string.msg_nullFieldError, Toast.LENGTH_SHORT).show();
                 }
             }
         });

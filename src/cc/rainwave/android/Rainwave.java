@@ -45,25 +45,6 @@ import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
 
 public class Rainwave {
-    public static void showError(Context ctx, RainwaveException e) {
-        showError(ctx, 1, e.getMessage());
-        if(e.getCause() != null) {
-            Log.e("Rainwave", "Cause", e.getCause());
-        }
-    }
-
-    public static void showError(Context ctx, int resId) {
-        Resources r = ctx.getResources();
-        showError(ctx, 1, r.getString(resId));
-    }
-
-    public static void showError(Context ctx, int code, String msg) {
-        Message m = ERROR_QUEUE.obtainMessage(code, ctx);
-        Bundle data = m.getData();
-        data.putString("text", msg);
-        m.sendToTarget();
-    }
-
     public static void reorderSongs(Song songs[], int from, int to) {
         Song s = songs[from];
         if(to < from) {
@@ -103,28 +84,21 @@ public class Rainwave {
     /**
      * Parse a Rainwave Uri.
      * 
-     * The general format is rw://[userid]:[key]@[hostname]/[stationId] though currently
-     * only user ID's and keys are used.
+     * The general format is rw://[userid]:[key]@[hostname]/[stationId] though
+     * currently only user ID's and keys are used.
      * 
-     * @param uri the uri to parse
-     * @param ctx if not null, show a Toast message saying why
-     * @return a 2-item array containing User ID and key, or null if the parse failed
+     * @param uri
+     *            the uri to parse
+     * @return a 2-item array containing User ID and key, or null if the parse
+     *         failed
      */
-    public static String[] parseUrl(final Uri uri, final Context ctx) {
+    public static String[] parseUrl(final Uri uri) {
         if(!Rainwave.SCHEME.equals(uri.getScheme())) {
-            if(ctx != null) {
-                showError(ctx, R.string.msg_invalidUrl);
-            }
+            return null;
         }
-        else {
-            final String userInfo = uri.getUserInfo();
-
-            if(userInfo != null) {
-                return userInfo.split("[:]", 2);
-            }
-            else if(ctx != null) {
-                showError(ctx, R.string.msg_noUserInfo);
-            }
+        final String userInfo = uri.getUserInfo();
+        if(userInfo != null) {
+            return userInfo.split("[:]", 2);
         }
         return null;
     }

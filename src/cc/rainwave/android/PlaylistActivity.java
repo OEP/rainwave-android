@@ -385,18 +385,19 @@ public class PlaylistActivity extends ListActivity {
 
         @Override
         protected Album[] doInBackground(String... args) {
-            Log.d(TAG, "Fetching albumsin background...");
             try {
                 return mSession.fetchAlbums();
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.w(TAG, "API error", e);
             }
             return null;
         }
 
         protected void onPostExecute(Album result[]) {
-            if(result == null) return;
+            if(result == null) {
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+                return;
+            }
             refreshData();
         }
     }
@@ -408,14 +409,16 @@ public class PlaylistActivity extends ListActivity {
             try {
                 return mSession.fetchArtists();
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.w(TAG, "API error", e);
             }
             return null;
         }
 
         protected void onPostExecute(Artist result[]) {
-            if(result == null) return;
+            if(result == null) {
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+                return;
+            }
             refreshData();
         }
     }
@@ -427,14 +430,14 @@ public class PlaylistActivity extends ListActivity {
             try {
                 return mSession.fetchDetailedArtist(artist_id);
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.e(TAG, "API error", e);
             }
             return null;
         }
 
         protected void onPostExecute(Artist result) {
             if(result == null) {
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
                 return;
             }
             mSongs = result.cloneSongs();
@@ -447,11 +450,9 @@ public class PlaylistActivity extends ListActivity {
         protected Album doInBackground(Integer ... args) {
             int album_id = args[0];
             try {
-                Log.d(TAG, "Fetching album...");
                 return mSession.fetchDetailedAlbum(album_id);
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error", e);
+                Log.w(TAG, "API error", e);
             }
             Log.d(TAG, "Error fetching album!");
             return null;
@@ -459,7 +460,7 @@ public class PlaylistActivity extends ListActivity {
 
         protected void onPostExecute(Album result) {
             if(result == null){
-                Log.d(TAG, "Album fetch failed!");
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
                 return;
             }
             mSongs = result.cloneSongs();
@@ -475,14 +476,14 @@ public class PlaylistActivity extends ListActivity {
             try {
                 return mSession.submitRequest(song_id);
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.e(TAG, "API Error: ", e);
             }
             return null;
         }
 
         protected void onPostExecute(Song[] songs) {
             if(songs == null){
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
                 return;
             }
             Toast.makeText(PlaylistActivity.this, R.string.msg_requested, Toast.LENGTH_SHORT).show();

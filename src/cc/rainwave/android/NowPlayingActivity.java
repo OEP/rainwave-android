@@ -485,13 +485,6 @@ public class NowPlayingActivity extends Activity {
      *   is an initial (non-long-poll) fetch.
      */
     private void fetchSchedules() {
-        // Some really bad thing happened and we don't
-        // have a connection at all.
-        if(mSession == null) {
-            Rainwave.showError(NowPlayingActivity.this, R.string.msg_sessionError);
-            return;
-        }
-
         // Only do an immediate fetch from here.
         if(mSession.requiresSync()) {
             refresh();
@@ -504,21 +497,11 @@ public class NowPlayingActivity extends Activity {
 
     /** Spawn a background task to send new request ordering. */
     private void requestReorder(Song requests[]) {
-        if(mSession == null) {
-            Rainwave.showError(NowPlayingActivity.this, R.string.msg_sessionError);
-            return;
-        }
-
         new ActionTask().execute(ActionTask.REORDER, requests);
     }
 
     /** Spawn a new background task to remove a requested song. */
     private void requestRemove(Song s) {
-        if(mSession == null) {
-            Rainwave.showError(NowPlayingActivity.this, R.string.msg_sessionError);
-            return;
-        }
-
         new ActionTask().execute(ActionTask.REMOVE, s);
     }
 
@@ -633,7 +616,7 @@ public class NowPlayingActivity extends Activity {
         }
 
         // store in preferences if all is well
-        final String parts[] = Rainwave.parseUrl(uri, this);
+        final String parts[] = Rainwave.parseUrl(uri);
         if(parts != null) {
             mPreferences.setUserInfo(parts[0], parts[1]);
         }
@@ -913,14 +896,16 @@ public class NowPlayingActivity extends Activity {
 
                 }
             } catch (RainwaveException e) {
-                Log.e(TAG, "API error: " + e.getMessage());
-                Rainwave.showError(NowPlayingActivity.this, e);
+                Log.e(TAG, "API error", e);
             }
             return null;
         }
 
         protected void onPostExecute(Object result) {
             Log.d(TAG, "ActionTask ended.");
+            if(result == null) {
+                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+            }
 
             switch(mAction) {
             case RATE:
@@ -970,14 +955,16 @@ public class NowPlayingActivity extends Activity {
                 mSession.vote(mSong.getElectionEntryId());
                 return true;
             } catch (RainwaveException e) {
-                Rainwave.showError(NowPlayingActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.e(TAG, "API error", e);
             }
 
             return false;
         }
 
         protected void onPostExecute(Boolean result) {
+            if(!result) {
+                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+            }
             ListView electionList = (ListView) findViewById(R.id.np_electionList);
             SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
             adapter.resyncVoteState(mSession.getLastVoteId());

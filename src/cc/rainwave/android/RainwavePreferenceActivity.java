@@ -109,7 +109,7 @@ public class RainwavePreferenceActivity extends PreferenceActivity {
         String raw = ir.getContents();
         if(raw == null) return;
         Uri uri = Uri.parse(raw);
-        final String parts[] = Rainwave.parseUrl(uri, this);
+        final String parts[] = Rainwave.parseUrl(uri);
 
         if(parts != null) {
             mPreferences.setUserInfo(parts[0], parts[1]);
