@@ -43,6 +43,8 @@
     <string name="label_anonymous">Anonymous</string>
     <string name="label_import_qr">Import from QR code</string>
     <string name="label_clear_preferences">Clear preferences</string>
+    <string name="label_playStream">Play stream</string>
+    <string name="label_electionDrawerHandle">Election drawer handle</string>
 
     <!-- Longer messages for dialogs, et cetera -->
     <string name="msg_new">New to Rainwave?</string>

@@ -41,6 +41,8 @@ public class HorizontalRatingBar extends View {
 
     private float mMajorIncrement = 1.0f;
 
+    private final Paint mPaint = new Paint();
+
     public HorizontalRatingBar(Context context, AttributeSet attrs) {
         super(context, attrs);
         mResources = context.getResources();
@@ -90,13 +92,11 @@ public class HorizontalRatingBar extends View {
     }
 
     public void onDraw(Canvas canvas) {
-        Paint p = new Paint();
-        p.setAntiAlias(true);
-
-        drawPrimary(canvas, p);
-        drawSecondary(canvas, p);
-        drawTicks(canvas, p);
-        drawLabel(canvas, p);
+        mPaint.setAntiAlias(true);
+        drawPrimary(canvas, mPaint);
+        drawSecondary(canvas, mPaint);
+        drawTicks(canvas, mPaint);
+        drawLabel(canvas, mPaint);
     }
 
     public float snapPositionToMinorIncrement(float x) {
