@@ -286,6 +286,7 @@ public class NowPlayingActivity extends Activity {
                     w.lockCurrentScreen();
                 case MotionEvent.ACTION_MOVE:
                 case MotionEvent.ACTION_UP:
+                    v.performClick();
                     rating = hrb.snapPositionToMinorIncrement(e.getX());
                     rating = Math.max(1.0f, Math.min(rating, 5.0f));
                     max = hrb.getMax();
@@ -333,6 +334,7 @@ public class NowPlayingActivity extends Activity {
                     w.lockCurrentScreen();
                 case MotionEvent.ACTION_MOVE:
                 case MotionEvent.ACTION_UP:
+                    v.performClick();
                     rating = hrb.getPrimary();
                     max = hrb.getMax();
                     String label = String.format(Locale.US, "%.1f/%.1f",rating,max);
@@ -385,6 +387,9 @@ public class NowPlayingActivity extends Activity {
         requestList.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent ev) {
+                if(ev.getAction() == MotionEvent.ACTION_UP) {
+                    v.performClick();
+                }
                 if(requestList.getCount() == 0) return false;
                 Workspace w = (Workspace) findViewById(R.id.np_workspace);
 

@@ -69,7 +69,7 @@ public class StationListAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         if(convertView == null) {
             LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = inflater.inflate(R.layout.item_station, null);
+            convertView = inflater.inflate(R.layout.item_station, parent, false);
 
             TextView line1 = (TextView) convertView.findViewById(R.id.station_title);
             TextView line2 = (TextView) convertView.findViewById(R.id.station_description);

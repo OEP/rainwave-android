@@ -9,6 +9,7 @@
 
     <ImageView
         android:id="@+id/land_icon"
+        android:contentDescription="@string/app_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/logo_colour" />
@@ -20,7 +21,7 @@
 
         <LinearLayout
             android:id="@+id/linearLayout3"
-            android:layout_width="wrap_content"
+            android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center_vertical"
@@ -48,6 +49,7 @@
 
         <ImageButton
             android:id="@+id/land_qrButton"
+            android:contentDescription="@string/label_import_qr"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -68,41 +70,33 @@
         android:text="@string/msg_howToRegister"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
-    <FrameLayout
+    <LinearLayout
+        android:id="@+id/linearLayout1"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginBottom="20dp"
-        >
+        android:layout_gravity="bottom"
+        android:orientation="horizontal" >
 
-        <LinearLayout
-            android:id="@+id/linearLayout1"
-            android:layout_width="fill_parent"
+        <Button
+            android:id="@+id/land_login"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:orientation="horizontal" >
+            android:layout_weight="1"
+            android:text="@string/label_login" />
 
-            <Button
-                android:id="@+id/land_login"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/label_login" />
+        <Button
+            android:id="@+id/land_later"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/label_later" />
 
-            <Button
-                android:id="@+id/land_later"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/label_later" />
-
-            <Button
-                android:id="@+id/land_never"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/label_never" />
-        </LinearLayout>
-    </FrameLayout>
+        <Button
+            android:id="@+id/land_never"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/label_never" />
+    </LinearLayout>
 
 </LinearLayout>

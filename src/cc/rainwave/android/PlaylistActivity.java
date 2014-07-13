@@ -146,7 +146,7 @@ public class PlaylistActivity extends ListActivity {
         case KeyEvent.KEYCODE_BACK:
             if(mMode == MODE_DETAIL_ALBUM || mMode == MODE_DETAIL_ARTIST) {
                 mMode = MODE_TOP_LEVEL;
-                setTheData();
+                refreshData();
                 return true;
             }
         }
@@ -221,7 +221,7 @@ public class PlaylistActivity extends ListActivity {
             @Override
             public void onClick(View v) {
                 mMode = MODE_TOP_LEVEL;
-                setTheData();
+                refreshData();
             }
         };
 
@@ -292,7 +292,8 @@ public class PlaylistActivity extends ListActivity {
         return filterText;
     }
 
-    private void setTheData() {
+    /** Resynchronizes the UI with the data in the current session. */
+    private void refreshData() {
         EditText filterText = hideFilter();
         if(isByAlbum() && mMode == MODE_TOP_LEVEL) {
             if(mSession.getAlbums() != null) {
@@ -350,7 +351,7 @@ public class PlaylistActivity extends ListActivity {
         else if(mSession.getArtists() == null) {
             fetchArtists(false);
         }
-        updateView();
+        refreshData();
     }
 
     private void stopAlbumFetch() {
@@ -378,7 +379,7 @@ public class PlaylistActivity extends ListActivity {
             new FetchAlbumsTask().execute();
             return;
         }
-        updateView();
+        refreshData();
     }
 
     private void fetchArtists(final boolean forceRefresh) {
@@ -386,7 +387,7 @@ public class PlaylistActivity extends ListActivity {
             new FetchArtistsTask().execute();
             return;
         }
-        updateView();
+        refreshData();
     }
 
     private void fetchAlbum(int album_id) {
@@ -424,7 +425,7 @@ public class PlaylistActivity extends ListActivity {
 
         protected void onPostExecute(Album result[]) {
             if(result == null) return;
-            updateView();
+            refreshData();
         }
     }
 
@@ -443,7 +444,7 @@ public class PlaylistActivity extends ListActivity {
 
         protected void onPostExecute(Artist result[]) {
             if(result == null) return;
-            updateView();
+            refreshData();
         }
     }
 
@@ -466,7 +467,7 @@ public class PlaylistActivity extends ListActivity {
                 return;
             }
             mSongs = result.cloneSongs();
-            updateView();
+            refreshData();
             mFetchArtist = null;
         }
     }
@@ -493,28 +494,10 @@ public class PlaylistActivity extends ListActivity {
                 return;
             }
             mSongs = result.cloneSongs();
-            updateView();
+            refreshData();
             mFetchAlbum = null;
         }
     }
-
-    private void updateView() {
-        mHandler.obtainMessage(SET_THE_DATA).sendToTarget();
-    }
-
-    private Handler mHandler = new Handler() {
-        public void handleMessage(Message msg) {
-            switch(msg.what) {
-            case SET_THE_DATA:
-                setTheData();
-                break;
-
-            case SUCCESSFUL_REQUEST:
-                Toast.makeText(PlaylistActivity.this, R.string.msg_requested, Toast.LENGTH_SHORT).show();
-                break;
-            }
-        }
-    };
 
     private class RequestTask extends AsyncTask<Integer, Integer, Song[]> {
         @Override
@@ -535,10 +518,9 @@ public class PlaylistActivity extends ListActivity {
                 mRequest = null;
                 return;
             }
-            mHandler.obtainMessage(SUCCESSFUL_REQUEST).sendToTarget();
+            Toast.makeText(PlaylistActivity.this, R.string.msg_requested, Toast.LENGTH_SHORT).show();
             mRequest = null;
         }
-
     }
 
     private class SongArrayAdapter extends ArrayAdapter<Song> {
@@ -561,7 +543,7 @@ public class PlaylistActivity extends ListActivity {
                 Context ctx = getContext();
                 LayoutInflater inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-                convertView = inflater.inflate(R.layout.item_song_playlist, null);
+                convertView = inflater.inflate(R.layout.item_song_playlist, parent, false);
                 holder = new ViewHolder();
 
                 holder.text1 = (TextView) convertView.findViewById(android.R.id.text1);
@@ -611,8 +593,4 @@ public class PlaylistActivity extends ListActivity {
         MODE_TOP_LEVEL = 1,
         MODE_DETAIL_ALBUM = 2,
         MODE_DETAIL_ARTIST = 4;
-
-    public static final int
-        SUCCESSFUL_REQUEST = 0x43C357,
-        SET_THE_DATA = 0x5E7DA7A;
 }
