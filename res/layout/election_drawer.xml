@@ -15,6 +15,7 @@
 		android:content="@+id/np_electionList">
 		<ImageView
 			android:id="@id/np_handle"
+			android:contentDescription="@string/label_electionDrawerHandle"
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:src="@drawable/drawer_tab" />
