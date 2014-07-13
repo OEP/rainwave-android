@@ -9,7 +9,6 @@
     >
 
     <TextView
-        android:id="@+id/leftArrow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
@@ -18,7 +17,6 @@
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/heading"
         android:layout_width="0dip"
         android:layout_height="wrap_content"
         android:layout_weight="1"
@@ -28,7 +26,6 @@
         android:textStyle="bold" />
     
     <TextView
-        android:id="@+id/rightArrow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
