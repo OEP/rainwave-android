@@ -3,7 +3,6 @@
     android:id="@+id/land_root"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@drawable/gradient_background"
     android:gravity="center_horizontal|center_vertical|top"
     android:orientation="vertical" >
 
