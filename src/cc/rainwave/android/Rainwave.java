@@ -39,21 +39,6 @@ import android.net.Uri;
 import cc.rainwave.android.api.types.Song;
 
 public class Rainwave {
-    public static void reorderSongs(Song songs[], int from, int to) {
-        Song s = songs[from];
-        if(to < from) {
-            for(int i = from; i > to; i--) {
-                songs[i] = songs[i-1];
-            }
-        }
-        else {
-            for(int i = from; i < to; i++) {
-                songs[i] = songs[i+1];
-            }
-        }
-        songs[to] = s;
-    }
-
     /**
      * Makes a comma-delimited string out of an array of songs
      * delineating the value of Song.requestq_id.
