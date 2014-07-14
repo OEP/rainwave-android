@@ -36,12 +36,6 @@ import java.net.URL;
 import android.content.Context;
 import android.content.res.Resources;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
-import android.widget.Toast;
-import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
 
 public class Rainwave {
@@ -126,15 +120,6 @@ public class Rainwave {
         }
         return String.format(template, n);
     }
-
-    private static final Handler ERROR_QUEUE = new Handler() {
-        public void handleMessage(Message msg) {
-            Bundle data = msg.getData();
-            Context ctx = (Context) msg.obj;
-            String text = data.getString("text");
-            Toast.makeText(ctx, text, Toast.LENGTH_LONG).show();
-        }
-    };
 
     public static final int
         USERID_MAX = 10,
