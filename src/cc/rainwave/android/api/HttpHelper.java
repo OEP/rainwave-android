@@ -93,8 +93,6 @@ public class HttpHelper {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
 
-        // FIXME: Investigate proper usage of Content-Language
-        connection.setRequestProperty("Content-Language", "en-US");
         setAcceptLanguage(connection);
 
         connection.setUseCaches(false);
