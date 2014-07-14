@@ -45,11 +45,12 @@
     <string name="label_clear_preferences">Clear preferences</string>
     <string name="label_playStream">Play stream</string>
     <string name="label_electionDrawerHandle">Election drawer handle</string>
+    <string name="label_scan">Scan</string>
 
     <!-- Longer messages for dialogs, et cetera -->
     <string name="msg_new">New to Rainwave?</string>
     <string name="msg_howToRegister">You can listen to the radio right away. To vote, rate, and request
-        you\'ll need a user account. Register at the main web site at <b>rainwave.cc</b> and enter your
+        you\'ll need a user account. Register at the main web site at <b>rainwave.cc</b> and enter or scan your
         user ID and API key from the \'Manage API Keys\' page. </string>
     <string name="msg_import_qr">Import user ID and API key from a QR code.</string>
     <string name="msg_clear_preferences">Clear all preferences, including user ID and API key.</string>
