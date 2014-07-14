@@ -528,10 +528,13 @@ public class NowPlayingActivity extends Activity {
     /** Starts the media player for the current station's stream. */
     private void startPlayer() {
         int stationId = mSession.getStationId();
-        Station s = mSession.getStation(stationId);
-        if(s != null) {
+        Station station = null;
+        if(mSession.hasStations()) {
+            station = mSession.getStation(stationId);
+        }
+        if(station != null) {
             Intent i = new Intent(Intent.ACTION_VIEW);
-            i.setDataAndType(Uri.parse(s.getMainStream()), "audio/*");
+            i.setDataAndType(Uri.parse(station.getMainStream()), "audio/*");
             startActivity(i);    
         }
         else {
