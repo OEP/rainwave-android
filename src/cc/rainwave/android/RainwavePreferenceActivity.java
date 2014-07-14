@@ -96,6 +96,7 @@ public class RainwavePreferenceActivity extends PreferenceActivity {
             @Override
             public boolean onPreferenceClick(Preference p) {
                 mPreferences.clear();
+                mSession.clearUserInfo();
                 return true;
             }
         });

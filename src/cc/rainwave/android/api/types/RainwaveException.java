@@ -77,9 +77,28 @@ public class RainwaveException extends Exception {
         return mErrorCode;
     }
 
+    public String getMessage() {
+        StringBuffer buffer = new StringBuffer();
+        if(getStatusCode() != STATUS_UNKNOWN) {
+            buffer.append("HTTP ");
+            buffer.append(getStatusCode());
+            buffer.append(": ");
+        }
+        String message = super.getMessage();
+        if(message != null) {
+            buffer.append(message);
+        }
+        if(getErrorCode() != ERROR_UNKNOWN) {
+            buffer.append("[errno ");
+            buffer.append(getErrorCode());
+            buffer.append("]");
+        }
+        return buffer.toString();
+    }
+
     /** Indicates an unknown status code. */
     public static final int STATUS_UNKNOWN = -1;
 
     /** Indicates an unknown error code. */
-    public static final int    ERROR_UNKNOWN = -1;
+    public static final int ERROR_UNKNOWN = -1;
 }
