@@ -116,10 +116,6 @@ public class RainwavePreferenceActivity extends PreferenceActivity {
         }
     }
 
-    public void onListItemClick(ListView list, View v, int position, long id) {
-        Log.d("PreferencesActivity", "onListItemClick()");
-    }
-
     private static final String ENTRY_IMPORT_QR = "import_qr";
     private static final String ENTRY_CLEAR_PREFERENCES = "clear_preferences";
 }
