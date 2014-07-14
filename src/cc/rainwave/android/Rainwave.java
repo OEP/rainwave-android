@@ -42,7 +42,7 @@ public class Rainwave {
     /** Scheme used for QR code URL's */
     public static final String SCHEME = "rw";
 
-    /** Statically-initialized URL object -- the default for the . */
+    /** Statically-initialized URL object -- the default for the application. */
     public static final URL DEFAULT_URL;
 
     static {
