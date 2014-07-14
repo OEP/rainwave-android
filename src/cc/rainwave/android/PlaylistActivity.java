@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2013, Paul M. Kilgo
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * 
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * 
+ * * Neither the name of Paul Kilgo nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package cc.rainwave.android;
 
 import java.util.Comparator;
@@ -8,8 +38,6 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -47,12 +75,6 @@ public class PlaylistActivity extends ListActivity {
     private Song mSongs[];
 
     private Session mSession;
-
-    private FetchDetailedAlbumTask mFetchAlbum;
-
-    private FetchDetailedArtistTask mFetchArtist;
-
-    private RequestTask mRequest;
 
     private int mMode = MODE_TOP_LEVEL;
 
@@ -148,7 +170,7 @@ public class PlaylistActivity extends ListActivity {
         switch (item.getItemId()) {
         case R.id.request:
             Song s = (Song) getListView().getItemAtPosition(info.position);
-            request(s.getId());
+            new RequestTask().execute(s.getId());
             return true;
         default:
             return super.onContextItemSelected(item);
@@ -204,7 +226,7 @@ public class PlaylistActivity extends ListActivity {
                     setListAdapter(null);
                     mMode = MODE_DETAIL_ALBUM;
                     Album choice = (Album) adapter.getItem(position);
-                    fetchAlbum(choice.getId());
+                    new FetchDetailedAlbumTask().execute(choice.getId());
                 }
                 else if(mMode == MODE_TOP_LEVEL) {
                     ListAdapter adapter = getListAdapter();
@@ -212,7 +234,7 @@ public class PlaylistActivity extends ListActivity {
                     setListAdapter(null);
                     mMode = MODE_DETAIL_ARTIST;
                     Artist choice = (Artist) adapter.getItem(position);
-                    fetchArtist(choice.getId());
+                    new FetchDetailedArtistTask().execute(choice.getId());
                 }
             }
         });
@@ -324,26 +346,12 @@ public class PlaylistActivity extends ListActivity {
         refreshData();
     }
 
-    private void stopAlbumFetch() {
-        if(mFetchAlbum != null) {
-            mFetchAlbum.cancel(true);
-            mFetchAlbum = null;
-        }
-    }
-
-    private void stopArtistFetch() {
-        if(mFetchArtist != null) {
-            mFetchArtist.cancel(true);
-            mFetchArtist = null;
-        }
-    }
-
-    private void request(int song_id) {
-        if(mRequest != null) return;
-        mRequest = new RequestTask();
-        mRequest.execute(song_id);
-    }
-
+    /**
+     * Fetch an entire list of albums if needed.
+     * 
+     * @param forceRefresh
+     *            always perform the fetch
+     */
     private void fetchAlbums(final boolean forceRefresh) {
         if(forceRefresh || mSession.getAlbums() == null) {
             new FetchAlbumsTask().execute();
@@ -352,26 +360,18 @@ public class PlaylistActivity extends ListActivity {
         refreshData();
     }
 
+    /**
+     * Fetch an entire list of artists if needed.
+     * 
+     * @param forceRefresh
+     *            always perform the fetch
+     */
     private void fetchArtists(final boolean forceRefresh) {
         if(forceRefresh || mSession.getArtists() == null) {
             new FetchArtistsTask().execute();
             return;
         }
         refreshData();
-    }
-
-    private void fetchAlbum(int album_id) {
-        stopArtistFetch();
-        if(mFetchAlbum != null) return;
-        mFetchAlbum = new FetchDetailedAlbumTask();
-        mFetchAlbum.execute(album_id);
-    }
-
-    private void fetchArtist(int artist_id) {
-        stopAlbumFetch();
-        if(mFetchArtist != null) return;
-        mFetchArtist = new FetchDetailedArtistTask();
-        mFetchArtist.execute(artist_id);
     }
 
     private boolean isByAlbum() {
@@ -383,18 +383,19 @@ public class PlaylistActivity extends ListActivity {
 
         @Override
         protected Album[] doInBackground(String... args) {
-            Log.d(TAG, "Fetching albumsin background...");
             try {
                 return mSession.fetchAlbums();
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.w(TAG, "API error", e);
             }
             return null;
         }
 
         protected void onPostExecute(Album result[]) {
-            if(result == null) return;
+            if(result == null) {
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+                return;
+            }
             refreshData();
         }
     }
@@ -406,14 +407,16 @@ public class PlaylistActivity extends ListActivity {
             try {
                 return mSession.fetchArtists();
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.w(TAG, "API error", e);
             }
             return null;
         }
 
         protected void onPostExecute(Artist result[]) {
-            if(result == null) return;
+            if(result == null) {
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+                return;
+            }
             refreshData();
         }
     }
@@ -425,20 +428,18 @@ public class PlaylistActivity extends ListActivity {
             try {
                 return mSession.fetchDetailedArtist(artist_id);
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.e(TAG, "API error", e);
             }
             return null;
         }
 
         protected void onPostExecute(Artist result) {
             if(result == null) {
-                mFetchArtist = null;
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
                 return;
             }
             mSongs = result.cloneSongs();
             refreshData();
-            mFetchArtist = null;
         }
     }
 
@@ -447,11 +448,9 @@ public class PlaylistActivity extends ListActivity {
         protected Album doInBackground(Integer ... args) {
             int album_id = args[0];
             try {
-                Log.d(TAG, "Fetching album...");
                 return mSession.fetchDetailedAlbum(album_id);
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.w(TAG, "API error", e);
             }
             Log.d(TAG, "Error fetching album!");
             return null;
@@ -459,13 +458,11 @@ public class PlaylistActivity extends ListActivity {
 
         protected void onPostExecute(Album result) {
             if(result == null){
-                Log.d(TAG, "Album fetch failed!");
-                mFetchAlbum = null;
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
                 return;
             }
             mSongs = result.cloneSongs();
             refreshData();
-            mFetchAlbum = null;
         }
     }
 
@@ -477,19 +474,17 @@ public class PlaylistActivity extends ListActivity {
             try {
                 return mSession.submitRequest(song_id);
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.e(TAG, "API Error: ", e);
             }
             return null;
         }
 
         protected void onPostExecute(Song[] songs) {
             if(songs == null){
-                mRequest = null;
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
                 return;
             }
             Toast.makeText(PlaylistActivity.this, R.string.msg_requested, Toast.LENGTH_SHORT).show();
-            mRequest = null;
         }
     }
 
@@ -533,8 +528,7 @@ public class PlaylistActivity extends ListActivity {
             holder.time.setText(s.getLengthString());
 
             if(s.isCooling()) {
-                long time = s.getCooldown();
-                holder.cooldown.setText(Rainwave.getTimeTemplate(getContext(), time));
+                holder.cooldown.setText(Utility.getCooldownString(getContext(), s.getCooldown()));
                 holder.cooldown.setVisibility(View.VISIBLE);
 
                 Drawable d = getContext().getResources().getDrawable(R.drawable.gradient_cooldown);

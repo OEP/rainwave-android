@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2013, Paul M. Kilgo
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * 
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * 
+ * * Neither the name of Paul Kilgo nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package cc.rainwave.android;
 
 import java.net.HttpURLConnection;
@@ -21,16 +51,21 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 /**
- * First thing the user sees when starting the app.
- * Provides an easier prompt for getting identified.
- * @author pkilgo
- *
+ * A short splash screen that greets users on first run.
+ * 
+ * This is primarily to greet new users and prompt them to run the app in
+ * authenticated mode. It explains a bit about how to sign up at the Rainwave
+ * web site and offers the option to sign in, do it later, or never sign in.
+ * 
+ * If the user has previously signed in or they have elected to never sign in,
+ * this Activity should finish() itself and start the NowPlayingActivity.
  */
 public class LandingActivity extends Activity {
 
     private Session mSession;
     private RainwavePreferences mPreferences;
 
+    @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
@@ -51,6 +86,7 @@ public class LandingActivity extends Activity {
         setListeners();
     }
 
+    @Override
     public void onActivityResult(int request, int result, Intent data) {
         // Handle result from bar code scanner
         IntentResult ir = IntentIntegrator.parseActivityResult(request, result, data);
@@ -60,7 +96,7 @@ public class LandingActivity extends Activity {
         if(raw == null) return;
 
         Uri uri = Uri.parse(raw);
-        final String[] parts = Rainwave.parseUrl(uri, this);
+        final String[] parts = Utility.parseUrl(uri);
 
         if(parts != null) {
             ((EditText)findViewById(R.id.land_userId)).setText(parts[0]);
@@ -70,6 +106,8 @@ public class LandingActivity extends Activity {
 
     /** Set actions for buttons. */
     private void setListeners() {
+        // Clicking the "Login" button verifies the credentials. The AsyncTask
+        // handles starting the next activity.
         findViewById(R.id.land_login).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -80,11 +118,12 @@ public class LandingActivity extends Activity {
                     new VerifyCredentials().execute(user, key);
                 }
                 else {
-                    Rainwave.showError(LandingActivity.this, R.string.msg_nullFieldError);
+                    Toast.makeText(LandingActivity.this, R.string.msg_nullFieldError, Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
+        // Clicking the "Later" button starts NowPlayingActivity.
         findViewById(R.id.land_later).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -92,6 +131,8 @@ public class LandingActivity extends Activity {
             }
         });
 
+        // Clicking the "Never" button starts NowPlayingActivity and sets a
+        // preference that ensures the user will not see the splash screen again.
         findViewById(R.id.land_never).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,6 +141,7 @@ public class LandingActivity extends Activity {
             }
         });
 
+        // Clicking on the "QR Code" button starts the Zxing scanner.
         findViewById(R.id.land_qrButton).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -108,6 +150,7 @@ public class LandingActivity extends Activity {
         });
     }
 
+    /** Utility function for starting NowPlayingActivity. */
     private void startNowPlaying() {
         Intent i = new Intent(this, NowPlayingActivity.class);
         startActivity(i);
@@ -124,8 +167,9 @@ public class LandingActivity extends Activity {
     /**
      * Verifies user credentials in background task.
      * 
-     * @author pkilgo
-     *
+     * If the credentials fail or there is some other exception, shows a Toast
+     * message to the user. If the credentials are accepted, NowPlayingActivity
+     * is launched.
      */
     protected class VerifyCredentials extends AsyncTask<String, Integer, String> {
         private String TAG = "VerifyCredentials";
@@ -163,9 +207,9 @@ public class LandingActivity extends Activity {
         protected void onPostExecute(String error) {
             super.onPostExecute(error);
 
-            // 'error' is null when there is no error, or a user-friendly string we should show to the user.
             setProgressBarIndeterminateVisibility(false);
 
+            // If `error` is null this means there was not a problem.
             if(error != null || !mSession.isAuthenticated()) {
                 mSession.clearUserInfo();
                 findViewById(R.id.land_login).setEnabled(true);

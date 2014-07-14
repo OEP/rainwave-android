@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2013, Paul M. Kilgo
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * 
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * 
+ * * Neither the name of Paul Kilgo nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package cc.rainwave.android;
 
 import java.util.ArrayList;
@@ -57,8 +87,6 @@ import com.google.android.apps.iosched.ui.widget.Workspace.OnScreenChangeListene
 /**
  * This is the primary activity for this application. It announces
  * which song is playing, handles ratings, and also elections.
- * @author pkilgo
- *
  */
 public class NowPlayingActivity extends Activity {
     /** Debug tag */
@@ -78,7 +106,6 @@ public class NowPlayingActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         mHasIndeterminateProgress = requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         super.onCreate(savedInstanceState);
-        setup();
         initializeSession();
         setContentView(R.layout.activity_main);
         setListeners();
@@ -148,9 +175,6 @@ public class NowPlayingActivity extends Activity {
         return super.onKeyDown(keyCode, ev);
     }
 
-    /**
-     * Dialog manufacturer.
-     */
     public Dialog onCreateDialog(int id) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
@@ -160,12 +184,15 @@ public class NowPlayingActivity extends Activity {
             builder.setTitle(R.string.label_pickStation)
                    .setNegativeButton(R.string.label_cancel, null);
 
+            // Print a slightly helpful message if the stations were not
+            // retrieved for some reason.
             if(!mSession.hasStations()) {
                 return builder.setMessage(R.string.msg_noStations).create();
             }
 
             Station stations[] = mSession.cloneStations();
 
+            // Change station when one is selected from dialog.
             final ListView listView = new ListView(this);
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -217,10 +244,6 @@ public class NowPlayingActivity extends Activity {
         default:
             return super.onContextItemSelected(item);
         }
-    }
-
-    private void setup() {
-        getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
     }
 
     /**
@@ -276,6 +299,7 @@ public class NowPlayingActivity extends Activity {
             }
         });
 
+        // Show album rating when the album rating bar is touched.
         findViewById(R.id.np_albumRating).setOnTouchListener(
         new OnTouchListener() {
             @Override
@@ -320,6 +344,7 @@ public class NowPlayingActivity extends Activity {
         });
 
 
+        // Spawn a vote task when an item from the election drawer is selected.
         final ListView election = (ListView) findViewById(R.id.np_electionList);
         election.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int i, long id) {
@@ -341,6 +366,7 @@ public class NowPlayingActivity extends Activity {
             }
         });
 
+        // Reorder requests when the users drags-and-drops them.
         final TouchInterceptor requestList = ((TouchInterceptor) findViewById(R.id.np_request_list));
         requestList.setDropListener(new TouchInterceptor.DropListener() {
             @Override
@@ -354,6 +380,8 @@ public class NowPlayingActivity extends Activity {
             }
         });
 
+        // Lock down the current workspace when clicking on the drag handles of
+        // the request list.
         requestList.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent ev) {
@@ -376,6 +404,7 @@ public class NowPlayingActivity extends Activity {
             }
         });
 
+        // Update the pager when the workspace changes.
         Workspace w = (Workspace) findViewById(R.id.np_workspace);
         w.setOnScreenChangeListener(new OnScreenChangeListener() {
             @Override
@@ -399,6 +428,7 @@ public class NowPlayingActivity extends Activity {
         play.setEnabled(false);
         station.setEnabled(false);
 
+        // Start the media player when clicking on the play button.
         play.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -406,6 +436,7 @@ public class NowPlayingActivity extends Activity {
             }
         });
 
+        // Show a station picker when clicking on the stations button.
         station.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -413,6 +444,7 @@ public class NowPlayingActivity extends Activity {
             }
         });
 
+        // Start the PlaylistActivity when clicking on the playlist button.
         request.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -453,13 +485,6 @@ public class NowPlayingActivity extends Activity {
      *   is an initial (non-long-poll) fetch.
      */
     private void fetchSchedules() {
-        // Some really bad thing happened and we don't
-        // have a connection at all.
-        if(mSession == null) {
-            Rainwave.showError(NowPlayingActivity.this, R.string.msg_sessionError);
-            return;
-        }
-
         // Only do an immediate fetch from here.
         if(mSession.requiresSync()) {
             refresh();
@@ -470,21 +495,13 @@ public class NowPlayingActivity extends Activity {
         }
     }
 
+    /** Spawn a background task to send new request ordering. */
     private void requestReorder(Song requests[]) {
-        if(mSession == null) {
-            Rainwave.showError(NowPlayingActivity.this, R.string.msg_sessionError);
-            return;
-        }
-
         new ActionTask().execute(ActionTask.REORDER, requests);
     }
 
+    /** Spawn a new background task to remove a requested song. */
     private void requestRemove(Song s) {
-        if(mSession == null) {
-            Rainwave.showError(NowPlayingActivity.this, R.string.msg_sessionError);
-            return;
-        }
-
         new ActionTask().execute(ActionTask.REMOVE, s);
     }
 
@@ -506,7 +523,6 @@ public class NowPlayingActivity extends Activity {
         }
     }
 
-    /** Shows the menu */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -514,7 +530,6 @@ public class NowPlayingActivity extends Activity {
         return true;
     }
 
-    /** Responds to menu selection */
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
 
@@ -531,6 +546,7 @@ public class NowPlayingActivity extends Activity {
         return false;
     }
 
+    /** Starts the media player for the current station's stream. */
     private void startPlayer() {
         int stationId = mSession.getStationId();
         Station s = mSession.getStation(stationId);
@@ -544,21 +560,22 @@ public class NowPlayingActivity extends Activity {
         }
     }
 
+    /** Start the PlaylistActivity. */
     private void startPlaylist() {
         Intent i = new Intent(this, PlaylistActivity.class);
         startActivity(i);
     }
 
+    /** Start the PreferencesActivity. */
     private void startPreferences() {
         Intent i = new Intent(this, RainwavePreferenceActivity.class);
         startActivity(i);
     }
 
     /**
-     * Destroys any existing Session and creates
-     * a new Session object for us to use, pulling
-     * the user_id and key attributes from the default
-     * Preference store.
+     * Destroys any existing Session and creates a new Session object for us to
+     * use, pulling the user_id and key attributes from the default Preference
+     * store.
      */
     private void initializeSession() {
         handleIntent();
@@ -593,18 +610,18 @@ public class NowPlayingActivity extends Activity {
         }
 
         // check if this Intent was previously handled
-        boolean handled = (b != null) && b.getBoolean(Rainwave.HANDLED_URI, false);
+        boolean handled = (b != null) && b.getBoolean("handled-uri", false);
         if(handled) {
             return;
         }
 
         // store in preferences if all is well
-        final String parts[] = Rainwave.parseUrl(uri, this);
+        final String parts[] = Utility.parseUrl(uri);
         if(parts != null) {
             mPreferences.setUserInfo(parts[0], parts[1]);
         }
 
-        i.putExtra(Rainwave.HANDLED_URI, true);
+        i.putExtra("handled-uri", true);
     }
 
     /**
@@ -654,6 +671,7 @@ public class NowPlayingActivity extends Activity {
         }
     }
 
+    /** Update the song countdown timer in the application heading. */
     private void refreshTitle() {
         long end = mSession.getCurrentEvent().getEnd();
         long utc = System.currentTimeMillis() / 1000;
@@ -679,6 +697,7 @@ public class NowPlayingActivity extends Activity {
         setTitle(String.format("[%2d:%02d] %s (%s)", minutes, seconds, title, state));
     }
 
+    /** Make the election drawer update to the latest known election. */
     private void updateElection() {
         SongListAdapter adapter = new SongListAdapter(
                 this,
@@ -700,6 +719,7 @@ public class NowPlayingActivity extends Activity {
         }
     }
 
+    /** Update the request list UI to the latest known request list. */
     private void updateRequests() {
         Song songs[];
 
@@ -722,19 +742,21 @@ public class NowPlayingActivity extends Activity {
         resyncRequests();
     }
 
+    /** Update the visibility of the "no pending requests" message. */
     private void resyncRequests() {
         TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
         SongListAdapter adapter = (SongListAdapter) requestList.getAdapter();
         if(adapter != null) {
             int visibility = (adapter.getCount()) > 0 ? View.GONE : View.VISIBLE;
-               findViewById(R.id.np_request_overlay).setVisibility(visibility);
+            findViewById(R.id.np_request_overlay).setVisibility(visibility);
         }
     }
 
     /**
-     * Updates the song title, album title, and
-     * artists in the user interface.
-     * @param current the current song that's playing.
+     * Updates the song title, album title, and artists in the user interface.
+     * 
+     * @param current
+     *            the current song that's playing.
      */
     private void updateSongInfo(Song current) {
         ((TextView) findViewById(R.id.np_songTitle)).setText(current.getTitle());
@@ -758,7 +780,9 @@ public class NowPlayingActivity extends Activity {
 
     /**
      * Updates the song and album ratings.
-     * @param current the current song playing
+     * 
+     * @param current
+     *            the current song playing
      */
     private void setRatings(Song current) {
         final Album album = current.getDefaultAlbum();
@@ -771,7 +795,9 @@ public class NowPlayingActivity extends Activity {
 
     /**
      * Executes when a "rate song" request has finished.
-     * @param result the result the server issued
+     * 
+     * @param result
+     *            the result the server issued
      */
     private void onRateSong(SongRating rating) {
         ((HorizontalRatingBar) findViewById(R.id.np_songRating))
@@ -782,9 +808,11 @@ public class NowPlayingActivity extends Activity {
     }
 
     /**
-     * Sets the album art to the provided Bitmap, or
-     * a default image if art is null.
-     * @param art desired album art
+     * Sets the album art to the provided Bitmap, or a default image if art is
+     * null.
+     * 
+     * @param art
+     *            desired album art
      */
     private void updateAlbumArt(Bitmap art) {
         if(art == null) {
@@ -835,11 +863,8 @@ public class NowPlayingActivity extends Activity {
     };
 
     /**
-     * AsyncTask for submitting a rating for a song.
-     * Expects two arguments to <code>execute(Object...params)</code>,
-     * which are song_id (int), and rating (float).
-     * @author pkilgo
-     *
+     * General-purpose AsyncTask for rating songs, removing requests, and
+     * reordering requests.
      */
     protected class ActionTask extends AsyncTask<Object, Integer, Object> {
         private int mAction;
@@ -871,14 +896,16 @@ public class NowPlayingActivity extends Activity {
 
                 }
             } catch (RainwaveException e) {
-                Log.e(TAG, "API error: " + e.getMessage());
-                Rainwave.showError(NowPlayingActivity.this, e);
+                Log.e(TAG, "API error", e);
             }
             return null;
         }
 
         protected void onPostExecute(Object result) {
             Log.d(TAG, "ActionTask ended.");
+            if(result == null) {
+                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+            }
 
             switch(mAction) {
             case RATE:
@@ -895,12 +922,14 @@ public class NowPlayingActivity extends Activity {
             }
         }
 
+        /** Magic numbers for action codes. */
         public static final int
             REMOVE = 0x439023,
             RATE = 0x4A73,
             REORDER = 0x4304D34;
     }
-    
+
+    /** AsyncTask for voting in the election. */
     private class VoteTask extends AsyncTask<Song, Integer, Boolean> {
 
         private Song mSong;
@@ -926,14 +955,16 @@ public class NowPlayingActivity extends Activity {
                 mSession.vote(mSong.getElectionEntryId());
                 return true;
             } catch (RainwaveException e) {
-                Rainwave.showError(NowPlayingActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.e(TAG, "API error", e);
             }
 
             return false;
         }
 
         protected void onPostExecute(Boolean result) {
+            if(!result) {
+                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+            }
             ListView electionList = (ListView) findViewById(R.id.np_electionList);
             SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
             adapter.resyncVoteState(mSession.getLastVoteId());
