@@ -289,9 +289,8 @@ public class NowPlayingActivity extends Activity {
 
                     if(e.getAction() == MotionEvent.ACTION_UP) {
                         w.unlockCurrentScreen();
-                        ActionTask t = new ActionTask();
                         Song s = mSession.getCurrentEvent().getCurrentSong();
-                        t.execute(ActionTask.RATE, s.getId(), rating);
+                        new RateTask(rating).execute(s);
                         b.setLabel(R.string.label_song);
                     }
                 }
@@ -464,12 +463,12 @@ public class NowPlayingActivity extends Activity {
 
     /** Spawn a background task to send new request ordering. */
     private void requestReorder(Song requests[]) {
-        new ActionTask().execute(ActionTask.REORDER, requests);
+        new ReorderTask().execute(requests);
     }
 
     /** Spawn a new background task to remove a requested song. */
     private void requestRemove(Song s) {
-        new ActionTask().execute(ActionTask.REMOVE, s);
+        new RemoveTask().execute(s);
     }
 
     /**
@@ -832,71 +831,87 @@ public class NowPlayingActivity extends Activity {
         }
     };
 
-    /**
-     * General-purpose AsyncTask for rating songs, removing requests, and
-     * reordering requests.
-     */
-    protected class ActionTask extends AsyncTask<Object, Integer, Object> {
-        private int mAction;
+    /** Removes a sequence of requests in background */
+    private class RemoveTask extends AsyncTask<Song, Integer, Boolean> {
+        @Override
+        protected Boolean doInBackground(Song... songs) {
+            boolean result = true;
+            for(Song song : songs) {
+                try {
+                    mSession.deleteRequest(song);
+                } catch (RainwaveException exc) {
+                    Log.w(TAG, "Remove request operation failed", exc);
+                    result |= false;
+                }
+            }
+            return result;
+        }
 
         @Override
-        protected Object doInBackground(Object ... params) {
-            Log.d(TAG, "Beginning ActionTask.");
-            mAction = (Integer) params[0];
-            Thread currentThread = Thread.currentThread();
-
-            try {
-                switch(mAction) {
-                case RATE:
-                    currentThread.setName("RateTask");
-                    int songId = (Integer) params[1];
-                    float rating = (Float) params[2];
-                    return mSession.rateSong(songId, rating);
-
-                case REMOVE:
-                    currentThread.setName("RemoveTask");
-                    Song s = (Song) params[1];
-                    mSession.deleteRequest(s);
-                    break;
-
-                case REORDER:
-                    currentThread.setName("ReorderTask");
-                    Song songs[] = (Song[]) params[1];
-                    return mSession.reorderRequests(songs);
-
-                }
-            } catch (RainwaveException e) {
-                Log.e(TAG, "API error", e);
-            }
-            return null;
-        }
-
-        protected void onPostExecute(Object result) {
-            Log.d(TAG, "ActionTask ended.");
-            if(result == null) {
+        protected void onPostExecute(Boolean result) {
+            if(!result) {
                 Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
             }
+        }
+    }
 
-            switch(mAction) {
-            case RATE:
-                if(result == null) return;
-                onRateSong((SongRating) result);
-                break;
+    /** Rates a batch of songs in background */
+    private class RateTask extends AsyncTask<Song, Integer, SongRating[]> {
+        private float mRating;
 
-            case REORDER:
-                break;
+        public RateTask(float rating) {
+            mRating = rating;
+        }
 
-            case REMOVE:
-                break;
+        @Override
+        protected SongRating[] doInBackground(Song... params) {
+            SongRating[] results = new SongRating[params.length];
+            for(int i = 0; i < params.length; i++) {
+                try {
+                    results[i] = mSession.rateSong(params[i].getId(), mRating);
+                } catch (RainwaveException exc) {
+                    String msg = String.format(Locale.US, "Can't rate %s", params[i]);
+                    Log.w(TAG, msg, exc);
+                }
+            }
+            return results;
+        }
 
+        @Override
+        protected void onPostExecute(SongRating[] result) {
+            boolean error = false;
+            for(SongRating rating : result) {
+                if(rating != null) {
+                    onRateSong(rating);
+                }
+                else {
+                    error = true;
+                }
+            }
+            if(error) {
+                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /** Reorders requests in background. */
+    private class ReorderTask extends AsyncTask<Song, Integer, Song[]> {
+        @Override
+        protected Song[] doInBackground(Song... requests) {
+            try {
+                return mSession.reorderRequests(requests);
+            } catch (RainwaveException exc) {
+                Log.w(TAG, "Reorder requests operation failed", exc);
+                return null;
             }
         }
 
-        /** Magic numbers for action codes. */
-        public static final int
-            REMOVE = 0x439023,
-            RATE = 0x4A73,
-            REORDER = 0x4304D34;
+        @Override
+        protected void onPostExecute(Song[] reorderResult) {
+            if(reorderResult == null) {
+                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     /** AsyncTask for voting in the election. */
