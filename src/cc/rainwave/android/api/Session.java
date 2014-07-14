@@ -530,10 +530,8 @@ public class Session {
           httpArgs.put(NAME_KEY, mKey);
         }
 
+        // Establish a connection.
         HttpURLConnection conn = null;
-        final Resources r = mContext.getResources();
-        long requestEnd;
-
         try {
             switch(method) {
             case POST:
@@ -545,21 +543,42 @@ public class Session {
             default:
                 throw new IllegalArgumentException("Unhandled HTTP method!");
             }
+        }
+        catch(IOException exc) {
+            throw new RainwaveException("Could not establish a connection", exc);
+        }
 
-            final int statusCode = conn.getResponseCode();
-
-            switch(statusCode) {
-            case HttpURLConnection.HTTP_FORBIDDEN:
-                throw new RainwaveException(r.getString(R.string.msg_forbidden), statusCode);
-            }
-            
-            // log timestamp to calculate drift
+        // Read the status code.
+        int statusCode;
+        long requestEnd;
+        try {
+            statusCode = conn.getResponseCode();
             requestEnd = System.currentTimeMillis() / 1000;
         }
         catch(IOException exc) {
-            throw new RainwaveException(r.getString(R.string.msg_genericError), exc);
+            throw new RainwaveException("Could not read status code.", exc);
         }
 
+        // Handle error in status code.
+        if(statusCode >= 400) {
+            try {
+                JsonParser parser = new JsonParser();
+                InputStream is = conn.getErrorStream();
+                InputStreamReader reader = new InputStreamReader(is);
+                JsonElement root = parser.parse(reader);
+                JsonElement error = JsonHelper.getChild(root, "error");
+                String text = JsonHelper.getString(error, "text");
+                throw new RainwaveException(text, statusCode);
+            }
+            catch(JsonParseException exc) {
+                Log.i(TAG, "Could not parse error object", exc);
+                throw new RainwaveException(
+                        (statusCode >= 500) ? "Server error" : "Client error",
+                        statusCode);
+            }
+        }
+
+        // Try to parse a JSON response.
         final JsonElement root;
         try {
             JsonParser parser = new JsonParser();
@@ -568,7 +587,8 @@ public class Session {
             root = parser.parse(reader);
         }
         catch(IOException exc) {
-            throw new RainwaveException(r.getString(R.string.msg_genericError), exc);
+            throw new RainwaveException("Could not parse a JSON document", statusCode,
+                    RainwaveException.ERROR_UNKNOWN, exc);
         }
 
         // most every endpoint returns api_info, so we can try and update
