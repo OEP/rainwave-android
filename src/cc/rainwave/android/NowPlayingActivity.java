@@ -419,39 +419,6 @@ public class NowPlayingActivity extends Activity {
             }
         });
 
-
-        // Button Listeners.
-        ImageButton play = (ImageButton) findViewById(R.id.np_play);
-        ImageButton station = (ImageButton) findViewById(R.id.np_stationPick);
-        ImageButton request = (ImageButton) findViewById(R.id.np_makeRequest);
-
-        play.setEnabled(false);
-        station.setEnabled(false);
-
-        // Start the media player when clicking on the play button.
-        play.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startPlayer();
-            }
-        });
-
-        // Show a station picker when clicking on the stations button.
-        station.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDialog(DIALOG_STATION_PICKER);
-            }
-        });
-
-        // Start the PlaylistActivity when clicking on the playlist button.
-        request.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startPlaylist();
-            }
-        });
-
         registerForContextMenu(findViewById(R.id.np_request_list));
     }
 
@@ -541,6 +508,19 @@ public class NowPlayingActivity extends Activity {
         case R.id.menu_refresh:
             refresh();
             break;
+
+        case R.id.menu_playStream:
+            startPlayer();
+            break;
+
+        case R.id.menu_playlist:
+            startPlaylist();
+            break;
+            
+
+        case R.id.menu_pickStation:
+            showDialog(NowPlayingActivity.DIALOG_STATION_PICKER);
+            break;
         }
 
         return false;
@@ -582,13 +562,6 @@ public class NowPlayingActivity extends Activity {
         mSession = Session.getInstance(this);
         mSession.unpickle();
         mPreferences = RainwavePreferences.getInstance(this);
-
-        View playlistButton = findViewById(R.id.np_makeRequest);
-        if(playlistButton != null) {
-            playlistButton.setVisibility(
-                (mSession != null && mSession.hasCredentials()) ? View.VISIBLE : View.GONE
-            );
-        }
     }
 
 
@@ -629,13 +602,6 @@ public class NowPlayingActivity extends Activity {
      * @param response the response the server issued
      */
     private void onScheduleSync() {
-        // We should enable the buttons now.
-        ImageButton play = (ImageButton) findViewById(R.id.np_play);
-        ImageButton station = (ImageButton) findViewById(R.id.np_stationPick);
-
-        play.setEnabled(mSession.hasStations());
-        station.setEnabled(mSession.hasStations());
-
         // Updates title, album, and artists.
         updateSongInfo(mSession.getCurrentEvent().getCurrentSong());
 
