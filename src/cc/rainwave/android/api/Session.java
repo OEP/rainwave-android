@@ -46,6 +46,7 @@ import android.util.Log;
 import cc.rainwave.android.R;
 import cc.rainwave.android.Rainwave;
 import cc.rainwave.android.RainwavePreferences;
+import cc.rainwave.android.Utility;
 import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.Artist;
 import cc.rainwave.android.api.types.Event;
@@ -358,7 +359,7 @@ public class Session {
         final String path = "order_requests";
 
         final JsonElement root = post(path,
-            "order", Rainwave.makeRequestQueueString(requests)
+            "order", Utility.joinIds(requests)
         );
         try {
             final Gson gson = getGson();

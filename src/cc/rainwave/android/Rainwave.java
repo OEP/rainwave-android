@@ -33,94 +33,17 @@ package cc.rainwave.android;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import android.content.Context;
-import android.content.res.Resources;
-import android.net.Uri;
-import cc.rainwave.android.api.types.Song;
-
+/** Constants */
 public class Rainwave {
-    /**
-     * Makes a comma-delimited string out of an array of songs
-     * delineating the value of Song.requestq_id.
-     * @param requests
-     * @return CSV string
-     */
-    public static String makeRequestQueueString(Song requests[]) {
-        if(requests == null || requests.length == 0) return "";
-        if(requests.length == 1) return String.valueOf(requests[0].getId());
 
-        StringBuilder sb = new StringBuilder();
-        sb.append(requests[0].getId());
+    /** The URL to the rainwave.cc API */
+    public static final String RAINWAVE_URL = "http://rainwave.cc/api4";
 
-        for(int i = 1; i < requests.length; i++) {
-            sb.append(",");
-            sb.append(requests[i].getId());
-        }
+    /** Scheme used for QR code URL's */
+    public static final String SCHEME = "rw";
 
-        return sb.toString();
-    }
-
-    /**
-     * Parse a Rainwave Uri.
-     * 
-     * The general format is rw://[userid]:[key]@[hostname]/[stationId] though
-     * currently only user ID's and keys are used.
-     * 
-     * @param uri
-     *            the uri to parse
-     * @return a 2-item array containing User ID and key, or null if the parse
-     *         failed
-     */
-    public static String[] parseUrl(final Uri uri) {
-        if(!Rainwave.SCHEME.equals(uri.getScheme())) {
-            return null;
-        }
-        final String userInfo = uri.getUserInfo();
-        if(userInfo != null) {
-            return userInfo.split("[:]", 2);
-        }
-        return null;
-    }
-
-    public static String getTimeTemplate(Context ctx, long time) {
-        long d = time / 86400, h = time / 3600, m = time / 60;
-        String template;
-        Resources r = ctx.getResources();
-        long n;
-        if(d > 0) {
-            n = d;
-            template = r.getString(R.string.template_days);
-        }
-        else if(h > 0) {
-            n = h;
-            template = r.getString(R.string.template_hours);
-        }
-        else if(m > 0) {
-            n = m;
-            template = r.getString(R.string.template_minutes);
-        }
-        else {
-            n = time;
-            template = r.getString(R.string.template_seconds);
-        }
-        return String.format(template, n);
-    }
-
-    public static final int
-        USERID_MAX = 10,
-        KEY_MAX = 10;
-
-    /** Bundle constants */
-    public static final String
-        HANDLED_URI = "handled-uri",
-        SCHEDULE = "schedule",
-        ART = "art";
-
-    public static final String
-        RAINWAVE_URL = "http://rainwave.cc/api4",
-        SCHEME = "rw";
-
-    public static final URL    DEFAULT_URL;
+    /** Statically-initialized URL object -- the default for the . */
+    public static final URL DEFAULT_URL;
 
     static {
         URL tmp;

@@ -96,7 +96,7 @@ public class LandingActivity extends Activity {
         if(raw == null) return;
 
         Uri uri = Uri.parse(raw);
-        final String[] parts = Rainwave.parseUrl(uri);
+        final String[] parts = Utility.parseUrl(uri);
 
         if(parts != null) {
             ((EditText)findViewById(R.id.land_userId)).setText(parts[0]);

@@ -528,8 +528,7 @@ public class PlaylistActivity extends ListActivity {
             holder.time.setText(s.getLengthString());
 
             if(s.isCooling()) {
-                long time = s.getCooldown();
-                holder.cooldown.setText(Rainwave.getTimeTemplate(getContext(), time));
+                holder.cooldown.setText(Utility.getCooldownString(getContext(), s.getCooldown()));
                 holder.cooldown.setVisibility(View.VISIBLE);
 
                 Drawable d = getContext().getResources().getDrawable(R.drawable.gradient_cooldown);

@@ -610,18 +610,18 @@ public class NowPlayingActivity extends Activity {
         }
 
         // check if this Intent was previously handled
-        boolean handled = (b != null) && b.getBoolean(Rainwave.HANDLED_URI, false);
+        boolean handled = (b != null) && b.getBoolean("handled-uri", false);
         if(handled) {
             return;
         }
 
         // store in preferences if all is well
-        final String parts[] = Rainwave.parseUrl(uri);
+        final String parts[] = Utility.parseUrl(uri);
         if(parts != null) {
             mPreferences.setUserInfo(parts[0], parts[1]);
         }
 
-        i.putExtra(Rainwave.HANDLED_URI, true);
+        i.putExtra("handled-uri", true);
     }
 
     /**
