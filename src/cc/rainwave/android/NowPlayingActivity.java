@@ -542,6 +542,10 @@ public class NowPlayingActivity extends Activity {
 
     /** Start the PlaylistActivity. */
     private void startPlaylist() {
+        if(!mSession.hasCredentials()) {
+            Toast.makeText(this, R.string.msg_authenticationRequired, Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent i = new Intent(this, PlaylistActivity.class);
         startActivity(i);
     }

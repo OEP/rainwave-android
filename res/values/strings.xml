@@ -68,4 +68,5 @@
     <string name="msg_noStations">The server did not report any stations.</string>
     <string name="msg_authenticationFailure">Authentication failure; please check your user ID and key.</string>
     <string name="msg_eventUpdateFailure">Could not fetch an event update.</string>
+    <string name="msg_authenticationRequired">Authentication is required.</string>
 </resources>
