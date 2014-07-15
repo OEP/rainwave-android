@@ -61,6 +61,7 @@ import android.widget.ListAdapter;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import cc.rainwave.android.adapters.SongListAdapter;
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.Artist;
@@ -329,8 +330,13 @@ public class PlaylistActivity extends ListActivity {
         }
         else if(mMode == MODE_DETAIL_ALBUM || mMode == MODE_DETAIL_ARTIST) {
             if(mSongs != null) {
-                SongArrayAdapter adapter = new SongArrayAdapter(this, R.layout.item_song_playlist, mSongs, mMode);
+                SongListAdapter adapter = new SongListAdapter(this, R.layout.item_song, mSongs);
                 adapter.sort((mMode == MODE_DETAIL_ALBUM) ? mAlbumSongComparator : mArtistSongComparator);
+                adapter.setShowAlbum(mMode != MODE_DETAIL_ALBUM);
+                adapter.setShowArtist(mMode != MODE_DETAIL_ARTIST);
+                adapter.setShowRequest(false);
+                adapter.setShowRating(true);
+                adapter.setShowCooldown(true);
                 setListAdapter(adapter);
             }
         }
@@ -485,71 +491,6 @@ public class PlaylistActivity extends ListActivity {
                 return;
             }
             Toast.makeText(PlaylistActivity.this, R.string.msg_requested, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private class SongArrayAdapter extends ArrayAdapter<Song> {
-        class ViewHolder {
-            TextView text1, text2, time, cooldown;
-            CountdownView circle;
-        }
-
-        private int mMode;
-
-        public SongArrayAdapter(Context context, int layout, Song songs[], int mode) {
-            super(context,layout,songs);
-            mMode = mode;
-        }
-
-        public View getView(int position, View convertView, ViewGroup parent) {
-            Song s = getItem(position);
-            ViewHolder holder;
-            if(convertView == null) {
-                Context ctx = getContext();
-                LayoutInflater inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-                convertView = inflater.inflate(R.layout.item_song_playlist, parent, false);
-                holder = new ViewHolder();
-
-                holder.text1 = (TextView) convertView.findViewById(android.R.id.text1);
-                holder.text2 = (TextView) convertView.findViewById(android.R.id.text2);
-                holder.circle = (CountdownView) convertView.findViewById(R.id.circle);
-                holder.time = (TextView) convertView.findViewById(R.id.time);
-                holder.cooldown = (TextView) convertView.findViewById(R.id.cooldown);
-                convertView.setTag(holder);
-            }
-            else {
-                holder = (ViewHolder) convertView.getTag();
-            }
-
-
-            // We should have at least this much for both views.
-            holder.text1.setText(s.getTitle());
-            holder.time.setText(s.getLengthString());
-
-            if(s.isCooling()) {
-                holder.cooldown.setText(Utility.getCooldownString(getContext(), s.getCooldown()));
-                holder.cooldown.setVisibility(View.VISIBLE);
-
-                Drawable d = getContext().getResources().getDrawable(R.drawable.gradient_cooldown);
-                convertView.setBackgroundDrawable(d);
-            }
-            else {
-                holder.cooldown.setVisibility(View.GONE);
-                convertView.setBackgroundDrawable(null);
-            }
-
-            if(mMode == MODE_DETAIL_ALBUM) {
-                holder.circle.setVisibility(View.VISIBLE);
-                holder.circle.setBoth(s.getUserRating(), s.getCommunityRating());
-                holder.text2.setText(s.collapseArtists());
-            }
-            else {
-                holder.circle.setVisibility(View.GONE);
-                holder.text2.setText(s.getDefaultAlbum().getName());
-            }
-
-            return convertView;
         }
     }
 

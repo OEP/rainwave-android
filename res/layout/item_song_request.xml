@@ -34,7 +34,7 @@
         android:paddingLeft="47dip" >
 
         <TextView
-            android:id="@+id/song"
+            android:id="@id/song"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
@@ -47,7 +47,7 @@
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView
-            android:id="@+id/album"
+            android:id="@id/album"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"

@@ -679,7 +679,7 @@ public class NowPlayingActivity extends Activity {
     private void updateElection() {
         SongListAdapter adapter = new SongListAdapter(
                 this,
-                R.layout.item_song_election,
+                R.layout.item_song,
                 new ArrayList<Song>(Arrays.asList(mSession.getNextEvent().cloneSongs()))
         );
         ((ListView)findViewById(R.id.np_electionList))
@@ -709,13 +709,16 @@ public class NowPlayingActivity extends Activity {
         }
 
         TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
-        requestList.setAdapter(
-            new SongListAdapter(
+        SongListAdapter adapter = new SongListAdapter(
                 this,
                 R.layout.item_song_request,
                 new ArrayList<Song>(Arrays.asList(songs))
-            )
         );
+        adapter.setShowAlbum(true);
+        adapter.setShowRating(false);
+        adapter.setShowArtist(false);
+        adapter.setShowRequest(false);
+        requestList.setAdapter(adapter);
 
         resyncRequests();
     }
@@ -941,7 +944,7 @@ public class NowPlayingActivity extends Activity {
         protected void onPreExecute() {
             ListView electionList = (ListView) findViewById(R.id.np_electionList);
             SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
-            adapter.setVoting(mSelection);
+            // FIXME: adapter.setVoting(mSelection);
         }
 
         protected Boolean doInBackground(Song...params) {
