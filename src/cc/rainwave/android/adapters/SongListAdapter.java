@@ -30,30 +30,39 @@
 
 package cc.rainwave.android.adapters;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import android.content.Context;
 import android.content.res.Resources;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import cc.rainwave.android.R;
+import cc.rainwave.android.Utility;
+import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.Song;
 import cc.rainwave.android.views.CountdownView;
 
-public class SongListAdapter extends BaseAdapter {
+public class SongListAdapter extends ArrayAdapter<Song> {
     private static final String TAG = "SongListAdapter";
 
     private boolean mVoted = false;
 
-    private ArrayList<View> mViews;
+    private boolean mShowAlbum = true;
 
-    private ArrayList<Song> mSongs;
+    private boolean mShowArtist = true;
 
-    private Context mContext;
+    private boolean mShowRequest = true;
+
+    private boolean mShowRating = true;
+
+    private boolean mShowTime = false;
+
+    private boolean mShowCooldown = false;
 
     /** Records last known election id vote. Set to -1 to imply no vote. */
     private int mLastVote = -1;
@@ -64,13 +73,12 @@ public class SongListAdapter extends BaseAdapter {
     /** Item XML ID */
     private int mItemLayout;
 
-    public SongListAdapter(Context ctx, int resId, ArrayList<Song> songs) {
-        mContext = ctx;
-        mSongs = songs;
-        mViews = new ArrayList<View>();
-        for(int i = 0; i < mSongs.size(); i++) {
-            mViews.add(null);
-        }
+    public SongListAdapter(Context ctx, int resId, Song[] songs) {
+        this(ctx, resId, Arrays.asList(songs));
+    }
+
+    public SongListAdapter(Context ctx, int resId, List<Song> songs) {
+        super(ctx, resId, songs);
         mItemLayout = resId;
     }
 
@@ -83,59 +91,60 @@ public class SongListAdapter extends BaseAdapter {
         return mVoted;
     }
 
-    public ArrayList<Song> getSongs() {
-        return mSongs;
-    }
-
-    @Override
-    public int getCount() {
-        return (mSongs == null) ? 0 : mSongs.size();
-    }
-
-    @Override
-    public Object getItem(int i) {
-        return (mSongs == null) ? null : mSongs.get(i);
-    }
-
-    public Song getSong(int i) {
-        return (mSongs == null) ? null : mSongs.get(i);
-    }
-
     @Override
     public long getItemId(int i) {
-        return (mSongs == null) ? -1 : mSongs.get(i).getId();
+        return getItem(i).getId();
+    }
+
+    public void setShowAlbum(boolean showAlbum) {
+        mShowAlbum = showAlbum;
+    }
+
+    public void setShowArtist(boolean showArtist) {
+        mShowArtist = showArtist;
+    }
+
+    public void setShowRequest(boolean showRequest) {
+        mShowRequest = showRequest;
+    }
+
+    public void setShowRating(boolean showRating) {
+        mShowRating = showRating;
+    }
+
+    public void setShowCooldown(boolean showCooldown) {
+        mShowCooldown = showCooldown;
+    }
+
+    public void setShowTime(boolean showTime) {
+        mShowTime = showTime;
     }
 
     /**
-     * Update the election list to reflect that the given election entry id
-     * has been voted for. This does a linear search and updates all of the
-     * items in the list as necessary. This does update the UI as well.
+     * Update the election list to reflect that the given election entry id has
+     * been voted for. This does a linear search and updates all of the items in
+     * the list as necessary. This does update the UI as well.
      * 
-     * @param elec_entry_id the election id of the last known vote
+     * @param elec_entry_id
+     *            the election id of the last known vote
      */
     public void resyncVoteState(int elec_entry_id) {
-        for(int i = 0; i < mSongs.size(); i++) {
-            Song s = mSongs.get(i);
-            if(s.getElectionEntryId() == elec_entry_id) {
-                setVoted(i);
-            }
-            else {
-                revert(i);
-            }
-        }
+        mLastVote = elec_entry_id;
+        notifyDataSetChanged();
     }
 
     /**
      * Search the current songs and accept the election entry ID if it
-     * corresponds to one in memory. This does not alter the GUI so it
-     * is safe to call before the views have been inflated.
+     * corresponds to one in memory. This does not alter the GUI so it is safe
+     * to call before the views have been inflated.
      * 
-     * @param elec_entry_id election entry id to search for
+     * @param elec_entry_id
+     *            election entry id to search for
      */
     public void updateVoteState(int elec_entry_id) {
-        for(int i = 0; i < mSongs.size(); i++) {
-            Song s = mSongs.get(i);
-            if(s.getElectionEntryId() == elec_entry_id) {
+        for (int i = 0; i < getCount(); i++) {
+            Song s = getItem(i);
+            if (s.getElectionEntryId() == elec_entry_id) {
                 mLastVote = elec_entry_id;
                 setVoteStatus(true);
                 return;
@@ -148,146 +157,131 @@ public class SongListAdapter extends BaseAdapter {
     }
 
     private void setVoteStatus(boolean state) {
-        mVoted = state; 
+        mVoted = state;
     }
 
     @Override
     public View getView(int i, View convertView, ViewGroup parent) {
-        if(mViews.get(i) == null || convertView == null) {
-            Song s = mSongs.get(i);
-
-            Resources r = mContext.getResources();
-            LayoutInflater inflater = LayoutInflater.from(mContext);
+        Song s = getItem(i);
+        Holder holder = null;
+        if (convertView == null) {
+            LayoutInflater inflater = LayoutInflater.from(getContext());
             convertView = inflater.inflate(mItemLayout, null);
-            mViews.set(i, convertView);
 
-            setTextIfExists(convertView, R.id.song, s.getTitle());
-            setTextIfExists(convertView, R.id.album, s.getDefaultAlbum().getName());
-            setTextIfExists(convertView, R.id.artist, s.collapseArtists());
+            holder = new Holder();
+            holder.accent = convertView.findViewById(R.id.accent);
+            holder.album = convertView.findViewById(R.id.album);
+            holder.artist = convertView.findViewById(R.id.artist);
+            holder.cooldown = convertView.findViewById(R.id.cooldown);
+            holder.rating = convertView.findViewById(R.id.circle);
+            holder.requestor = convertView.findViewById(R.id.requestor);
+            holder.song = convertView.findViewById(R.id.song);
+            holder.time = convertView.findViewById(R.id.time);
+            convertView.setTag(holder);
+        }
+        else {
+            holder = (Holder) convertView.getTag();
+        }
+
+        ((TextView) holder.song).setText(s.getTitle());
+
+        if(mShowAlbum) {
+            Album album = s.getDefaultAlbum();
+            ((TextView) holder.album).setText(album.getName());
+        }
+        else {
+            if(holder.album != null) {
+                holder.album.setVisibility(View.GONE);
+            }
+        }
+
+        if(mShowArtist) {
+            ((TextView) holder.artist).setText(s.collapseArtists());
+        }
+        else {
+            if(holder.artist != null) {
+                holder.artist.setVisibility(View.GONE);
+            }
+        }
+
+        if (mShowRequest) {
+            holder.accent = convertView.findViewById(R.id.accent);
+            if(holder.accent != null) {
+                int resId = s.isRequest() ? R.drawable.accent_song_hilight : R.drawable.accent_song;
+                ((ImageView) holder.accent).setBackgroundResource(resId);
+            }
+
+            holder.requestor = convertView.findViewById(R.id.requestor);
+            holder.requestor.setVisibility(s.isRequest() ? View.VISIBLE : View.GONE);
 
             if(s.isRequest()) {
-                setImageIfExists(convertView, R.id.accent, R.drawable.accent_song_hilight);
-                setVisibilityIfExists(convertView, R.id.requestor, View.VISIBLE);
-                setTextIfExists(convertView, R.id.requestor,
-                        String.format(r.getString(R.string.label_requestor), s.getRequestor()));
+                Resources r = getContext().getResources();
+                String requestorLabel = String.format(r.getString(R.string.label_requestor), s.getRequestor());
+                ((TextView) holder.requestor).setText(requestorLabel);
+            }
+        }
+        else {
+            if(holder.accent != null) {
+                holder.accent.setVisibility(View.GONE);
             }
 
-            if(s.getElectionEntryId() == mLastVote) {
-                setVoted(((CountdownView)convertView.findViewById(R.id.circle)));
+            holder.requestor = convertView.findViewById(R.id.requestor);
+            if(holder.requestor != null) {
+                holder.requestor.setVisibility(View.GONE);
+            }
+        }
+
+        if(mShowRating) {
+            holder.rating.setVisibility(View.VISIBLE);
+            ((CountdownView) holder.rating).setPrimary(s.getUserRating());
+            ((CountdownView) holder.rating).setSecondary(s.getCommunityRating());
+
+            CountdownView v = (CountdownView) holder.rating;
+            if (s.getElectionEntryId() >= 0 && s.getElectionEntryId() == mLastVote) {
+                v.setBoth(0, 0);
+                v.setAlternateText(R.string.label_voted);
+            } else {
+                v.setBoth(s.getUserRating(), s.getCommunityRating());
+                v.setAlternateText(R.string.label_unrated);
+            }
+        }
+        else {
+            if(holder.rating != null) {
+                holder.rating.setVisibility(View.GONE);
+            }
+        }
+
+        if(mShowCooldown) {
+            if(s.isCooling()) {
+                holder.cooldown.setVisibility(View.VISIBLE);
+                String cooldown = Utility.getCooldownString(getContext(), s.getCooldown());
+                ((TextView) holder.cooldown).setText(cooldown);
+                convertView.setBackgroundResource(R.drawable.gradient_cooldown);
             }
             else {
-                revert(((CountdownView)convertView.findViewById(R.id.circle)), s);
+                holder.cooldown.setVisibility(View.GONE);
+                convertView.setBackgroundResource(0);
+            }
+        }
+        else {
+            if(holder.cooldown != null) {
+                holder.cooldown.setVisibility(View.GONE);
+            }
+        }
+
+        if(mShowTime) {
+            ((TextView) convertView.findViewById(R.id.time)).setText(s.getLengthString());
+        }
+        else {
+            if(holder.time != null) {
+                holder.time.setVisibility(View.GONE);
             }
         }
 
         return convertView;
     }
 
-    /**
-     * Sets the visibility if we found the View.
-     */
-    private void setVisibilityIfExists(View parent, int resId, int visibility) {
-        if(parent == null) return;
-        View v = parent.findViewById(resId);
-        if(v == null) return;
-        v.setVisibility(visibility);
-    }
-
-    /**
-     * Attempts to find the provided view ID and sets
-     * the image source if it exists and is an ImageView.
-     */
-    private void setImageIfExists(View parent, int resId, int picId) {
-        if(parent == null) return;
-        View v = parent.findViewById(resId);
-        if(v == null || !(v instanceof ImageView)) return;
-        ImageView iv = (ImageView) v;
-        iv.setImageResource(picId);
-    }
-
-    /**
-     * Attempts to find the provided view ID and sets
-     * the text if it exists and is a TextView.
-     * @param parent, context for findViewById
-     * @param resId, the ID to find
-     * @param s, the string to set
-     */
-    private void setTextIfExists(View parent, int resId, String s){
-        if(parent == null) return;
-        if(s == null) s = "";
-        View v = parent.findViewById(resId);
-        if(v == null || !(v instanceof TextView)) return;
-        TextView tv = (TextView) v;
-
-        tv.setText(s);
-    }
-
-    private CountdownView getCountdownView(int i) {
-        return (CountdownView) mViews.get(i).findViewById(R.id.circle);
-    }
-
-    /**
-     * Revert the i-th item to its default state.
-     * 
-     * @param i the index of the item to revert
-     */
-    public void revert(int i) {
-        Song song = getSong(i);
-        CountdownView view = getCountdownView(i);
-        revert(view, song);
-    }
-
-    /** Make the CountdownView reflect the given song. */
-    private void revert(CountdownView view, Song song) {
-        view.setBoth(song.getUserRating(), song.getCommunityRating());
-        view.setAlternateText(R.string.label_unrated);
-    }
-
-    /**
-     * Mark the i-th item as being voted for.
-     * 
-     * @param i index of item for which we are voting
-     */
-    public void setVoting(int i) {
-        CountdownView cnt = getCountdownView(i);
-        cnt.setBoth(0, 0);
-        cnt.setAlternateText(R.string.label_voting);
-    }
-
-    /**
-     * Mark the i-th item as the current vote selection.
-     * 
-     * @param i index of the item for which we have voted
-     */
-    public void setVoted(int i) {
-        setVoted( getCountdownView(i) );
-    }
-
-    private void setVoted(CountdownView view) {
-        if(view == null) return;
-        view.setBoth(0, 0);
-        view.setAlternateText(R.string.label_voted);
-    }
-
-    public ArrayList<Song> moveSong(int from, int to) {
-        Song s = mSongs.remove(from);
-        mSongs.add(to, s);
-        notifyDataSetChanged();
-        return mSongs;
-    }
-
-    public Song removeSong(int which) {
-        Song s = mSongs.remove(which);
-        mViews.remove(which);
-        notifyDataSetChanged();
-        return s;
-    }
-
-    @Override
-    public void notifyDataSetChanged() {
-        super.notifyDataSetChanged();
-        for(int i = 0; i < mViews.size(); i++) {
-            mViews.set(i, null);
-        }
+    static class Holder {
+        View song, artist, album, time, cooldown, rating, accent, requestor; 
     }
 }
