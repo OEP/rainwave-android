@@ -35,7 +35,6 @@ import java.util.Locale;
 
 import android.app.ListActivity;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
@@ -44,13 +43,11 @@ import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
@@ -59,15 +56,14 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.RadioButton;
-import android.widget.TextView;
 import android.widget.Toast;
+import cc.rainwave.android.adapters.AlbumListAdapter;
 import cc.rainwave.android.adapters.SongListAdapter;
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.Artist;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
-import cc.rainwave.android.views.CountdownView;
 
 public class PlaylistActivity extends ListActivity {
 
@@ -246,14 +242,13 @@ public class PlaylistActivity extends ListActivity {
         filterText.addTextChangedListener(new TextWatcher() {
             @Override
             public void afterTextChanged(Editable e) {
-                // TODO Auto-generated method stub
-
+                // do nothing
             }
 
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count,
                     int after) {
-
+                // do nothing
             }
 
             @Override
@@ -290,19 +285,7 @@ public class PlaylistActivity extends ListActivity {
         EditText filterText = hideFilter();
         if(isByAlbum() && mMode == MODE_TOP_LEVEL) {
             if(mSession.getAlbums() != null) {
-                ArrayAdapter<Album> adapter = new ArrayAdapter<Album>(this, android.R.layout.simple_list_item_1, mSession.getAlbums()) {
-                    public View getView(int position, View convertView, ViewGroup parent) {
-                        View v = super.getView(position, convertView, parent);
-                        Album a = getItem(position);
-                        if(a.isCooling()) {
-                            v.setBackgroundResource(R.drawable.gradient_cooldown);
-                        }
-                        else {
-                            v.setBackgroundDrawable(null);
-                        }
-                        return v;
-                    }
-                };
+                AlbumListAdapter adapter = new AlbumListAdapter(this, android.R.layout.simple_list_item_1, mSession.getAlbums());
                 adapter.sort(mAlbumComparator);
                 filterText.setText("");
                 filterText.setHint(R.string.msg_filterAlbum);
