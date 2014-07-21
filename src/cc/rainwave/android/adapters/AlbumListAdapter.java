@@ -1,13 +1,12 @@
 package cc.rainwave.android.adapters;
 
-import cc.rainwave.android.R;
-import cc.rainwave.android.api.types.Album;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import cc.rainwave.android.R;
+import cc.rainwave.android.api.types.Album;
 
-public class AlbumListAdapter extends ArrayAdapter<Album> {
+public class AlbumListAdapter extends FilterableAdapter<Album> {
 
     public AlbumListAdapter(Context context, int resource, Album[] objects) {
         super(context, resource, objects);
