@@ -22,7 +22,7 @@
     <string name="label_remove">Quitar</string>
     <string name="label_request">Peticionar</string>
     <string name="label_login">Iniciar sesión</string>
-    <string name="label_later">Otra ves</string>
+    <string name="label_later">Otra vez</string>
     <string name="label_never">Nunca</string>
     <string name="label_cancel">Cancelar</string>
     <string name="label_voted">¡Votado!</string>
@@ -48,14 +48,14 @@
     <string name="msg_clear_preferences">Borrar todas las preferencias, incluyendo el ID del usuario y clave de API.</string>
     <string name="msg_manageAuth">De la página \'Administrar Claves de API\' en <b>rainwave.cc</b>.</string>
     <string name="msg_autoshow_elections">Automáticamente mostrar o esconder el cajón de la elección.</string>
-    <string name="msg_requested">¡Su peticione estuvo recibido!</string>
+    <string name="msg_requested">¡Se recibió su petición!</string>
     <string name="msg_noRequests">No tiene ningunas peticiones.</string>
     <string name="msg_nullFieldError">Por favor rellene todos los campos.</string>
     <string name="msg_tuneInFirst">¡Sintonice primero!</string>
     <string name="msg_tunedInVote">Debe estar sintonizado para votar.</string>
     <string name="msg_filterAlbum">Filtrar por álbum…</string>
     <string name="msg_filterArtist">Filtrar por artista…</string>
-    <string name="msg_streamNotKnown">¡No se sabe la dirrección URL de la estación!</string>
+    <string name="msg_streamNotKnown">¡No se sabe la dirección URL de la estación!</string>
     <string name="msg_genericError">La operación falló.</string>
     <string name="msg_noStations">El servidor no comunicó ningunas estaciones.</string>
     <string name="msg_authenticationFailure">Hubo error de autenticación; verifica su ID del usuario y clave de API.</string>
