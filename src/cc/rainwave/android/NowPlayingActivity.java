@@ -682,8 +682,6 @@ public class NowPlayingActivity extends Activity {
                 R.layout.item_song,
                 new ArrayList<Song>(Arrays.asList(mSession.getNextEvent().cloneSongs()))
         );
-        ((ListView)findViewById(R.id.np_electionList))
-           .setAdapter(adapter);
 
         // Set vote deadline for when the song ends.
         adapter.setDeadline(mSession.getCurrentEvent().getEnd() - mSession.getDrift());
@@ -694,13 +692,24 @@ public class NowPlayingActivity extends Activity {
 
         // Mark song as voted if we have a last vote.
         if(mSession.hasLastVote()) {
+            boolean found = false;
             for(int i = 0; i < adapter.getCount(); i++) {
                 Song s = adapter.getItem(i);
                 if(s.getElectionEntryId() == mSession.getLastVoteId()) {
                     adapter.setStatusLabel(s.getId(), R.string.label_voted);
+                    found = true;
+                    break;
                 }
             }
+            if(!found) {
+                Log.i(TAG, String.format("Found a last vote ID (%d), but it is not in the current election list!",
+                                         mSession.getLastVoteId())
+                );
+            }
         }
+
+        // Last so the UI reflects most up to date data.
+        ((ListView)findViewById(R.id.np_electionList)).setAdapter(adapter);
     }
 
     /** Update the request list UI to the latest known request list. */

@@ -32,6 +32,8 @@ package cc.rainwave.android.views;
 
 import java.util.Locale;
 
+import cc.rainwave.android.R;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -123,7 +125,11 @@ public class CountdownView extends View {
         postInvalidate();
     }
 
-    public void setAlternateText(int rid) {
+    public void clearAlternateText() {
+        setAlternateText(null);
+    }
+
+    public void _setAlternateText(int rid) {
         setAlternateText(getContext().getResources().getString(rid));
     }
 
@@ -145,17 +151,22 @@ public class CountdownView extends View {
         mPaint.setColor(0xAA0000FF);
         if(mSecondary > 0) canvas.drawArc(mOvalSecondary, start, radiansSecondary, true, mPaint);
 
+        String text = null;
+        if(mAlternateText != null) {
+            text = mAlternateText;
+        }
+        else if(mShowValue && mPrimary > 0) {
+            text = String.format(Locale.US, "%1.1f", mPrimary);
+        }
+        else {
+            text = getResources().getString(R.string.label_unrated);
+        }
 
-        if(mShowValue) {
+        if(text != null) {
             mPaint.setColor(Color.WHITE);
             mPaint.setTextAlign(Align.CENTER);
-            String text = (mPrimary > 0 || mAlternateText == null)
-                    ? String.format(Locale.US, "%1.1f", mPrimary)
-                    : mAlternateText;
-
             mPaint.getTextBounds(text, 0, text.length(), mTextBounds);
             float height = Math.abs(mTextBounds.top - mTextBounds.bottom);
-
             canvas.drawText(text, w/2, h/2 + height/2, mPaint);
         }
     }

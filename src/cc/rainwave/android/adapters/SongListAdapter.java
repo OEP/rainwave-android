@@ -222,7 +222,7 @@ public class SongListAdapter extends ArrayAdapter<Song> {
                 v.setAlternateText(label);
             }
             else {
-                v.setAlternateText(R.string.label_unrated);
+                v.clearAlternateText();
             }
         }
         else {
