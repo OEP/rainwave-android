@@ -58,6 +58,7 @@ import android.widget.ListAdapter;
 import android.widget.RadioButton;
 import android.widget.Toast;
 import cc.rainwave.android.adapters.AlbumListAdapter;
+import cc.rainwave.android.adapters.FilterableAdapter;
 import cc.rainwave.android.adapters.SongListAdapter;
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.Album;
@@ -299,7 +300,7 @@ public class PlaylistActivity extends ListActivity {
         }
         else if(mMode == MODE_TOP_LEVEL){
             if(mSession.getArtists() != null) {
-                ArrayAdapter<Artist> adapter = new ArrayAdapter<Artist>(this, android.R.layout.simple_list_item_1, mSession.getArtists());
+                ArrayAdapter<Artist> adapter = new FilterableAdapter<Artist>(this, android.R.layout.simple_list_item_1, mSession.getArtists());
                 adapter.sort(mArtistComparator);
                 filterText.setHint(R.string.msg_filterArtist);
                 filterText.setText("");
