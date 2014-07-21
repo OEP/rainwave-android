@@ -61,7 +61,6 @@
     <string name="msg_nullFieldError">Please fill in all fields.</string>
     <string name="msg_tuneInFirst">Tune in first!</string>
     <string name="msg_tunedInVote">You must be tuned in to vote.</string>
-    <string name="msgfmt_parseError">"For endpoint %1$s: could not parse response from backend: %2$s"</string>
     <string name="msg_filterAlbum">Filter by album…</string>
     <string name="msg_filterArtist">Filter by artist…</string>
     <string name="msg_streamNotKnown">Stream URL is not known!</string>
