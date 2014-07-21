@@ -35,6 +35,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -188,7 +189,7 @@ public class SongListAdapter extends ArrayAdapter<Song> {
             holder.accent = convertView.findViewById(R.id.accent);
             if(holder.accent != null) {
                 int resId = s.isRequest() ? R.drawable.accent_song_hilight : R.drawable.accent_song;
-                ((ImageView) holder.accent).setBackgroundResource(resId);
+                ((ImageView) holder.accent).setImageResource(resId);
             }
 
             holder.requestor = convertView.findViewById(R.id.requestor);
