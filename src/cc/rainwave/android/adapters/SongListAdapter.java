@@ -35,6 +35,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,8 +65,7 @@ public class SongListAdapter extends ArrayAdapter<Song> {
 
     private boolean mShowCooldown = false;
 
-    /** Records last known election id vote. Set to -1 to imply no vote. */
-    private int mLastVote = -1;
+    private SparseArray<String> mStatusLabel = new SparseArray<String>();
 
     /** Vote deadline */
     private long mDeadline = -1;
@@ -120,36 +120,16 @@ public class SongListAdapter extends ArrayAdapter<Song> {
         mShowTime = showTime;
     }
 
-    /**
-     * Update the election list to reflect that the given election entry id has
-     * been voted for. This does a linear search and updates all of the items in
-     * the list as necessary. This does update the UI as well.
-     * 
-     * @param elec_entry_id
-     *            the election id of the last known vote
-     */
-    public void resyncVoteState(int elec_entry_id) {
-        mLastVote = elec_entry_id;
-        notifyDataSetChanged();
+    public void setStatusLabel(int id, int resId) {
+        setStatusLabel(id,  getContext().getResources().getString(resId));
     }
 
-    /**
-     * Search the current songs and accept the election entry ID if it
-     * corresponds to one in memory. This does not alter the GUI so it is safe
-     * to call before the views have been inflated.
-     * 
-     * @param elec_entry_id
-     *            election entry id to search for
-     */
-    public void updateVoteState(int elec_entry_id) {
-        for (int i = 0; i < getCount(); i++) {
-            Song s = getItem(i);
-            if (s.getElectionEntryId() == elec_entry_id) {
-                mLastVote = elec_entry_id;
-                setVoteStatus(true);
-                return;
-            }
-        }
+    public void setStatusLabel(int id, String label) {
+        mStatusLabel.put(id, label);
+    }
+
+    public void clearStatusLabels() {
+        mStatusLabel.clear();
     }
 
     public void setDeadline(long utc) {
@@ -237,11 +217,11 @@ public class SongListAdapter extends ArrayAdapter<Song> {
             ((CountdownView) holder.rating).setSecondary(s.getCommunityRating());
 
             CountdownView v = (CountdownView) holder.rating;
-            if (s.getElectionEntryId() >= 0 && s.getElectionEntryId() == mLastVote) {
-                v.setBoth(0, 0);
-                v.setAlternateText(R.string.label_voted);
-            } else {
-                v.setBoth(s.getUserRating(), s.getCommunityRating());
+            String label = mStatusLabel.get(s.getId());
+            if (label != null) {
+                v.setAlternateText(label);
+            }
+            else {
                 v.setAlternateText(R.string.label_unrated);
             }
         }

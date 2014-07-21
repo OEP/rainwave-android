@@ -692,8 +692,14 @@ public class NowPlayingActivity extends Activity {
         boolean canVote = !mSession.hasLastVote() && mSession.isTunedIn();
         setDrawerState(canVote);
 
+        // Mark song as voted if we have a last vote.
         if(mSession.hasLastVote()) {
-            adapter.updateVoteState(mSession.getLastVoteId());
+            for(int i = 0; i < adapter.getCount(); i++) {
+                Song s = adapter.getItem(i);
+                if(s.getElectionEntryId() == mSession.getLastVoteId()) {
+                    adapter.setStatusLabel(s.getId(), R.string.label_voted);
+                }
+            }
         }
     }
 
@@ -944,7 +950,9 @@ public class NowPlayingActivity extends Activity {
         protected void onPreExecute() {
             ListView electionList = (ListView) findViewById(R.id.np_electionList);
             SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
-            // FIXME: adapter.setVoting(mSelection);
+            adapter.clearStatusLabels();
+            adapter.setStatusLabel(mSong.getId(), R.string.label_voting);
+            adapter.notifyDataSetChanged();
         }
 
         protected Boolean doInBackground(Song...params) {
@@ -954,7 +962,6 @@ public class NowPlayingActivity extends Activity {
             } catch (RainwaveException e) {
                 Log.e(TAG, "API error", e);
             }
-
             return false;
         }
 
@@ -962,9 +969,12 @@ public class NowPlayingActivity extends Activity {
             if(!result) {
                 Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
             }
-            ListView electionList = (ListView) findViewById(R.id.np_electionList);
-            SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
-            adapter.resyncVoteState(mSession.getLastVoteId());
+            else {
+                ListView electionList = (ListView) findViewById(R.id.np_electionList);
+                SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
+                adapter.setStatusLabel(mSong.getId(), R.string.label_voted);
+                adapter.notifyDataSetChanged();
+            }
         }
     }
 
