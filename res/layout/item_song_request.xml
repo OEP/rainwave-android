@@ -16,7 +16,9 @@
 ** limitations under the License.
 */
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="66dip"
     android:baselineAligned="false"
@@ -24,7 +26,6 @@
     android:orientation="vertical" >
 
     <RelativeLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
         android:layout_height="66dip"
         android:background="@drawable/playlist_tile"
@@ -33,7 +34,7 @@
         android:paddingLeft="47dip" >
 
         <TextView
-            android:id="@+id/song"
+            android:id="@id/song"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
@@ -41,11 +42,12 @@
             android:ellipsize="end"
             android:lines="1"
             android:scrollHorizontally="true"
-            android:text="Large Text"
+            tools:ignore="HardcodedText"
+            android:text="[Large Text]"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView
-            android:id="@+id/album"
+            android:id="@id/album"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
@@ -53,7 +55,8 @@
             android:ellipsize="end"
             android:lines="1"
             android:scrollHorizontally="true"
-            android:text="Medium Text"
+            tools:ignore="HardcodedText"
+            android:text="[Medium Text]"
             android:textAppearance="?android:attr/textAppearanceMedium" />
     </RelativeLayout>
 

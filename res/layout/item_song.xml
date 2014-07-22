@@ -1,24 +1,27 @@
-
 <LinearLayout
+
 	xmlns:rainwave="http://rainwave.cc"
 	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
 	android:id="@+id/election_root"
 	android:orientation="horizontal">
 	<ImageView
 		android:layout_height="wrap_content"
+		tools:ignore="ContentDescription"
 		android:id="@+id/accent"
 		android:layout_width="wrap_content"
 		android:src="@drawable/accent_song" />
 	<LinearLayout
-		android:layout_width="wrap_content"
+		android:layout_width="0dip"
 		android:layout_height="wrap_content"
 		android:layout_weight="1"
 		android:layout_gravity="center_vertical"
 		android:orientation="vertical">
 		<TextView
 			android:id="@+id/song"
+			tools:ignore="HardcodedText"
 			android:text="[song]"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
@@ -29,6 +32,7 @@
 			android:textStyle="bold"></TextView>
 		<TextView
 			android:id="@+id/album"
+			tools:ignore="HardcodedText"
 			android:text="[album]"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
@@ -39,6 +43,7 @@
 			android:textAppearance="?android:attr/textAppearanceMedium"></TextView>
 		<TextView
 			android:id="@+id/artist"
+			tools:ignore="HardcodedText"
 			android:text="[artists...]"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
@@ -59,14 +64,36 @@
 			android:layout_marginLeft="15sp"
 			android:textAppearance="?android:attr/textAppearanceSmall"></TextView>
 	</LinearLayout>
-	<cc.rainwave.android.views.CountdownView
-		android:id="@+id/circle"
-		android:layout_width="60sp"
-		android:layout_height="60sp"
-		android:layout_gravity="center_vertical"
-		android:layout_marginRight="5sp"
-		rainwave:max="5.0"
-		rainwave:progress="0.0"
-		rainwave:alternateText="Unrated"
-		rainwave:showValue="true" />
+	
+	<LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center_horizontal"
+            tools:ignore="HardcodedText"
+            android:text="[Time]"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+		<cc.rainwave.android.views.CountdownView
+			android:id="@+id/circle"
+			android:layout_width="60sp"
+			android:layout_height="60sp"
+			android:layout_gravity="center_vertical"
+			android:layout_marginRight="5sp"
+			rainwave:max="5.0"
+			rainwave:progress="0.0"
+			rainwave:showValue="true" />
+        <TextView
+            android:id="@+id/cooldown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center_horizontal"
+            tools:ignore="HardcodedText"
+            android:text="[15h]"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+	</LinearLayout>
 </LinearLayout>

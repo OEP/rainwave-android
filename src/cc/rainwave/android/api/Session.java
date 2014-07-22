@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2013, Paul M. Kilgo
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * 
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * 
+ * * Neither the name of Paul Kilgo nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 
 package cc.rainwave.android.api;
 
@@ -7,6 +37,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Locale;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -16,6 +47,7 @@ import android.util.Log;
 import cc.rainwave.android.R;
 import cc.rainwave.android.Rainwave;
 import cc.rainwave.android.RainwavePreferences;
+import cc.rainwave.android.Utility;
 import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.Artist;
 import cc.rainwave.android.api.types.Event;
@@ -328,7 +360,7 @@ public class Session {
         final String path = "order_requests";
 
         final JsonElement root = post(path,
-            "order", Rainwave.makeRequestQueueString(requests)
+            "order", Utility.joinIds(requests)
         );
         try {
             final Gson gson = getGson();
@@ -500,10 +532,8 @@ public class Session {
           httpArgs.put(NAME_KEY, mKey);
         }
 
+        // Establish a connection.
         HttpURLConnection conn = null;
-        final Resources r = mContext.getResources();
-        long requestEnd;
-
         try {
             switch(method) {
             case POST:
@@ -515,21 +545,42 @@ public class Session {
             default:
                 throw new IllegalArgumentException("Unhandled HTTP method!");
             }
+        }
+        catch(IOException exc) {
+            throw new RainwaveException("Could not establish a connection", exc);
+        }
 
-            final int statusCode = conn.getResponseCode();
-
-            switch(statusCode) {
-            case HttpURLConnection.HTTP_FORBIDDEN:
-                throw new RainwaveException(r.getString(R.string.msg_forbidden), statusCode);
-            }
-            
-            // log timestamp to calculate drift
+        // Read the status code.
+        int statusCode;
+        long requestEnd;
+        try {
+            statusCode = conn.getResponseCode();
             requestEnd = System.currentTimeMillis() / 1000;
         }
         catch(IOException exc) {
-            throw new RainwaveException(r.getString(R.string.msg_genericError), exc);
+            throw new RainwaveException("Could not read status code.", exc);
         }
 
+        // Handle error in status code.
+        if(statusCode >= 400) {
+            try {
+                JsonParser parser = new JsonParser();
+                InputStream is = conn.getErrorStream();
+                InputStreamReader reader = new InputStreamReader(is);
+                JsonElement root = parser.parse(reader);
+                JsonElement error = JsonHelper.getChild(root, "error");
+                String text = JsonHelper.getString(error, "text");
+                throw new RainwaveException(text, statusCode);
+            }
+            catch(JsonParseException exc) {
+                Log.i(TAG, "Could not parse error object", exc);
+                throw new RainwaveException(
+                        (statusCode >= 500) ? "Server error" : "Client error",
+                        statusCode);
+            }
+        }
+
+        // Try to parse a JSON response.
         final JsonElement root;
         try {
             JsonParser parser = new JsonParser();
@@ -538,7 +589,8 @@ public class Session {
             root = parser.parse(reader);
         }
         catch(IOException exc) {
-            throw new RainwaveException(r.getString(R.string.msg_genericError), exc);
+            throw new RainwaveException("Could not parse a JSON document", statusCode,
+                    RainwaveException.ERROR_UNKNOWN, exc);
         }
 
         // most every endpoint returns api_info, so we can try and update
@@ -606,9 +658,8 @@ public class Session {
 
     private RainwaveException wrapException(final JsonParseException exc, final String path)
     throws RainwaveException {
-        Resources r = mContext.getResources();
-        String msg = String.format(r.getString(R.string.msgfmt_parseError), path, exc.getMessage());
-        throw new RainwaveException(msg, exc);
+        throw new RainwaveException(
+                String.format(Locale.US, "For endpoint '%s': could not parse response.", path), exc);
     }
 
     private String getUrl(String path) throws MalformedURLException {

@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2013, Paul M. Kilgo
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * 
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * 
+ * * Neither the name of Paul Kilgo nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package cc.rainwave.android;
 
 import java.util.ArrayList;
@@ -57,8 +87,6 @@ import com.google.android.apps.iosched.ui.widget.Workspace.OnScreenChangeListene
 /**
  * This is the primary activity for this application. It announces
  * which song is playing, handles ratings, and also elections.
- * @author pkilgo
- *
  */
 public class NowPlayingActivity extends Activity {
     /** Debug tag */
@@ -78,7 +106,6 @@ public class NowPlayingActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         mHasIndeterminateProgress = requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         super.onCreate(savedInstanceState);
-        setup();
         initializeSession();
         setContentView(R.layout.activity_main);
         setListeners();
@@ -148,9 +175,6 @@ public class NowPlayingActivity extends Activity {
         return super.onKeyDown(keyCode, ev);
     }
 
-    /**
-     * Dialog manufacturer.
-     */
     public Dialog onCreateDialog(int id) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
@@ -160,12 +184,15 @@ public class NowPlayingActivity extends Activity {
             builder.setTitle(R.string.label_pickStation)
                    .setNegativeButton(R.string.label_cancel, null);
 
+            // Print a slightly helpful message if the stations were not
+            // retrieved for some reason.
             if(!mSession.hasStations()) {
                 return builder.setMessage(R.string.msg_noStations).create();
             }
 
             Station stations[] = mSession.cloneStations();
 
+            // Change station when one is selected from dialog.
             final ListView listView = new ListView(this);
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -210,17 +237,14 @@ public class NowPlayingActivity extends Activity {
         case R.id.remove:
             TouchInterceptor list = (TouchInterceptor) findViewById(R.id.np_request_list);
             SongListAdapter adapter = (SongListAdapter) list.getAdapter();
-            Song s = adapter.removeSong(info.position);
+            Song s = adapter.getItem(info.position);
+            adapter.remove(s);
             requestRemove(s);
             resyncRequests();
             return true;
         default:
             return super.onContextItemSelected(item);
         }
-    }
-
-    private void setup() {
-        getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
     }
 
     /**
@@ -256,6 +280,7 @@ public class NowPlayingActivity extends Activity {
                     w.lockCurrentScreen();
                 case MotionEvent.ACTION_MOVE:
                 case MotionEvent.ACTION_UP:
+                    v.performClick();
                     rating = hrb.snapPositionToMinorIncrement(e.getX());
                     rating = Math.max(1.0f, Math.min(rating, 5.0f));
                     max = hrb.getMax();
@@ -265,9 +290,8 @@ public class NowPlayingActivity extends Activity {
 
                     if(e.getAction() == MotionEvent.ACTION_UP) {
                         w.unlockCurrentScreen();
-                        ActionTask t = new ActionTask();
                         Song s = mSession.getCurrentEvent().getCurrentSong();
-                        t.execute(ActionTask.RATE, s.getId(), rating);
+                        new RateTask(rating).execute(s);
                         b.setLabel(R.string.label_song);
                     }
                 }
@@ -275,6 +299,7 @@ public class NowPlayingActivity extends Activity {
             }
         });
 
+        // Show album rating when the album rating bar is touched.
         findViewById(R.id.np_albumRating).setOnTouchListener(
         new OnTouchListener() {
             @Override
@@ -303,6 +328,7 @@ public class NowPlayingActivity extends Activity {
                     w.lockCurrentScreen();
                 case MotionEvent.ACTION_MOVE:
                 case MotionEvent.ACTION_UP:
+                    v.performClick();
                     rating = hrb.getPrimary();
                     max = hrb.getMax();
                     String label = String.format(Locale.US, "%.1f/%.1f",rating,max);
@@ -318,11 +344,12 @@ public class NowPlayingActivity extends Activity {
         });
 
 
+        // Spawn a vote task when an item from the election drawer is selected.
         final ListView election = (ListView) findViewById(R.id.np_electionList);
         election.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int i, long id) {
                 SongListAdapter adapter = (SongListAdapter) election.getAdapter();
-                Song song = adapter.getSong(i);
+                Song song = adapter.getItem(i);
 
                 // Do nothing if they selected the item we last voted for.
                 if(song.getElectionEntryId() == mSession.getLastVoteId()) {
@@ -339,22 +366,33 @@ public class NowPlayingActivity extends Activity {
             }
         });
 
+        // Reorder requests when the users drags-and-drops them.
         final TouchInterceptor requestList = ((TouchInterceptor) findViewById(R.id.np_request_list));
         requestList.setDropListener(new TouchInterceptor.DropListener() {
             @Override
             public void drop(int from, int to) {
                 if(from == to) return;
                 SongListAdapter adapter = (SongListAdapter) requestList.getAdapter();
-                adapter.moveSong(from, to);
+                Song s = adapter.getItem(from);
+                adapter.remove(s);
+                adapter.insert(s, to);
 
-                ArrayList<Song> songs = adapter.getSongs();
-                requestReorder( songs.toArray(new Song[songs.size()]) );
+                Song songs[] = new Song[adapter.getCount()];
+                for(int i = 0; i < adapter.getCount(); i++) {
+                    songs[i] = adapter.getItem(i);
+                }
+                requestReorder(songs);
             }
         });
 
+        // Lock down the current workspace when clicking on the drag handles of
+        // the request list.
         requestList.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent ev) {
+                if(ev.getAction() == MotionEvent.ACTION_UP) {
+                    v.performClick();
+                }
                 if(requestList.getCount() == 0) return false;
                 Workspace w = (Workspace) findViewById(R.id.np_workspace);
 
@@ -371,6 +409,7 @@ public class NowPlayingActivity extends Activity {
             }
         });
 
+        // Update the pager when the workspace changes.
         Workspace w = (Workspace) findViewById(R.id.np_workspace);
         w.setOnScreenChangeListener(new OnScreenChangeListener() {
             @Override
@@ -382,36 +421,6 @@ public class NowPlayingActivity extends Activity {
             @Override
             public void onScreenChanging(View newScreen, int newScreenIndex) {
 
-            }
-        });
-
-
-        // Button Listeners.
-        ImageButton play = (ImageButton) findViewById(R.id.np_play);
-        ImageButton station = (ImageButton) findViewById(R.id.np_stationPick);
-        ImageButton request = (ImageButton) findViewById(R.id.np_makeRequest);
-
-        play.setEnabled(false);
-        station.setEnabled(false);
-
-        play.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startPlayer();
-            }
-        });
-
-        station.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDialog(DIALOG_STATION_PICKER);
-            }
-        });
-
-        request.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startPlaylist();
             }
         });
 
@@ -448,13 +457,6 @@ public class NowPlayingActivity extends Activity {
      *   is an initial (non-long-poll) fetch.
      */
     private void fetchSchedules() {
-        // Some really bad thing happened and we don't
-        // have a connection at all.
-        if(mSession == null) {
-            Rainwave.showError(NowPlayingActivity.this, R.string.msg_sessionError);
-            return;
-        }
-
         // Only do an immediate fetch from here.
         if(mSession.requiresSync()) {
             refresh();
@@ -465,22 +467,14 @@ public class NowPlayingActivity extends Activity {
         }
     }
 
+    /** Spawn a background task to send new request ordering. */
     private void requestReorder(Song requests[]) {
-        if(mSession == null) {
-            Rainwave.showError(NowPlayingActivity.this, R.string.msg_sessionError);
-            return;
-        }
-
-        new ActionTask().execute(ActionTask.REORDER, requests);
+        new ReorderTask().execute(requests);
     }
 
+    /** Spawn a new background task to remove a requested song. */
     private void requestRemove(Song s) {
-        if(mSession == null) {
-            Rainwave.showError(NowPlayingActivity.this, R.string.msg_sessionError);
-            return;
-        }
-
-        new ActionTask().execute(ActionTask.REMOVE, s);
+        new RemoveTask().execute(s);
     }
 
     /**
@@ -501,7 +495,6 @@ public class NowPlayingActivity extends Activity {
         }
     }
 
-    /** Shows the menu */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -509,7 +502,6 @@ public class NowPlayingActivity extends Activity {
         return true;
     }
 
-    /** Responds to menu selection */
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
 
@@ -521,17 +513,34 @@ public class NowPlayingActivity extends Activity {
         case R.id.menu_refresh:
             refresh();
             break;
+
+        case R.id.menu_playStream:
+            startPlayer();
+            break;
+
+        case R.id.menu_playlist:
+            startPlaylist();
+            break;
+            
+
+        case R.id.menu_pickStation:
+            showDialog(NowPlayingActivity.DIALOG_STATION_PICKER);
+            break;
         }
 
         return false;
     }
 
+    /** Starts the media player for the current station's stream. */
     private void startPlayer() {
         int stationId = mSession.getStationId();
-        Station s = mSession.getStation(stationId);
-        if(s != null) {
+        Station station = null;
+        if(mSession.hasStations()) {
+            station = mSession.getStation(stationId);
+        }
+        if(station != null) {
             Intent i = new Intent(Intent.ACTION_VIEW);
-            i.setDataAndType(Uri.parse(s.getMainStream()), "audio/*");
+            i.setDataAndType(Uri.parse(station.getMainStream()), "audio/*");
             startActivity(i);    
         }
         else {
@@ -539,34 +548,32 @@ public class NowPlayingActivity extends Activity {
         }
     }
 
+    /** Start the PlaylistActivity. */
     private void startPlaylist() {
+        if(!mSession.hasCredentials()) {
+            Toast.makeText(this, R.string.msg_authenticationRequired, Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent i = new Intent(this, PlaylistActivity.class);
         startActivity(i);
     }
 
+    /** Start the PreferencesActivity. */
     private void startPreferences() {
         Intent i = new Intent(this, RainwavePreferenceActivity.class);
         startActivity(i);
     }
 
     /**
-     * Destroys any existing Session and creates
-     * a new Session object for us to use, pulling
-     * the user_id and key attributes from the default
-     * Preference store.
+     * Destroys any existing Session and creates a new Session object for us to
+     * use, pulling the user_id and key attributes from the default Preference
+     * store.
      */
     private void initializeSession() {
         handleIntent();
         mSession = Session.getInstance(this);
         mSession.unpickle();
         mPreferences = RainwavePreferences.getInstance(this);
-
-        View playlistButton = findViewById(R.id.np_makeRequest);
-        if(playlistButton != null) {
-            playlistButton.setVisibility(
-                (mSession != null && mSession.hasCredentials()) ? View.VISIBLE : View.GONE
-            );
-        }
     }
 
 
@@ -588,18 +595,18 @@ public class NowPlayingActivity extends Activity {
         }
 
         // check if this Intent was previously handled
-        boolean handled = (b != null) && b.getBoolean(Rainwave.HANDLED_URI, false);
+        boolean handled = (b != null) && b.getBoolean("handled-uri", false);
         if(handled) {
             return;
         }
 
         // store in preferences if all is well
-        final String parts[] = Rainwave.parseUrl(uri, this);
+        final String parts[] = Utility.parseUrl(uri);
         if(parts != null) {
             mPreferences.setUserInfo(parts[0], parts[1]);
         }
 
-        i.putExtra(Rainwave.HANDLED_URI, true);
+        i.putExtra("handled-uri", true);
     }
 
     /**
@@ -607,13 +614,6 @@ public class NowPlayingActivity extends Activity {
      * @param response the response the server issued
      */
     private void onScheduleSync() {
-        // We should enable the buttons now.
-        ImageButton play = (ImageButton) findViewById(R.id.np_play);
-        ImageButton station = (ImageButton) findViewById(R.id.np_stationPick);
-
-        play.setEnabled(mSession.hasStations());
-        station.setEnabled(mSession.hasStations());
-
         // Updates title, album, and artists.
         updateSongInfo(mSession.getCurrentEvent().getCurrentSong());
 
@@ -649,6 +649,7 @@ public class NowPlayingActivity extends Activity {
         }
     }
 
+    /** Update the song countdown timer in the application heading. */
     private void refreshTitle() {
         long end = mSession.getCurrentEvent().getEnd();
         long utc = System.currentTimeMillis() / 1000;
@@ -674,14 +675,13 @@ public class NowPlayingActivity extends Activity {
         setTitle(String.format("[%2d:%02d] %s (%s)", minutes, seconds, title, state));
     }
 
+    /** Make the election drawer update to the latest known election. */
     private void updateElection() {
         SongListAdapter adapter = new SongListAdapter(
                 this,
-                R.layout.item_song_election,
+                R.layout.item_song,
                 new ArrayList<Song>(Arrays.asList(mSession.getNextEvent().cloneSongs()))
         );
-        ((ListView)findViewById(R.id.np_electionList))
-           .setAdapter(adapter);
 
         // Set vote deadline for when the song ends.
         adapter.setDeadline(mSession.getCurrentEvent().getEnd() - mSession.getDrift());
@@ -690,11 +690,29 @@ public class NowPlayingActivity extends Activity {
         boolean canVote = !mSession.hasLastVote() && mSession.isTunedIn();
         setDrawerState(canVote);
 
+        // Mark song as voted if we have a last vote.
         if(mSession.hasLastVote()) {
-            adapter.updateVoteState(mSession.getLastVoteId());
+            boolean found = false;
+            for(int i = 0; i < adapter.getCount(); i++) {
+                Song s = adapter.getItem(i);
+                if(s.getElectionEntryId() == mSession.getLastVoteId()) {
+                    adapter.setStatusLabel(s.getId(), R.string.label_voted);
+                    found = true;
+                    break;
+                }
+            }
+            if(!found) {
+                Log.i(TAG, String.format("Found a last vote ID (%d), but it is not in the current election list!",
+                                         mSession.getLastVoteId())
+                );
+            }
         }
+
+        // Last so the UI reflects most up to date data.
+        ((ListView)findViewById(R.id.np_electionList)).setAdapter(adapter);
     }
 
+    /** Update the request list UI to the latest known request list. */
     private void updateRequests() {
         Song songs[];
 
@@ -706,30 +724,35 @@ public class NowPlayingActivity extends Activity {
         }
 
         TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
-        requestList.setAdapter(
-            new SongListAdapter(
+        SongListAdapter adapter = new SongListAdapter(
                 this,
                 R.layout.item_song_request,
                 new ArrayList<Song>(Arrays.asList(songs))
-            )
         );
+        adapter.setShowAlbum(true);
+        adapter.setShowRating(false);
+        adapter.setShowArtist(false);
+        adapter.setShowRequest(false);
+        requestList.setAdapter(adapter);
 
         resyncRequests();
     }
 
+    /** Update the visibility of the "no pending requests" message. */
     private void resyncRequests() {
         TouchInterceptor requestList = (TouchInterceptor) findViewById(R.id.np_request_list);
         SongListAdapter adapter = (SongListAdapter) requestList.getAdapter();
         if(adapter != null) {
             int visibility = (adapter.getCount()) > 0 ? View.GONE : View.VISIBLE;
-               findViewById(R.id.np_request_overlay).setVisibility(visibility);
+            findViewById(R.id.np_request_overlay).setVisibility(visibility);
         }
     }
 
     /**
-     * Updates the song title, album title, and
-     * artists in the user interface.
-     * @param current the current song that's playing.
+     * Updates the song title, album title, and artists in the user interface.
+     * 
+     * @param current
+     *            the current song that's playing.
      */
     private void updateSongInfo(Song current) {
         ((TextView) findViewById(R.id.np_songTitle)).setText(current.getTitle());
@@ -753,7 +776,9 @@ public class NowPlayingActivity extends Activity {
 
     /**
      * Updates the song and album ratings.
-     * @param current the current song playing
+     * 
+     * @param current
+     *            the current song playing
      */
     private void setRatings(Song current) {
         final Album album = current.getDefaultAlbum();
@@ -766,7 +791,9 @@ public class NowPlayingActivity extends Activity {
 
     /**
      * Executes when a "rate song" request has finished.
-     * @param result the result the server issued
+     * 
+     * @param result
+     *            the result the server issued
      */
     private void onRateSong(SongRating rating) {
         ((HorizontalRatingBar) findViewById(R.id.np_songRating))
@@ -777,9 +804,11 @@ public class NowPlayingActivity extends Activity {
     }
 
     /**
-     * Sets the album art to the provided Bitmap, or
-     * a default image if art is null.
-     * @param art desired album art
+     * Sets the album art to the provided Bitmap, or a default image if art is
+     * null.
+     * 
+     * @param art
+     *            desired album art
      */
     private void updateAlbumArt(Bitmap art) {
         if(art == null) {
@@ -829,73 +858,90 @@ public class NowPlayingActivity extends Activity {
         }
     };
 
-    /**
-     * AsyncTask for submitting a rating for a song.
-     * Expects two arguments to <code>execute(Object...params)</code>,
-     * which are song_id (int), and rating (float).
-     * @author pkilgo
-     *
-     */
-    protected class ActionTask extends AsyncTask<Object, Integer, Object> {
-        private int mAction;
+    /** Removes a sequence of requests in background */
+    private class RemoveTask extends AsyncTask<Song, Integer, Boolean> {
+        @Override
+        protected Boolean doInBackground(Song... songs) {
+            boolean result = true;
+            for(Song song : songs) {
+                try {
+                    mSession.deleteRequest(song);
+                } catch (RainwaveException exc) {
+                    Log.w(TAG, "Remove request operation failed", exc);
+                    result |= false;
+                }
+            }
+            return result;
+        }
 
         @Override
-        protected Object doInBackground(Object ... params) {
-            Log.d(TAG, "Beginning ActionTask.");
-            mAction = (Integer) params[0];
-            Thread currentThread = Thread.currentThread();
-
-            try {
-                switch(mAction) {
-                case RATE:
-                    currentThread.setName("RateTask");
-                    int songId = (Integer) params[1];
-                    float rating = (Float) params[2];
-                    return mSession.rateSong(songId, rating);
-
-                case REMOVE:
-                    currentThread.setName("RemoveTask");
-                    Song s = (Song) params[1];
-                    mSession.deleteRequest(s);
-                    break;
-
-                case REORDER:
-                    currentThread.setName("ReorderTask");
-                    Song songs[] = (Song[]) params[1];
-                    return mSession.reorderRequests(songs);
-
-                }
-            } catch (RainwaveException e) {
-                Log.e(TAG, "API error: " + e.getMessage());
-                Rainwave.showError(NowPlayingActivity.this, e);
-            }
-            return null;
-        }
-
-        protected void onPostExecute(Object result) {
-            Log.d(TAG, "ActionTask ended.");
-
-            switch(mAction) {
-            case RATE:
-                if(result == null) return;
-                onRateSong((SongRating) result);
-                break;
-
-            case REORDER:
-                break;
-
-            case REMOVE:
-                break;
-
+        protected void onPostExecute(Boolean result) {
+            if(!result) {
+                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
             }
         }
-
-        public static final int
-            REMOVE = 0x439023,
-            RATE = 0x4A73,
-            REORDER = 0x4304D34;
     }
-    
+
+    /** Rates a batch of songs in background */
+    private class RateTask extends AsyncTask<Song, Integer, SongRating[]> {
+        private float mRating;
+
+        public RateTask(float rating) {
+            mRating = rating;
+        }
+
+        @Override
+        protected SongRating[] doInBackground(Song... params) {
+            SongRating[] results = new SongRating[params.length];
+            for(int i = 0; i < params.length; i++) {
+                try {
+                    results[i] = mSession.rateSong(params[i].getId(), mRating);
+                } catch (RainwaveException exc) {
+                    String msg = String.format(Locale.US, "Can't rate %s", params[i]);
+                    Log.w(TAG, msg, exc);
+                }
+            }
+            return results;
+        }
+
+        @Override
+        protected void onPostExecute(SongRating[] result) {
+            boolean error = false;
+            for(SongRating rating : result) {
+                if(rating != null) {
+                    onRateSong(rating);
+                }
+                else {
+                    error = true;
+                }
+            }
+            if(error) {
+                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /** Reorders requests in background. */
+    private class ReorderTask extends AsyncTask<Song, Integer, Song[]> {
+        @Override
+        protected Song[] doInBackground(Song... requests) {
+            try {
+                return mSession.reorderRequests(requests);
+            } catch (RainwaveException exc) {
+                Log.w(TAG, "Reorder requests operation failed", exc);
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Song[] reorderResult) {
+            if(reorderResult == null) {
+                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /** AsyncTask for voting in the election. */
     private class VoteTask extends AsyncTask<Song, Integer, Boolean> {
 
         private Song mSong;
@@ -906,14 +952,16 @@ public class NowPlayingActivity extends Activity {
             ListView electionList = (ListView) findViewById(R.id.np_electionList);
             SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
             mSelection = selection;
-            mSong = adapter.getSong(selection);
+            mSong = adapter.getItem(selection);
         }
 
         @Override
         protected void onPreExecute() {
             ListView electionList = (ListView) findViewById(R.id.np_electionList);
             SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
-            adapter.setVoting(mSelection);
+            adapter.clearStatusLabels();
+            adapter.setStatusLabel(mSong.getId(), R.string.label_voting);
+            adapter.notifyDataSetChanged();
         }
 
         protected Boolean doInBackground(Song...params) {
@@ -921,17 +969,21 @@ public class NowPlayingActivity extends Activity {
                 mSession.vote(mSong.getElectionEntryId());
                 return true;
             } catch (RainwaveException e) {
-                Rainwave.showError(NowPlayingActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.e(TAG, "API error", e);
             }
-
             return false;
         }
 
         protected void onPostExecute(Boolean result) {
-            ListView electionList = (ListView) findViewById(R.id.np_electionList);
-            SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
-            adapter.resyncVoteState(mSession.getLastVoteId());
+            if(!result) {
+                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+            }
+            else {
+                ListView electionList = (ListView) findViewById(R.id.np_electionList);
+                SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
+                adapter.setStatusLabel(mSong.getId(), R.string.label_voted);
+                adapter.notifyDataSetChanged();
+            }
         }
     }
 

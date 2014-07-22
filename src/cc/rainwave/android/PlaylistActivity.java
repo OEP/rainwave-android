@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2013, Paul M. Kilgo
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * 
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * 
+ * * Neither the name of Paul Kilgo nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package cc.rainwave.android;
 
 import java.util.Comparator;
@@ -5,24 +35,19 @@ import java.util.Locale;
 
 import android.app.ListActivity;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
@@ -31,14 +56,15 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.RadioButton;
-import android.widget.TextView;
 import android.widget.Toast;
+import cc.rainwave.android.adapters.AlbumListAdapter;
+import cc.rainwave.android.adapters.FilterableAdapter;
+import cc.rainwave.android.adapters.SongListAdapter;
 import cc.rainwave.android.api.Session;
 import cc.rainwave.android.api.types.Album;
 import cc.rainwave.android.api.types.Artist;
 import cc.rainwave.android.api.types.RainwaveException;
 import cc.rainwave.android.api.types.Song;
-import cc.rainwave.android.views.CountdownView;
 
 public class PlaylistActivity extends ListActivity {
 
@@ -47,12 +73,6 @@ public class PlaylistActivity extends ListActivity {
     private Song mSongs[];
 
     private Session mSession;
-
-    private FetchDetailedAlbumTask mFetchAlbum;
-
-    private FetchDetailedArtistTask mFetchArtist;
-
-    private RequestTask mRequest;
 
     private int mMode = MODE_TOP_LEVEL;
 
@@ -116,7 +136,7 @@ public class PlaylistActivity extends ListActivity {
         case KeyEvent.KEYCODE_BACK:
             if(mMode == MODE_DETAIL_ALBUM || mMode == MODE_DETAIL_ARTIST) {
                 mMode = MODE_TOP_LEVEL;
-                setTheData();
+                refreshData();
                 return true;
             }
         }
@@ -148,7 +168,7 @@ public class PlaylistActivity extends ListActivity {
         switch (item.getItemId()) {
         case R.id.request:
             Song s = (Song) getListView().getItemAtPosition(info.position);
-            request(s.getId());
+            new RequestTask().execute(s.getId());
             return true;
         default:
             return super.onContextItemSelected(item);
@@ -191,7 +211,7 @@ public class PlaylistActivity extends ListActivity {
             @Override
             public void onClick(View v) {
                 mMode = MODE_TOP_LEVEL;
-                setTheData();
+                refreshData();
             }
         };
 
@@ -204,7 +224,7 @@ public class PlaylistActivity extends ListActivity {
                     setListAdapter(null);
                     mMode = MODE_DETAIL_ALBUM;
                     Album choice = (Album) adapter.getItem(position);
-                    fetchAlbum(choice.getId());
+                    new FetchDetailedAlbumTask().execute(choice.getId());
                 }
                 else if(mMode == MODE_TOP_LEVEL) {
                     ListAdapter adapter = getListAdapter();
@@ -212,7 +232,7 @@ public class PlaylistActivity extends ListActivity {
                     setListAdapter(null);
                     mMode = MODE_DETAIL_ARTIST;
                     Artist choice = (Artist) adapter.getItem(position);
-                    fetchArtist(choice.getId());
+                    new FetchDetailedArtistTask().execute(choice.getId());
                 }
             }
         });
@@ -223,14 +243,13 @@ public class PlaylistActivity extends ListActivity {
         filterText.addTextChangedListener(new TextWatcher() {
             @Override
             public void afterTextChanged(Editable e) {
-                // TODO Auto-generated method stub
-
+                // do nothing
             }
 
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count,
                     int after) {
-
+                // do nothing
             }
 
             @Override
@@ -262,23 +281,12 @@ public class PlaylistActivity extends ListActivity {
         return filterText;
     }
 
-    private void setTheData() {
+    /** Resynchronizes the UI with the data in the current session. */
+    private void refreshData() {
         EditText filterText = hideFilter();
         if(isByAlbum() && mMode == MODE_TOP_LEVEL) {
             if(mSession.getAlbums() != null) {
-                ArrayAdapter<Album> adapter = new ArrayAdapter<Album>(this, android.R.layout.simple_list_item_1, mSession.getAlbums()) {
-                    public View getView(int position, View convertView, ViewGroup parent) {
-                        View v = super.getView(position, convertView, parent);
-                        Album a = getItem(position);
-                        if(a.isCooling()) {
-                            v.setBackgroundResource(R.drawable.gradient_cooldown);
-                        }
-                        else {
-                            v.setBackgroundDrawable(null);
-                        }
-                        return v;
-                    }
-                };
+                AlbumListAdapter adapter = new AlbumListAdapter(this, android.R.layout.simple_list_item_1, mSession.getAlbums());
                 adapter.sort(mAlbumComparator);
                 filterText.setText("");
                 filterText.setHint(R.string.msg_filterAlbum);
@@ -292,7 +300,7 @@ public class PlaylistActivity extends ListActivity {
         }
         else if(mMode == MODE_TOP_LEVEL){
             if(mSession.getArtists() != null) {
-                ArrayAdapter<Artist> adapter = new ArrayAdapter<Artist>(this, android.R.layout.simple_list_item_1, mSession.getArtists());
+                ArrayAdapter<Artist> adapter = new FilterableAdapter<Artist>(this, android.R.layout.simple_list_item_1, mSession.getArtists());
                 adapter.sort(mArtistComparator);
                 filterText.setHint(R.string.msg_filterArtist);
                 filterText.setText("");
@@ -306,8 +314,13 @@ public class PlaylistActivity extends ListActivity {
         }
         else if(mMode == MODE_DETAIL_ALBUM || mMode == MODE_DETAIL_ARTIST) {
             if(mSongs != null) {
-                SongArrayAdapter adapter = new SongArrayAdapter(this, R.layout.item_song_playlist, mSongs, mMode);
+                SongListAdapter adapter = new SongListAdapter(this, R.layout.item_song, mSongs);
                 adapter.sort((mMode == MODE_DETAIL_ALBUM) ? mAlbumSongComparator : mArtistSongComparator);
+                adapter.setShowAlbum(mMode != MODE_DETAIL_ALBUM);
+                adapter.setShowArtist(mMode != MODE_DETAIL_ARTIST);
+                adapter.setShowRequest(false);
+                adapter.setShowRating(true);
+                adapter.setShowCooldown(true);
                 setListAdapter(adapter);
             }
         }
@@ -320,57 +333,35 @@ public class PlaylistActivity extends ListActivity {
         else if(mSession.getArtists() == null) {
             fetchArtists(false);
         }
-        updateView();
+        refreshData();
     }
 
-    private void stopAlbumFetch() {
-        if(mFetchAlbum != null) {
-            mFetchAlbum.cancel(true);
-            mFetchAlbum = null;
-        }
-    }
-
-    private void stopArtistFetch() {
-        if(mFetchArtist != null) {
-            mFetchArtist.cancel(true);
-            mFetchArtist = null;
-        }
-    }
-
-    private void request(int song_id) {
-        if(mRequest != null) return;
-        mRequest = new RequestTask();
-        mRequest.execute(song_id);
-    }
-
+    /**
+     * Fetch an entire list of albums if needed.
+     * 
+     * @param forceRefresh
+     *            always perform the fetch
+     */
     private void fetchAlbums(final boolean forceRefresh) {
         if(forceRefresh || mSession.getAlbums() == null) {
             new FetchAlbumsTask().execute();
             return;
         }
-        updateView();
+        refreshData();
     }
 
+    /**
+     * Fetch an entire list of artists if needed.
+     * 
+     * @param forceRefresh
+     *            always perform the fetch
+     */
     private void fetchArtists(final boolean forceRefresh) {
         if(forceRefresh || mSession.getArtists() == null) {
             new FetchArtistsTask().execute();
             return;
         }
-        updateView();
-    }
-
-    private void fetchAlbum(int album_id) {
-        stopArtistFetch();
-        if(mFetchAlbum != null) return;
-        mFetchAlbum = new FetchDetailedAlbumTask();
-        mFetchAlbum.execute(album_id);
-    }
-
-    private void fetchArtist(int artist_id) {
-        stopAlbumFetch();
-        if(mFetchArtist != null) return;
-        mFetchArtist = new FetchDetailedArtistTask();
-        mFetchArtist.execute(artist_id);
+        refreshData();
     }
 
     private boolean isByAlbum() {
@@ -382,19 +373,20 @@ public class PlaylistActivity extends ListActivity {
 
         @Override
         protected Album[] doInBackground(String... args) {
-            Log.d(TAG, "Fetching albumsin background...");
             try {
                 return mSession.fetchAlbums();
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.w(TAG, "API error", e);
             }
             return null;
         }
 
         protected void onPostExecute(Album result[]) {
-            if(result == null) return;
-            updateView();
+            if(result == null) {
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            refreshData();
         }
     }
 
@@ -405,15 +397,17 @@ public class PlaylistActivity extends ListActivity {
             try {
                 return mSession.fetchArtists();
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.w(TAG, "API error", e);
             }
             return null;
         }
 
         protected void onPostExecute(Artist result[]) {
-            if(result == null) return;
-            updateView();
+            if(result == null) {
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            refreshData();
         }
     }
 
@@ -424,20 +418,18 @@ public class PlaylistActivity extends ListActivity {
             try {
                 return mSession.fetchDetailedArtist(artist_id);
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.e(TAG, "API error", e);
             }
             return null;
         }
 
         protected void onPostExecute(Artist result) {
             if(result == null) {
-                mFetchArtist = null;
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
                 return;
             }
             mSongs = result.cloneSongs();
-            updateView();
-            mFetchArtist = null;
+            refreshData();
         }
     }
 
@@ -446,11 +438,9 @@ public class PlaylistActivity extends ListActivity {
         protected Album doInBackground(Integer ... args) {
             int album_id = args[0];
             try {
-                Log.d(TAG, "Fetching album...");
                 return mSession.fetchDetailedAlbum(album_id);
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.w(TAG, "API error", e);
             }
             Log.d(TAG, "Error fetching album!");
             return null;
@@ -458,33 +448,13 @@ public class PlaylistActivity extends ListActivity {
 
         protected void onPostExecute(Album result) {
             if(result == null){
-                Log.d(TAG, "Album fetch failed!");
-                mFetchAlbum = null;
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
                 return;
             }
             mSongs = result.cloneSongs();
-            updateView();
-            mFetchAlbum = null;
+            refreshData();
         }
     }
-
-    private void updateView() {
-        mHandler.obtainMessage(SET_THE_DATA).sendToTarget();
-    }
-
-    private Handler mHandler = new Handler() {
-        public void handleMessage(Message msg) {
-            switch(msg.what) {
-            case SET_THE_DATA:
-                setTheData();
-                break;
-
-            case SUCCESSFUL_REQUEST:
-                Toast.makeText(PlaylistActivity.this, R.string.msg_requested, Toast.LENGTH_SHORT).show();
-                break;
-            }
-        }
-    };
 
     private class RequestTask extends AsyncTask<Integer, Integer, Song[]> {
         @Override
@@ -494,86 +464,17 @@ public class PlaylistActivity extends ListActivity {
             try {
                 return mSession.submitRequest(song_id);
             } catch (RainwaveException e) {
-                Rainwave.showError(PlaylistActivity.this, e);
-                Log.e(TAG, "API Error: " + e);
+                Log.e(TAG, "API Error: ", e);
             }
             return null;
         }
 
         protected void onPostExecute(Song[] songs) {
             if(songs == null){
-                mRequest = null;
+                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
                 return;
             }
-            mHandler.obtainMessage(SUCCESSFUL_REQUEST).sendToTarget();
-            mRequest = null;
-        }
-
-    }
-
-    private class SongArrayAdapter extends ArrayAdapter<Song> {
-        class ViewHolder {
-            TextView text1, text2, time, cooldown;
-            CountdownView circle;
-        }
-
-        private int mMode;
-
-        public SongArrayAdapter(Context context, int layout, Song songs[], int mode) {
-            super(context,layout,songs);
-            mMode = mode;
-        }
-
-        public View getView(int position, View convertView, ViewGroup parent) {
-            Song s = getItem(position);
-            ViewHolder holder;
-            if(convertView == null) {
-                Context ctx = getContext();
-                LayoutInflater inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-                convertView = inflater.inflate(R.layout.item_song_playlist, null);
-                holder = new ViewHolder();
-
-                holder.text1 = (TextView) convertView.findViewById(android.R.id.text1);
-                holder.text2 = (TextView) convertView.findViewById(android.R.id.text2);
-                holder.circle = (CountdownView) convertView.findViewById(R.id.circle);
-                holder.time = (TextView) convertView.findViewById(R.id.time);
-                holder.cooldown = (TextView) convertView.findViewById(R.id.cooldown);
-                convertView.setTag(holder);
-            }
-            else {
-                holder = (ViewHolder) convertView.getTag();
-            }
-
-
-            // We should have at least this much for both views.
-            holder.text1.setText(s.getTitle());
-            holder.time.setText(s.getLengthString());
-
-            if(s.isCooling()) {
-                long time = s.getCooldown();
-                holder.cooldown.setText(Rainwave.getTimeTemplate(getContext(), time));
-                holder.cooldown.setVisibility(View.VISIBLE);
-
-                Drawable d = getContext().getResources().getDrawable(R.drawable.gradient_cooldown);
-                convertView.setBackgroundDrawable(d);
-            }
-            else {
-                holder.cooldown.setVisibility(View.GONE);
-                convertView.setBackgroundDrawable(null);
-            }
-
-            if(mMode == MODE_DETAIL_ALBUM) {
-                holder.circle.setVisibility(View.VISIBLE);
-                holder.circle.setBoth(s.getUserRating(), s.getCommunityRating());
-                holder.text2.setText(s.collapseArtists());
-            }
-            else {
-                holder.circle.setVisibility(View.GONE);
-                holder.text2.setText(s.getDefaultAlbum().getName());
-            }
-
-            return convertView;
+            Toast.makeText(PlaylistActivity.this, R.string.msg_requested, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -581,8 +482,4 @@ public class PlaylistActivity extends ListActivity {
         MODE_TOP_LEVEL = 1,
         MODE_DETAIL_ALBUM = 2,
         MODE_DETAIL_ARTIST = 4;
-
-    public static final int
-        SUCCESSFUL_REQUEST = 0x43C357,
-        SET_THE_DATA = 0x5E7DA7A;
 }

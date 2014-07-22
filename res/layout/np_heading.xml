@@ -1,4 +1,6 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="horizontal"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
@@ -7,32 +9,28 @@
     >
 
     <TextView
-        android:id="@+id/leftArrow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:gravity="center_horizontal"
+        tools:ignore="HardcodedText"
         android:text="«"
         android:visibility="invisible"
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/heading"
-        android:layout_width="wrap_content"
+        android:layout_width="0dip"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:layout_centerHorizontal="true"
         android:gravity="center_horizontal"
         android:text="@string/label_nowPlaying"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textStyle="bold" />
     
     <TextView
-        android:id="@+id/rightArrow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:gravity="center_horizontal"
+        tools:ignore="HardcodedText"
         android:text="»"
         android:textStyle="bold" />
 

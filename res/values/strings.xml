@@ -43,32 +43,30 @@
     <string name="label_anonymous">Anonymous</string>
     <string name="label_import_qr">Import from QR code</string>
     <string name="label_clear_preferences">Clear preferences</string>
+    <string name="label_playStream">Play stream</string>
+    <string name="label_electionDrawerHandle">Election drawer handle</string>
+    <string name="label_scan">Scan</string>
 
     <!-- Longer messages for dialogs, et cetera -->
     <string name="msg_new">New to Rainwave?</string>
     <string name="msg_howToRegister">You can listen to the radio right away. To vote, rate, and request
-        you\'ll need a user account. Register at the main web site at <b>rainwave.cc</b> and enter your
+        you\'ll need a user account. Register at the main web site at <b>rainwave.cc</b> and enter or scan your
         user ID and API key from the \'Manage API Keys\' page. </string>
     <string name="msg_import_qr">Import user ID and API key from a QR code.</string>
     <string name="msg_clear_preferences">Clear all preferences, including user ID and API key.</string>
     <string name="msg_manageAuth">From the \'Manage API Keys\' page at <b>rainwave.cc</b>.</string>
     <string name="msg_autoshow_elections">Automatically extend or hide election drawer.</string>
-    <string name="msg_sessionError">Failed to initialize session. Is the Rainwave URL
-        correct?</string>
     <string name="msg_requested">Your request was submitted!</string>
     <string name="msg_noRequests">You have no pending requests.</string>
     <string name="msg_nullFieldError">Please fill in all fields.</string>
     <string name="msg_tuneInFirst">Tune in first!</string>
     <string name="msg_tunedInVote">You must be tuned in to vote.</string>
-    <string name="msg_invalidUrl">Unsure of how to handle URI. Parts may have been omitted.</string>
-    <string name="msgfmt_parseError">"For endpoint %1$s: could not parse response from backend: %2$s"</string>
     <string name="msg_filterAlbum">Filter by album…</string>
     <string name="msg_filterArtist">Filter by artist…</string>
     <string name="msg_streamNotKnown">Stream URL is not known!</string>
     <string name="msg_genericError">Operation failed.</string>
     <string name="msg_noStations">The server did not report any stations.</string>
     <string name="msg_authenticationFailure">Authentication failure; please check your user ID and key.</string>
-    <string name="msg_noUserInfo">Could not find user information in URL.</string>
     <string name="msg_eventUpdateFailure">Could not fetch an event update.</string>
-    <string name="msg_forbidden">The server forbid the request. Has your key been invalidated?</string>
+    <string name="msg_authenticationRequired">Authentication is required.</string>
 </resources>
