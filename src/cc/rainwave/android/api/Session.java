@@ -37,6 +37,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Locale;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -657,9 +658,8 @@ public class Session {
 
     private RainwaveException wrapException(final JsonParseException exc, final String path)
     throws RainwaveException {
-        Resources r = mContext.getResources();
-        String msg = String.format(r.getString(R.string.msgfmt_parseError), path, exc.getMessage());
-        throw new RainwaveException(msg, exc);
+        throw new RainwaveException(
+                String.format(Locale.US, "For endpoint '%s': could not parse response.", path), exc);
     }
 
     private String getUrl(String path) throws MalformedURLException {

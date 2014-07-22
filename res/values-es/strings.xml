@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Labels for UI elements. -->
+    <string name="label_nowPlaying">Ahora Reproduciendo</string>
+    <string name="label_requestQueue">Peticiones</string>
+    <string name="label_playlist">Lista de canciones</string>
+    <string name="label_authentication">Información de la autenticación</string>
+    <string name="label_ui">Interfaz del usuario</string>
+    <string name="label_debug">Depuración</string>
+    <string name="label_userId">ID Numérico del Usuario</string>
+    <string name="label_key">Clave de API</string>
+    <string name="label_autoshow_elections">Mostrar elecciones automáticamente</string>
+    <string name="label_preferences">Preferencias</string>
+    <string name="label_refresh">Actualizar</string>
+    <string name="label_pickStation">Eliga una estación</string>
+    <string name="label_by_album">Por álbum</string>
+    <string name="label_by_artist">Por artista</string>
+    <string name="label_loading">Cargando…</string>
+    <string name="label_album">Álbum</string>
+    <string name="label_song">Canción</string>
+    <string name="label_requestor">Peticionado por: %s</string>
+    <string name="label_remove">Quitar</string>
+    <string name="label_request">Peticionar</string>
+    <string name="label_login">Iniciar sesión</string>
+    <string name="label_later">Otra vez</string>
+    <string name="label_never">Nunca</string>
+    <string name="label_cancel">Cancelar</string>
+    <string name="label_voted">¡Votado!</string>
+    <string name="label_voting">Votando…</string>
+    <string name="label_unrated">Sin clasificación</string>
+    <string name="label_error">Error</string>
+    <string name="label_ok">OK</string>
+    <string name="label_tunedin">Sintonizado</string>
+    <string name="label_nottunedin">Desconectado</string>
+    <string name="label_anonymous">Anónimo</string>
+    <string name="label_import_qr">Importar código de QR</string>
+    <string name="label_clear_preferences">Borrar preferencias</string>
+    <string name="label_playStream">Reproducir</string>
+    <string name="label_electionDrawerHandle">Elección</string>
+    <string name="label_scan">Escanear</string>
+
+    <!-- Longer messages for dialogs, et cetera -->
+    <string name="msg_new">Nuevo a Rainwave?</string>
+    <string name="msg_howToRegister">Puede escuchar al radio ahora mismo. Para votear, clasificar, y peticionar,
+        necesite una cuenta de usuario. Registre en sitio web en <b>rainwave.cc</b> e introduzca o escanea su 
+        ID del usuario y clave de API de la página \'Administrar Claves de API\'.</string>
+    <string name="msg_import_qr">Importa su ID del usuario y clave de API de un código de QR.</string>
+    <string name="msg_clear_preferences">Borrar todas las preferencias, incluyendo el ID del usuario y clave de API.</string>
+    <string name="msg_manageAuth">De la página \'Administrar Claves de API\' en <b>rainwave.cc</b>.</string>
+    <string name="msg_autoshow_elections">Automáticamente mostrar o esconder el cajón de la elección.</string>
+    <string name="msg_requested">¡Se recibió su petición!</string>
+    <string name="msg_noRequests">No tiene ningunas peticiones.</string>
+    <string name="msg_nullFieldError">Por favor rellene todos los campos.</string>
+    <string name="msg_tuneInFirst">¡Sintonice primero!</string>
+    <string name="msg_tunedInVote">Debe estar sintonizado para votar.</string>
+    <string name="msg_filterAlbum">Filtrar por álbum…</string>
+    <string name="msg_filterArtist">Filtrar por artista…</string>
+    <string name="msg_streamNotKnown">¡No se sabe la dirección URL de la estación!</string>
+    <string name="msg_genericError">La operación falló.</string>
+    <string name="msg_noStations">El servidor no comunicó ningunas estaciones.</string>
+    <string name="msg_authenticationFailure">Hubo error de autenticación; verifica su ID del usuario y clave de API.</string>
+    <string name="msg_eventUpdateFailure">No se pudo recibir actualización de evento.</string>
+    <string name="msg_authenticationRequired">Debe estar autenticado.</string>
+</resources>
