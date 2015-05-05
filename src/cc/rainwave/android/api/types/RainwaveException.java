@@ -88,11 +88,6 @@ public class RainwaveException extends Exception {
         if(message != null) {
             buffer.append(message);
         }
-        if(getErrorCode() != ERROR_UNKNOWN) {
-            buffer.append("[errno ");
-            buffer.append(getErrorCode());
-            buffer.append("]");
-        }
         return buffer.toString();
     }
 
