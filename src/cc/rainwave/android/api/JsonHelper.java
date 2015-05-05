@@ -50,6 +50,10 @@ public class JsonHelper {
         throw new JsonParseException(composite);
     }
 
+    public static JsonObject castAsJsonObject(JsonElement element) {
+        return castAsJsonObject(element, null);
+    }
+
     public static JsonObject castAsJsonObject(final JsonElement element, final String prefix) {
         if(!element.isJsonObject()) {
             throwParseError("Could not cast as JSON object.", prefix);
@@ -68,6 +72,14 @@ public class JsonHelper {
         final JsonObject obj = castAsJsonObject(element, String.format("While fetching '%s'", name));
         if(!obj.has(name)) {
             throwParseError(String.format("No such member: '%s'", name));
+        }
+        return obj.get(name);
+    }
+
+    public static JsonElement getChild(JsonElement element, String name, JsonElement defaultValue) {
+        JsonObject obj = castAsJsonObject(element, String.format("While fetching '%s'", name));
+        if(!obj.has(name)) {
+            return defaultValue;
         }
         return obj.get(name);
     }
