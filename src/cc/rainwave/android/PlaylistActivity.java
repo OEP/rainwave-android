@@ -428,7 +428,7 @@ public class PlaylistActivity extends ListActivity {
                 Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
                 return;
             }
-            mSongs = result.cloneSongs();
+            mSongs = result.cloneSongs(mSession.getStationId());
             refreshData();
         }
     }

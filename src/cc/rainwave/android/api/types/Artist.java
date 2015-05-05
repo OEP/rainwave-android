@@ -31,16 +31,22 @@
 package cc.rainwave.android.api.types;
 
 import java.lang.reflect.Type;
-
-import cc.rainwave.android.api.JsonHelper;
-
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import cc.rainwave.android.api.JsonHelper;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 
 public class Artist implements Parcelable, Comparable<Artist> {
     /** Artist ID */
@@ -49,8 +55,8 @@ public class Artist implements Parcelable, Comparable<Artist> {
     /** Artist name */
     private String mName;
 
-    /** Songs attributed to artist. */
-    private Song[] mSongs;
+    /** Maps station IDs to songs they contain. */
+    private Map<Integer, List<Song>> mSongs;
 
     /** Can't instantiate directly. */
     private Artist() {}
@@ -74,8 +80,17 @@ public class Artist implements Parcelable, Comparable<Artist> {
         return mName;
     }
 
-    public Song[] cloneSongs() {
-        return mSongs.clone();
+    /**
+     * Copies the list of songs for the given station ID.
+     * @param stationId the integer station id
+     * @return an array of songs, or null
+     */
+    public Song[] cloneSongs(int stationId) {
+        List<Song> songList = mSongs.get(stationId);
+        if(songList == null) {
+            return null;
+        }
+        return songList.toArray(new Song[songList.size()]);
     }
 
     @Override
@@ -109,7 +124,33 @@ public class Artist implements Parcelable, Comparable<Artist> {
             final Artist a = new Artist();
             a.mId = JsonHelper.getInt(element, "id");
             a.mName = JsonHelper.getString(element, "name");
-            a.mSongs = ctx.deserialize(JsonHelper.getJsonArray(element, "songs", null), Song[].class);
+
+            JsonElement all_songs_element = JsonHelper.getChild(element, "all_songs", null);
+            if(all_songs_element != null) {
+                JsonObject all_songs = JsonHelper.castAsJsonObject(all_songs_element);
+                a.mSongs = new HashMap<Integer, List<Song>>();
+                for(Entry<String, JsonElement> entry : all_songs.entrySet()) {
+                    int stationId = Integer.parseInt(entry.getKey());
+                    List<Song> songs = a.mSongs.get(stationId);
+                    if(songs == null) {
+                        songs = new ArrayList<Song>();
+                        a.mSongs.put(stationId, songs);
+                    }
+
+                    JsonObject songObject = JsonHelper.castAsJsonObject(entry.getValue());
+                    for(Entry<String, JsonElement> albumEntry : songObject.entrySet()) {
+                        JsonElement songListElement = albumEntry.getValue();
+                        JsonArray songListArray = songListElement.getAsJsonArray();
+
+                        // Loop over Json song list and add to the song list.
+                        for(JsonElement songElement : songListArray) {
+                            Song song = ctx.deserialize(songElement, Song.class);
+                            songs.add(song);
+                        }
+                    }
+                }
+            }
+
             return a;
         }
     }
