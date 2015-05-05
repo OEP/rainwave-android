@@ -291,7 +291,7 @@ public class NowPlayingActivity extends Activity {
                     if(e.getAction() == MotionEvent.ACTION_UP) {
                         w.unlockCurrentScreen();
                         Song s = mSession.getCurrentEvent().getCurrentSong();
-                        new RateTask(rating).execute(s);
+                        new RateTask(s, rating).execute();
                         b.setLabel(R.string.label_song);
                     }
                 }
@@ -358,7 +358,7 @@ public class NowPlayingActivity extends Activity {
 
                 // Show a message if they are not tuned in.
                 if(mSession.isTunedIn() && mSession.hasCredentials()) {
-                    new VoteTask(i).execute();
+                    new VoteTask(song).execute();
                 }
                 else {
                     showDialog(R.string.msg_tunedInVote);
@@ -474,7 +474,7 @@ public class NowPlayingActivity extends Activity {
 
     /** Spawn a new background task to remove a requested song. */
     private void requestRemove(Song s) {
-        new RemoveTask().execute(s);
+        new RemoveTask(s).execute();
     }
 
     /**
@@ -859,100 +859,69 @@ public class NowPlayingActivity extends Activity {
     };
 
     /** Removes a sequence of requests in background */
-    private class RemoveTask extends AsyncTask<Song, Integer, Boolean> {
-        @Override
-        protected Boolean doInBackground(Song... songs) {
-            boolean result = true;
-            for(Song song : songs) {
-                try {
-                    mSession.deleteRequest(song);
-                } catch (RainwaveException exc) {
-                    Log.w(TAG, "Remove request operation failed", exc);
-                    result |= false;
-                }
-            }
-            return result;
+    private class RemoveTask extends RainwaveAsyncTask<Void, Void, Boolean> {
+        private Song mSong;
+
+        public RemoveTask(Song song) {
+            mSong = song;
         }
 
         @Override
-        protected void onPostExecute(Boolean result) {
-            if(!result) {
-                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
-            }
+        protected Boolean getResult(Void... args) throws RainwaveException {
+            mSession.deleteRequest(mSong);
+            return true;
+        }
+
+        @Override
+        protected void onFailure(RainwaveException raised) {
+            Toast.makeText(NowPlayingActivity.this, raised.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
-    /** Rates a batch of songs in background */
-    private class RateTask extends AsyncTask<Song, Integer, SongRating[]> {
+    private class RateTask extends RainwaveAsyncTask<Void, Void, SongRating> {
+        private Song mSong;
         private float mRating;
 
-        public RateTask(float rating) {
+        public RateTask(Song song, float rating) {
+            mSong = song;
             mRating = rating;
         }
 
         @Override
-        protected SongRating[] doInBackground(Song... params) {
-            SongRating[] results = new SongRating[params.length];
-            for(int i = 0; i < params.length; i++) {
-                try {
-                    results[i] = mSession.rateSong(params[i].getId(), mRating);
-                } catch (RainwaveException exc) {
-                    String msg = String.format(Locale.US, "Can't rate %s", params[i]);
-                    Log.w(TAG, msg, exc);
-                }
-            }
-            return results;
+        protected SongRating getResult(Void... params) throws RainwaveException {
+            return mSession.rateSong(mSong.getId(), mRating);
         }
 
         @Override
-        protected void onPostExecute(SongRating[] result) {
-            boolean error = false;
-            for(SongRating rating : result) {
-                if(rating != null) {
-                    onRateSong(rating);
-                }
-                else {
-                    error = true;
-                }
-            }
-            if(error) {
-                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
-            }
+        protected void onSuccess(SongRating result) {
+            onRateSong(result);
+        }
+
+        @Override
+        protected void onFailure(RainwaveException raised) {
+            Toast.makeText(NowPlayingActivity.this, raised.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
     /** Reorders requests in background. */
-    private class ReorderTask extends AsyncTask<Song, Integer, Song[]> {
+    private class ReorderTask extends RainwaveAsyncTask<Song, Void, Song[]> {
         @Override
-        protected Song[] doInBackground(Song... requests) {
-            try {
-                return mSession.reorderRequests(requests);
-            } catch (RainwaveException exc) {
-                Log.w(TAG, "Reorder requests operation failed", exc);
-                return null;
-            }
+        protected Song[] getResult(Song... requests) throws RainwaveException {
+            return mSession.reorderRequests(requests);
         }
 
         @Override
-        protected void onPostExecute(Song[] reorderResult) {
-            if(reorderResult == null) {
-                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
-            }
+        protected void onFailure(RainwaveException raised) {
+            Toast.makeText(NowPlayingActivity.this, raised.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
     /** AsyncTask for voting in the election. */
-    private class VoteTask extends AsyncTask<Song, Integer, Boolean> {
-
+    private class VoteTask extends RainwaveAsyncTask<Void, Void, Boolean> {
         private Song mSong;
 
-        private int mSelection;
-
-        public VoteTask(int selection) {
-            ListView electionList = (ListView) findViewById(R.id.np_electionList);
-            SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
-            mSelection = selection;
-            mSong = adapter.getItem(selection);
+        VoteTask(Song song) {
+            mSong = song;
         }
 
         @Override
@@ -964,26 +933,23 @@ public class NowPlayingActivity extends Activity {
             adapter.notifyDataSetChanged();
         }
 
-        protected Boolean doInBackground(Song...params) {
-            try {
-                mSession.vote(mSong.getElectionEntryId());
-                return true;
-            } catch (RainwaveException e) {
-                Log.e(TAG, "API error", e);
-            }
-            return false;
+        @Override
+        protected Boolean getResult(Void... params) throws RainwaveException {
+            mSession.vote(mSong.getElectionEntryId());
+            return true;
         }
 
-        protected void onPostExecute(Boolean result) {
-            if(!result) {
-                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
-            }
-            else {
-                ListView electionList = (ListView) findViewById(R.id.np_electionList);
-                SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
-                adapter.setStatusLabel(mSong.getId(), R.string.label_voted);
-                adapter.notifyDataSetChanged();
-            }
+        @Override
+        protected void onSuccess(Boolean result) {
+            ListView electionList = (ListView) findViewById(R.id.np_electionList);
+            SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
+            adapter.setStatusLabel(mSong.getId(), R.string.label_voted);
+            adapter.notifyDataSetChanged();
+        }
+
+        @Override
+        protected void onFailure(RainwaveException raised) {
+            Toast.makeText(NowPlayingActivity.this, raised.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
