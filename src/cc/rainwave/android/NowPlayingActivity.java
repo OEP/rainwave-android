@@ -39,6 +39,8 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
@@ -46,7 +48,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
@@ -58,12 +59,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SlidingDrawer;
@@ -102,6 +101,12 @@ public class NowPlayingActivity extends Activity {
     /** True if device supports Window.FEATURE_INDETERMINATE_PROGRESS. */
     private boolean mHasIndeterminateProgress;
 
+    /** This is set to true when the deprecation is displayed. A user may
+     * choose to read it later, though, and we get into the weird situation
+     * where the notice is displayed more than once per session. This prevents
+     * that. */
+    private boolean mDeprecationDisplayed = false;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         mHasIndeterminateProgress = requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
@@ -129,6 +134,12 @@ public class NowPlayingActivity extends Activity {
         filter.addAction(SyncService.BROADCAST_EVENT_UPDATE_FAILED);
         filter.addAction(SyncService.BROADCAST_REAUTHENTICATE);
         registerReceiver(mEventUpdateReceiver, filter);
+
+        // Present deprecation notice.
+        if(!mDeprecationDisplayed && !mPreferences.getDeprecationNoticeAcknowledged()) {
+            showDialog(DIALOG_DEPRECATION_NOTICE);
+            mDeprecationDisplayed = true;
+        }
 
         fetchSchedules();
     }
@@ -209,6 +220,20 @@ public class NowPlayingActivity extends Activity {
 
             return builder.setView(listView)
                 .create();
+
+        case DIALOG_DEPRECATION_NOTICE:
+            builder.setTitle(R.string.label_deprecation);
+            builder.setMessage(R.string.msg_deprecation);
+            builder.setPositiveButton(R.string.label_ok, new OnClickListener() {
+
+                @Override
+                public void onClick(DialogInterface arg0, int arg1) {
+                    mPreferences.setDeprecationNoticeAcknowledged(true);
+                }
+
+            });
+            builder.setNegativeButton(R.string.label_show_again, null);
+            return builder.create();
 
         default:
             // Assume the number must be a string resource id.
@@ -955,5 +980,6 @@ public class NowPlayingActivity extends Activity {
 
     /** Dialog identifiers */
     public static final int
+        DIALOG_DEPRECATION_NOTICE = 0xd3b43cad,
         DIALOG_STATION_PICKER = 0xb1c7;
 }
