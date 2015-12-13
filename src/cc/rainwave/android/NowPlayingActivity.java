@@ -39,6 +39,8 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
@@ -46,7 +48,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
@@ -58,12 +59,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SlidingDrawer;
@@ -102,6 +101,12 @@ public class NowPlayingActivity extends Activity {
     /** True if device supports Window.FEATURE_INDETERMINATE_PROGRESS. */
     private boolean mHasIndeterminateProgress;
 
+    /** This is set to true when the deprecation is displayed. A user may
+     * choose to read it later, though, and we get into the weird situation
+     * where the notice is displayed more than once per session. This prevents
+     * that. */
+    private boolean mDeprecationDisplayed = false;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         mHasIndeterminateProgress = requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
@@ -129,6 +134,12 @@ public class NowPlayingActivity extends Activity {
         filter.addAction(SyncService.BROADCAST_EVENT_UPDATE_FAILED);
         filter.addAction(SyncService.BROADCAST_REAUTHENTICATE);
         registerReceiver(mEventUpdateReceiver, filter);
+
+        // Present deprecation notice.
+        if(!mDeprecationDisplayed && !mPreferences.getDeprecationNoticeAcknowledged()) {
+            showDialog(DIALOG_DEPRECATION_NOTICE);
+            mDeprecationDisplayed = true;
+        }
 
         fetchSchedules();
     }
@@ -209,6 +220,20 @@ public class NowPlayingActivity extends Activity {
 
             return builder.setView(listView)
                 .create();
+
+        case DIALOG_DEPRECATION_NOTICE:
+            builder.setTitle(R.string.label_deprecation);
+            builder.setMessage(R.string.msg_deprecation);
+            builder.setPositiveButton(R.string.label_ok, new OnClickListener() {
+
+                @Override
+                public void onClick(DialogInterface arg0, int arg1) {
+                    mPreferences.setDeprecationNoticeAcknowledged(true);
+                }
+
+            });
+            builder.setNegativeButton(R.string.label_show_again, null);
+            return builder.create();
 
         default:
             // Assume the number must be a string resource id.
@@ -291,7 +316,7 @@ public class NowPlayingActivity extends Activity {
                     if(e.getAction() == MotionEvent.ACTION_UP) {
                         w.unlockCurrentScreen();
                         Song s = mSession.getCurrentEvent().getCurrentSong();
-                        new RateTask(rating).execute(s);
+                        new RateTask(s, rating).execute();
                         b.setLabel(R.string.label_song);
                     }
                 }
@@ -358,7 +383,7 @@ public class NowPlayingActivity extends Activity {
 
                 // Show a message if they are not tuned in.
                 if(mSession.isTunedIn() && mSession.hasCredentials()) {
-                    new VoteTask(i).execute();
+                    new VoteTask(song).execute();
                 }
                 else {
                     showDialog(R.string.msg_tunedInVote);
@@ -474,7 +499,7 @@ public class NowPlayingActivity extends Activity {
 
     /** Spawn a new background task to remove a requested song. */
     private void requestRemove(Song s) {
-        new RemoveTask().execute(s);
+        new RemoveTask(s).execute();
     }
 
     /**
@@ -859,100 +884,69 @@ public class NowPlayingActivity extends Activity {
     };
 
     /** Removes a sequence of requests in background */
-    private class RemoveTask extends AsyncTask<Song, Integer, Boolean> {
-        @Override
-        protected Boolean doInBackground(Song... songs) {
-            boolean result = true;
-            for(Song song : songs) {
-                try {
-                    mSession.deleteRequest(song);
-                } catch (RainwaveException exc) {
-                    Log.w(TAG, "Remove request operation failed", exc);
-                    result |= false;
-                }
-            }
-            return result;
+    private class RemoveTask extends RainwaveAsyncTask<Void, Void, Boolean> {
+        private Song mSong;
+
+        public RemoveTask(Song song) {
+            mSong = song;
         }
 
         @Override
-        protected void onPostExecute(Boolean result) {
-            if(!result) {
-                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
-            }
+        protected Boolean getResult(Void... args) throws RainwaveException {
+            mSession.deleteRequest(mSong);
+            return true;
+        }
+
+        @Override
+        protected void onFailure(RainwaveException raised) {
+            Toast.makeText(NowPlayingActivity.this, raised.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
-    /** Rates a batch of songs in background */
-    private class RateTask extends AsyncTask<Song, Integer, SongRating[]> {
+    private class RateTask extends RainwaveAsyncTask<Void, Void, SongRating> {
+        private Song mSong;
         private float mRating;
 
-        public RateTask(float rating) {
+        public RateTask(Song song, float rating) {
+            mSong = song;
             mRating = rating;
         }
 
         @Override
-        protected SongRating[] doInBackground(Song... params) {
-            SongRating[] results = new SongRating[params.length];
-            for(int i = 0; i < params.length; i++) {
-                try {
-                    results[i] = mSession.rateSong(params[i].getId(), mRating);
-                } catch (RainwaveException exc) {
-                    String msg = String.format(Locale.US, "Can't rate %s", params[i]);
-                    Log.w(TAG, msg, exc);
-                }
-            }
-            return results;
+        protected SongRating getResult(Void... params) throws RainwaveException {
+            return mSession.rateSong(mSong.getId(), mRating);
         }
 
         @Override
-        protected void onPostExecute(SongRating[] result) {
-            boolean error = false;
-            for(SongRating rating : result) {
-                if(rating != null) {
-                    onRateSong(rating);
-                }
-                else {
-                    error = true;
-                }
-            }
-            if(error) {
-                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
-            }
+        protected void onSuccess(SongRating result) {
+            onRateSong(result);
+        }
+
+        @Override
+        protected void onFailure(RainwaveException raised) {
+            Toast.makeText(NowPlayingActivity.this, raised.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
     /** Reorders requests in background. */
-    private class ReorderTask extends AsyncTask<Song, Integer, Song[]> {
+    private class ReorderTask extends RainwaveAsyncTask<Song, Void, Song[]> {
         @Override
-        protected Song[] doInBackground(Song... requests) {
-            try {
-                return mSession.reorderRequests(requests);
-            } catch (RainwaveException exc) {
-                Log.w(TAG, "Reorder requests operation failed", exc);
-                return null;
-            }
+        protected Song[] getResult(Song... requests) throws RainwaveException {
+            return mSession.reorderRequests(requests);
         }
 
         @Override
-        protected void onPostExecute(Song[] reorderResult) {
-            if(reorderResult == null) {
-                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
-            }
+        protected void onFailure(RainwaveException raised) {
+            Toast.makeText(NowPlayingActivity.this, raised.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
     /** AsyncTask for voting in the election. */
-    private class VoteTask extends AsyncTask<Song, Integer, Boolean> {
-
+    private class VoteTask extends RainwaveAsyncTask<Void, Void, Boolean> {
         private Song mSong;
 
-        private int mSelection;
-
-        public VoteTask(int selection) {
-            ListView electionList = (ListView) findViewById(R.id.np_electionList);
-            SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
-            mSelection = selection;
-            mSong = adapter.getItem(selection);
+        VoteTask(Song song) {
+            mSong = song;
         }
 
         @Override
@@ -964,30 +958,28 @@ public class NowPlayingActivity extends Activity {
             adapter.notifyDataSetChanged();
         }
 
-        protected Boolean doInBackground(Song...params) {
-            try {
-                mSession.vote(mSong.getElectionEntryId());
-                return true;
-            } catch (RainwaveException e) {
-                Log.e(TAG, "API error", e);
-            }
-            return false;
+        @Override
+        protected Boolean getResult(Void... params) throws RainwaveException {
+            mSession.vote(mSong.getElectionEntryId());
+            return true;
         }
 
-        protected void onPostExecute(Boolean result) {
-            if(!result) {
-                Toast.makeText(NowPlayingActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
-            }
-            else {
-                ListView electionList = (ListView) findViewById(R.id.np_electionList);
-                SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
-                adapter.setStatusLabel(mSong.getId(), R.string.label_voted);
-                adapter.notifyDataSetChanged();
-            }
+        @Override
+        protected void onSuccess(Boolean result) {
+            ListView electionList = (ListView) findViewById(R.id.np_electionList);
+            SongListAdapter adapter = (SongListAdapter) electionList.getAdapter();
+            adapter.setStatusLabel(mSong.getId(), R.string.label_voted);
+            adapter.notifyDataSetChanged();
+        }
+
+        @Override
+        protected void onFailure(RainwaveException raised) {
+            Toast.makeText(NowPlayingActivity.this, raised.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
     /** Dialog identifiers */
     public static final int
+        DIALOG_DEPRECATION_NOTICE = 0xd3b43cad,
         DIALOG_STATION_PICKER = 0xb1c7;
 }

@@ -130,6 +130,14 @@ public class RainwavePreferences {
     }
 
     /**
+     * Get flag indicating if deprecation notice was acknowledged.
+     * @return true if deprecaction notice is acknowledged, false otherwise
+     */
+    public boolean getDeprecationNoticeAcknowledged() {
+        return mPreferences.getBoolean(DEPRECATION_NOTICE, false);
+    }
+
+    /**
      * Get the stored key.
      * @return the stored key, or null
      */
@@ -173,6 +181,17 @@ public class RainwavePreferences {
     }
 
     /**
+     * Stores preference for acknowledgment of deprecation notice.
+     * @param value true to skip deprecation notice next time
+     * @return true if the commit succeeded
+     */
+    public boolean setDeprecationNoticeAcknowledged(boolean value) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(DEPRECATION_NOTICE, value);
+        return check(editor, "setDeprecationNoticedAcknowledged()");
+    }
+
+    /**
      * Clears all user preferences.
      * @return true if the operation succeeded
      */
@@ -183,6 +202,7 @@ public class RainwavePreferences {
         editor.remove(USERID);
         editor.remove(LASTSTATION);
         editor.remove(AUTOSHOW_ELECTION);
+        editor.remove(DEPRECATION_NOTICE);
         return check(editor, "clear()");
     }
 
@@ -235,6 +255,9 @@ public class RainwavePreferences {
 
     /** Key for last known preference version. */
     private static final String VERSION = "version";
+
+    /** User has already acknowledged the deprecation notice. */
+    private static final String DEPRECATION_NOTICE = "pref_deprecation_acknowledged";
 
     /** Current version of preferences. Used in migrations. */
     public static final int CURRENT_VERSION = 1;

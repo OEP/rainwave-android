@@ -46,6 +46,8 @@
     <string name="label_playStream">Play stream</string>
     <string name="label_electionDrawerHandle">Election drawer handle</string>
     <string name="label_scan">Scan</string>
+    <string name="label_deprecation">Thank you!</string>
+    <string name="label_show_again">Show this later</string>
 
     <!-- Longer messages for dialogs, et cetera -->
     <string name="msg_new">New to Rainwave?</string>
@@ -69,4 +71,11 @@
     <string name="msg_authenticationFailure">Authentication failure; please check your user ID and key.</string>
     <string name="msg_eventUpdateFailure">Could not fetch an event update.</string>
     <string name="msg_authenticationRequired">Authentication is required.</string>
+    <string name="msg_deprecation">
+        Hi! Thanks for continuing to be a user after all these years. I have stopped development on this app,
+        but the folks at Rainwave are doing a fantastic job of integrating mobile into their web site. This
+        app will still work and continue to receive bug fixes as time allows, but there will not be any
+        new features. Thanks!
+        <br />&#8212; OEP
+    </string>
 </resources>

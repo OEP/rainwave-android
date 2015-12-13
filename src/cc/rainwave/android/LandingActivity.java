@@ -171,8 +171,15 @@ public class LandingActivity extends Activity {
      * message to the user. If the credentials are accepted, NowPlayingActivity
      * is launched.
      */
-    protected class VerifyCredentials extends AsyncTask<String, Integer, String> {
-        private String TAG = "VerifyCredentials";
+    protected class VerifyCredentials extends RainwaveAsyncTask<String, Void, Void> {
+        @Override
+        protected Void getResult(String... args) throws RainwaveException {
+            String id = args[0];
+            String key = args[1];
+            mSession.setUserInfo(id, key);
+            mSession.info();
+            return null;
+        }
 
         @Override
         protected void onPreExecute() {
@@ -183,45 +190,29 @@ public class LandingActivity extends Activity {
         }
 
         @Override
-        protected String doInBackground(String ... args) {
-            String userid = args[0];
-            String key = args[1];
-
-            mSession.setUserInfo(userid, key);
-
-            try {
-                mSession.info();
-                return null;
-            } catch (RainwaveException e) {
-                switch(e.getStatusCode()) {
-                case HttpURLConnection.HTTP_FORBIDDEN:
-                    return LandingActivity.this.getResources().getString(R.string.msg_authenticationFailure);
-                default:
-                    Log.w(TAG, "Unexpected exception: " + e.getMessage(), e);
-                    return e.getMessage();
-                }
-            }
+        protected void onSuccess(Void result) {
+            mSession.pickle();
+            setProgressBarIndeterminateVisibility(false);
+            startNowPlaying();
         }
 
         @Override
-        protected void onPostExecute(String error) {
-            super.onPostExecute(error);
-
+        protected void onFailure(RainwaveException raised) {
+            mSession.clearUserInfo();
+            findViewById(R.id.land_login).setEnabled(true);
+            findViewById(R.id.land_later).setEnabled(true);
+            findViewById(R.id.land_never).setEnabled(true);
             setProgressBarIndeterminateVisibility(false);
 
-            // If `error` is null this means there was not a problem.
-            if(error != null || !mSession.isAuthenticated()) {
-                mSession.clearUserInfo();
-                findViewById(R.id.land_login).setEnabled(true);
-                findViewById(R.id.land_later).setEnabled(true);
-                findViewById(R.id.land_never).setEnabled(true);
-                setProgressBarIndeterminateVisibility(false);
-                Toast.makeText(LandingActivity.this, error, Toast.LENGTH_LONG).show();
-                return;
+            // Figure out what message to show
+            switch(raised.getStatusCode()) {
+            case HttpURLConnection.HTTP_FORBIDDEN:
+                Toast.makeText(LandingActivity.this, R.string.msg_authenticationFailure, Toast.LENGTH_LONG).show();
+                break;
+            default:
+                Toast.makeText(LandingActivity.this, raised.getMessage(), Toast.LENGTH_LONG).show();
+                break;
             }
-
-            mSession.pickle();
-            startNowPlaying();
         }
     }
 }

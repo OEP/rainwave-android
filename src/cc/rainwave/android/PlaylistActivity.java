@@ -369,112 +369,93 @@ public class PlaylistActivity extends ListActivity {
         return b.isChecked();
     }
 
-    private class FetchAlbumsTask extends AsyncTask<String,String,Album[]> {
-
+    private class FetchAlbumsTask extends RainwaveAsyncTask<Void, Void, Album[]> {
         @Override
-        protected Album[] doInBackground(String... args) {
-            try {
-                return mSession.fetchAlbums();
-            } catch (RainwaveException e) {
-                Log.w(TAG, "API error", e);
-            }
-            return null;
+        protected Album[] getResult(Void... args) throws RainwaveException {
+            return mSession.fetchAlbums();
         }
 
-        protected void onPostExecute(Album result[]) {
-            if(result == null) {
-                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
-                return;
-            }
+        @Override
+        protected void onSuccess(Album result[]) {
             refreshData();
+        }
+
+        @Override
+        protected void onFailure(RainwaveException raised) {
+            Toast.makeText(PlaylistActivity.this, raised.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
-    private class FetchArtistsTask extends AsyncTask<String,String,Artist[]> {
-
+    private class FetchArtistsTask extends RainwaveAsyncTask<Void, Void, Artist[]> {
         @Override
-        protected Artist[] doInBackground(String... args) {
-            try {
-                return mSession.fetchArtists();
-            } catch (RainwaveException e) {
-                Log.w(TAG, "API error", e);
-            }
-            return null;
+        protected Artist[] getResult(Void... args) throws RainwaveException {
+            return mSession.fetchArtists();
         }
 
-        protected void onPostExecute(Artist result[]) {
-            if(result == null) {
-                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
-                return;
-            }
+        @Override
+        protected void onSuccess(Artist result[]) {
             refreshData();
+        }
+
+        @Override
+        protected void onFailure(RainwaveException raised) {
+            Toast.makeText(PlaylistActivity.this, raised.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
-    private class FetchDetailedArtistTask extends AsyncTask<Integer,String,Artist> {
+    private class FetchDetailedArtistTask extends RainwaveAsyncTask<Integer, Void, Artist> {
         @Override
-        protected Artist doInBackground(Integer ... args) {
+        protected Artist getResult(Integer ... args) throws RainwaveException {
             int artist_id = args[0];
-            try {
-                return mSession.fetchDetailedArtist(artist_id);
-            } catch (RainwaveException e) {
-                Log.e(TAG, "API error", e);
-            }
-            return null;
+            return mSession.fetchDetailedArtist(artist_id);
         }
 
-        protected void onPostExecute(Artist result) {
-            if(result == null) {
-                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
-                return;
-            }
-            mSongs = result.cloneSongs();
+        @Override
+        protected void onFailure(RainwaveException raised) {
+            Toast.makeText(PlaylistActivity.this, raised.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        protected void onSuccess(Artist result) {
+            mSongs = result.cloneSongs(mSession.getStationId());
             refreshData();
         }
     }
 
-    private class FetchDetailedAlbumTask extends AsyncTask<Integer,String,Album> {
+    private class FetchDetailedAlbumTask extends RainwaveAsyncTask<Integer, Integer, Album> {
         @Override
-        protected Album doInBackground(Integer ... args) {
+        public Album getResult(Integer ... args) throws RainwaveException {
             int album_id = args[0];
-            try {
-                return mSession.fetchDetailedAlbum(album_id);
-            } catch (RainwaveException e) {
-                Log.w(TAG, "API error", e);
-            }
-            Log.d(TAG, "Error fetching album!");
-            return null;
+            return mSession.fetchDetailedAlbum(album_id);
         }
 
-        protected void onPostExecute(Album result) {
-            if(result == null){
-                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
-                return;
-            }
+        @Override
+        protected void onSuccess(Album result) {
             mSongs = result.cloneSongs();
             refreshData();
         }
+
+        @Override
+        protected void onFailure(RainwaveException raised) {
+            Toast.makeText(PlaylistActivity.this, raised.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
-    private class RequestTask extends AsyncTask<Integer, Integer, Song[]> {
+    private class RequestTask extends RainwaveAsyncTask<Integer, Integer, Song[]> {
         @Override
-        protected Song[] doInBackground(Integer... args) {
+        public Song[] getResult(Integer... args) throws RainwaveException {
             int song_id = args[0];
-
-            try {
-                return mSession.submitRequest(song_id);
-            } catch (RainwaveException e) {
-                Log.e(TAG, "API Error: ", e);
-            }
-            return null;
+            return mSession.submitRequest(song_id);
         }
 
-        protected void onPostExecute(Song[] songs) {
-            if(songs == null){
-                Toast.makeText(PlaylistActivity.this, R.string.msg_genericError, Toast.LENGTH_SHORT).show();
-                return;
-            }
+        @Override
+        public void onSuccess(Song[] songs) {
             Toast.makeText(PlaylistActivity.this, R.string.msg_requested, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onFailure(RainwaveException raised) {
+            Toast.makeText(PlaylistActivity.this, raised.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
